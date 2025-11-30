@@ -8,7 +8,7 @@ import axios, { type AxiosInstance, type AxiosError } from 'axios'
 const BASE_URL = import.meta.env.VITE_API_URL || ''
 
 // Create axios instance
-const apiClient: AxiosInstance = axios.create({
+const axiosInstance: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 30000, // 30 seconds
   headers: {
@@ -17,7 +17,7 @@ const apiClient: AxiosInstance = axios.create({
 })
 
 // Request interceptor
-apiClient.interceptors.request.use(
+axiosInstance.interceptors.request.use(
   (config) => {
     // Add timestamp to prevent caching
     config.params = {
@@ -35,7 +35,7 @@ apiClient.interceptors.request.use(
 )
 
 // Response interceptor
-apiClient.interceptors.response.use(
+axiosInstance.interceptors.response.use(
   (response) => {
     console.log(`✅ API Response: ${response.status} ${response.config.url}`)
     return response
@@ -66,4 +66,35 @@ apiClient.interceptors.response.use(
   }
 )
 
-export default apiClient
+// Helper methods with type inference
+export const apiClient = {
+  async get<T>(url: string, config?: any): Promise<T> {
+    const response = await axiosInstance.get<T>(url, config)
+    return response.data
+  },
+
+  async post<T>(url: string, data?: any, config?: any): Promise<T> {
+    const response = await axiosInstance.post<T>(url, data, config)
+    return response.data
+  },
+
+  async patch<T>(url: string, data?: any, config?: any): Promise<T> {
+    const response = await axiosInstance.patch<T>(url, data, config)
+    return response.data
+  },
+
+  async put<T>(url: string, data?: any, config?: any): Promise<T> {
+    const response = await axiosInstance.put<T>(url, data, config)
+    return response.data
+  },
+
+  async delete<T = void>(url: string, config?: any): Promise<T> {
+    const response = await axiosInstance.delete<T>(url, config)
+    return response.data
+  }
+}
+
+// Export raw axios instance for advanced use cases
+export const axiosClient = axiosInstance
+
+export default axiosInstance

@@ -2,7 +2,7 @@
  * Audio API Client
  * Handles all audio-related API calls
  */
-import apiClient from './client'
+import { apiClient } from './client'
 import type {
   Voice,
   AudioMessage,
@@ -17,48 +17,52 @@ export const audioApi = {
    * Get all active voices
    */
   async getVoices(): Promise<Voice[]> {
-    const response = await apiClient.get<Voice[]>('/api/v1/audio/voices')
-    return response.data
+    return apiClient.get<Voice[]>('/api/v1/audio/voices')
   },
 
   /**
    * Get specific voice by ID
    */
   async getVoice(voiceId: string): Promise<Voice> {
-    const response = await apiClient.get<Voice>(`/api/v1/audio/voices/${voiceId}`)
-    return response.data
+    return apiClient.get<Voice>(`/api/v1/audio/voices/${voiceId}`)
   },
 
   /**
    * Generate TTS audio with automatic voice settings
    */
   async generateAudio(request: AudioGenerateRequest): Promise<AudioGenerateResponse> {
-    const response = await apiClient.post<AudioGenerateResponse>(
+    return apiClient.post<AudioGenerateResponse>(
       '/api/v1/audio/generate',
       request
     )
-    return response.data
   },
 
   /**
    * Get recent messages for Dashboard display
    */
   async getRecentMessages(limit: number = 10): Promise<AudioMessage[]> {
-    const response = await apiClient.get<AudioMessage[]>('/api/v1/audio/recent', {
+    return apiClient.get<AudioMessage[]>('/api/v1/audio/recent', {
       params: { limit }
     })
-    return response.data
   },
 
   /**
    * Generate AI text suggestions using Claude
    */
   async generateAISuggestions(params: AISuggestionsRequest): Promise<AISuggestionsResponse> {
-    const response = await apiClient.post<AISuggestionsResponse>(
+    return apiClient.post<AISuggestionsResponse>(
       '/api/v1/ai/suggest',
       params
     )
-    return response.data
+  },
+
+  /**
+   * Save audio to library (mark as favorite)
+   */
+  async saveToLibrary(audioId: number): Promise<{ success: boolean; message: string; data: any }> {
+    return apiClient.patch<{ success: boolean; message: string; data: any }>(
+      `/api/v1/audio/${audioId}/save-to-library`
+    )
   },
 }
 

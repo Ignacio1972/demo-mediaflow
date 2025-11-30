@@ -74,7 +74,10 @@
             :disabled="!canGenerate"
           >
             <span v-if="isGenerating" class="loading loading-spinner"></span>
-            <span v-else>✨ Generar Sugerencias con IA</span>
+            <span v-else class="flex items-center gap-2">
+              <SparklesIcon class="h-5 w-5" />
+              Generar Sugerencias con IA
+            </span>
           </button>
         </div>
 
@@ -106,24 +109,35 @@
 
                 <!-- Metadata -->
                 <div class="flex items-center gap-4 text-xs opacity-70 mt-2">
-                  <span>📝 {{ countWords(suggestion) }} palabras</span>
-                  <span>📏 {{ suggestion.length }} caracteres</span>
-                  <span>⏱️ ~{{ estimateDuration(suggestion) }}s</span>
+                  <span class="flex items-center gap-1">
+                    <DocumentTextIcon class="h-3 w-3" />
+                    {{ countWords(suggestion) }} palabras
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <Bars3BottomLeftIcon class="h-3 w-3" />
+                    {{ suggestion.length }} caracteres
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <ClockIcon class="h-3 w-3" />
+                    ~{{ estimateDuration(suggestion) }}s
+                  </span>
                 </div>
 
                 <!-- Actions -->
                 <div class="card-actions justify-end mt-3">
                   <button
                     @click.stop="useSuggestion(suggestion)"
-                    class="btn btn-primary btn-sm"
+                    class="btn btn-primary btn-sm gap-2"
                   >
-                    ✓ Usar este texto
+                    <CheckIcon class="h-4 w-4" />
+                    Usar este texto
                   </button>
                   <button
                     @click.stop="copySuggestion(suggestion)"
-                    class="btn btn-ghost btn-sm"
+                    class="btn btn-ghost btn-sm gap-2"
                   >
-                    📋 Copiar
+                    <ClipboardDocumentIcon class="h-4 w-4" />
+                    Copiar
                   </button>
                 </div>
               </div>
@@ -134,9 +148,10 @@
           <div class="mt-4 text-center">
             <button
               @click="clearSuggestions"
-              class="btn btn-ghost btn-sm"
+              class="btn btn-ghost btn-sm gap-2"
             >
-              🗑️ Limpiar sugerencias
+              <TrashIcon class="h-4 w-4" />
+              Limpiar sugerencias
             </button>
           </div>
         </div>
@@ -155,6 +170,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import audioApi from '@/api/audio'
+import {
+  SparklesIcon,
+  DocumentTextIcon,
+  Bars3BottomLeftIcon,
+  ClockIcon,
+  CheckIcon,
+  ClipboardDocumentIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 
 // Emits
 const emit = defineEmits<{

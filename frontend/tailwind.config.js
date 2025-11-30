@@ -15,8 +15,8 @@ export default {
       {
         // OPCIÓN 1: Minimalista Oscuro (Default)
         mediaflow: {
-          "primary": "#6366f1",      // Indigo moderno
-          "secondary": "#8b5cf6",    // Purple suave
+          "primary": "#06b6d4",      // Cyan/Celeste moderno
+          "secondary": "#06b6d4",    // Cyan/Celeste
           "accent": "#14b8a6",       // Teal elegante
           "neutral": "#1e293b",      // Slate oscuro
           "base-100": "#0f172a",     // Casi negro
@@ -29,8 +29,8 @@ export default {
         },
         // OPCIÓN 2: Clean White (Minimalista Claro)
         cleanwhite: {
-          "primary": "#2563eb",      // Blue profesional
-          "secondary": "#7c3aed",    // Purple corporativo
+          "primary": "#06b6d4",      // Cyan/Celeste profesional
+          "secondary": "#06b6d4",    // Cyan/Celeste
           "accent": "#0891b2",       // Cyan
           "neutral": "#1f2937",
           "base-100": "#ffffff",     // Blanco puro
@@ -43,9 +43,9 @@ export default {
         },
         // OPCIÓN 3: Nordic Light (Escandinavo)
         nordic: {
-          "primary": "#4f46e5",      // Indigo profundo
+          "primary": "#06b6d4",      // Cyan/Celeste
           "secondary": "#06b6d4",    // Cyan claro
-          "accent": "#8b5cf6",       // Purple vibrante
+          "accent": "#14b8a6",       // Teal
           "neutral": "#475569",
           "base-100": "#f1f5f9",     // Gris clarísimo
           "base-200": "#e2e8f0",     // Gris suave

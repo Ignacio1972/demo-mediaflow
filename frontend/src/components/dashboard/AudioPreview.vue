@@ -68,30 +68,58 @@
           ></audio>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="card-actions justify-end mt-4">
+        <!-- Main Action Buttons (3 buttons like old dashboard) -->
+        <div class="flex flex-wrap gap-3 mt-4 justify-end">
+          <!-- Guardar en Biblioteca -->
+          <button
+            @click="saveToLibrary"
+            class="btn btn-success"
+            :class="{ 'btn-disabled': isSaved }"
+            :disabled="savingToLibrary || isSaved"
+          >
+            <span v-if="savingToLibrary" class="loading loading-spinner loading-xs"></span>
+            <span v-else-if="isSaved">Guardado</span>
+            <span v-else>Guardar en Biblioteca</span>
+          </button>
+
+          <!-- Enviar a Máquina Local -->
+          <button
+            @click="sendToLocalPlayer"
+            class="btn btn-outline"
+            :disabled="sendingToLocal"
+            title="Enviar al reproductor local"
+          >
+            <span v-if="sendingToLocal" class="loading loading-spinner loading-xs"></span>
+            <span v-else>Enviar a Maquina Local</span>
+          </button>
+
+          <!-- Enviar a AzuraCast -->
+          <button
+            @click="sendToAzuracast"
+            class="btn btn-outline"
+            :disabled="sendingToAzuracast"
+            title="Enviar a la radio AzuraCast"
+          >
+            <span v-if="sendingToAzuracast" class="loading loading-spinner loading-xs"></span>
+            <span v-else>Enviar a AzuraCast</span>
+          </button>
+        </div>
+
+        <!-- Secondary Actions (download, copy URL) -->
+        <div class="card-actions justify-end mt-3 pt-3 border-t border-base-300">
           <button
             @click="downloadAudio"
-            class="btn btn-outline btn-sm"
+            class="btn btn-ghost btn-sm"
           >
-            ⬇️ Descargar
+            Descargar
           </button>
 
           <button
             @click="copyUrl"
-            class="btn btn-outline btn-sm"
-            :class="{ 'btn-success': urlCopied }"
+            class="btn btn-ghost btn-sm"
+            :class="{ 'text-success': urlCopied }"
           >
-            {{ urlCopied ? '✓ Copiado' : '🔗 Copiar URL' }}
-          </button>
-
-          <button
-            @click="sendToPlayer"
-            class="btn btn-primary btn-sm"
-            :disabled="sending"
-          >
-            <span v-if="sending" class="loading loading-spinner loading-xs"></span>
-            <span v-else>📡 Enviar al Player</span>
+            {{ urlCopied ? 'Copiado' : 'Copiar URL' }}
           </button>
         </div>
       </div>
@@ -100,7 +128,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useAudioStore } from '@/stores/audio'
 import type { AudioGenerateResponse } from '@/types/audio'
 
 // Props
@@ -108,11 +137,22 @@ const props = defineProps<{
   audio: AudioGenerateResponse | null
 }>()
 
+// Store
+const audioStore = useAudioStore()
+
 // State
 const audioPlayer = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const urlCopied = ref(false)
-const sending = ref(false)
+const savingToLibrary = ref(false)
+const sendingToLocal = ref(false)
+const sendingToAzuracast = ref(false)
+const isSaved = ref(false)
+
+// Reset isSaved when audio changes
+watch(() => props.audio?.audio_id, () => {
+  isSaved.value = false
+})
 
 // Methods
 const formatDuration = (seconds: number): string => {
@@ -154,22 +194,59 @@ const copyUrl = async () => {
   }
 }
 
-const sendToPlayer = async () => {
+// Save to Library
+const saveToLibrary = async () => {
   if (!props.audio) return
 
-  sending.value = true
+  savingToLibrary.value = true
 
   try {
-    // TODO: Implement player API call (Semana 2)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    console.log('📡 Sent to player:', props.audio.filename)
-
-    alert('✅ Audio enviado al player correctamente')
+    await audioStore.saveToLibrary(props.audio.audio_id)
+    isSaved.value = true
+    console.log('Guardado en biblioteca:', props.audio.filename)
   } catch (e) {
-    console.error('Failed to send to player:', e)
-    alert('❌ Error al enviar al player')
+    console.error('Error al guardar en biblioteca:', e)
+    alert('Error al guardar en biblioteca')
   } finally {
-    sending.value = false
+    savingToLibrary.value = false
+  }
+}
+
+// Send to Local Player
+const sendToLocalPlayer = async () => {
+  if (!props.audio) return
+
+  sendingToLocal.value = true
+
+  try {
+    // TODO: Implement local player API call
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    console.log('Enviado a maquina local:', props.audio.filename)
+    alert('Audio enviado a Maquina Local')
+  } catch (e) {
+    console.error('Error al enviar a maquina local:', e)
+    alert('Error al enviar a Maquina Local')
+  } finally {
+    sendingToLocal.value = false
+  }
+}
+
+// Send to AzuraCast
+const sendToAzuracast = async () => {
+  if (!props.audio) return
+
+  sendingToAzuracast.value = true
+
+  try {
+    // TODO: Implement AzuraCast API call
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    console.log('Enviado a AzuraCast:', props.audio.filename)
+    alert('Audio enviado a AzuraCast')
+  } catch (e) {
+    console.error('Error al enviar a AzuraCast:', e)
+    alert('Error al enviar a AzuraCast')
+  } finally {
+    sendingToAzuracast.value = false
   }
 }
 </script>

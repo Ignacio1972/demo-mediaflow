@@ -302,3 +302,66 @@ async def get_recent_messages(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch recent messages: {str(e)}",
         )
+
+
+@router.patch(
+    "/{audio_id}/save-to-library",
+    summary="Save Audio to Library",
+    description="Mark an audio message as saved/favorite for the Library",
+    responses={
+        200: {"description": "Audio saved to library successfully"},
+        404: {"model": ErrorResponse, "description": "Audio not found"},
+    },
+)
+async def save_to_library(
+    audio_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Save an audio message to the library by marking it as favorite.
+
+    This is used from the Dashboard after generating an audio to
+    save it to the Library for later use.
+    """
+    try:
+        logger.info(f"💾 Saving audio to library: ID={audio_id}")
+
+        # Find the audio message
+        result = await db.execute(
+            select(AudioMessage).filter(AudioMessage.id == audio_id)
+        )
+        audio_message = result.scalar_one_or_none()
+
+        if not audio_message:
+            logger.warning(f"⚠️ Audio not found: {audio_id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Audio message with ID {audio_id} not found",
+            )
+
+        # Mark as favorite (saved to library)
+        audio_message.is_favorite = True
+        await db.commit()
+        await db.refresh(audio_message)
+
+        logger.info(f"✅ Audio saved to library: {audio_message.filename}")
+
+        return {
+            "success": True,
+            "message": "Audio guardado en biblioteca",
+            "data": {
+                "id": audio_message.id,
+                "filename": audio_message.filename,
+                "display_name": audio_message.display_name,
+                "is_favorite": audio_message.is_favorite,
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to save to library: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save to library: {str(e)}",
+        )

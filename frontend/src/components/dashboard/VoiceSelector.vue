@@ -17,7 +17,7 @@
             :value="voice.id"
           >
             {{ getGenderIcon(voice.gender) }} {{ voice.name }}
-            {{ voice.is_default ? '⭐' : '' }}
+            {{ voice.is_default ? '★' : '' }}
           </option>
         </select>
 
@@ -25,10 +25,16 @@
         <span v-else-if="isLoading" class="loading loading-spinner loading-md"></span>
 
         <!-- Error State -->
-        <span v-else-if="error" class="text-error text-sm">❌ Error cargando voces</span>
+        <span v-else-if="error" class="text-error text-sm flex items-center gap-1">
+          <XCircleIcon class="w-4 h-4" />
+          Error cargando voces
+        </span>
 
         <!-- Empty State -->
-        <span v-else class="text-warning text-sm">⚠️ No hay voces</span>
+        <span v-else class="text-warning text-sm flex items-center gap-1">
+          <ExclamationTriangleIcon class="w-4 h-4" />
+          No hay voces
+        </span>
       </div>
     </div>
 
@@ -57,8 +63,9 @@
             <span class="font-mono ml-2">{{ selectedVoice.volume_adjustment > 0 ? '+' : '' }}{{ selectedVoice.volume_adjustment }} dB</span>
           </div>
         </div>
-        <p class="text-xs opacity-70 mt-3">
-          💡 Estos settings se aplican automáticamente al generar
+        <p class="text-xs opacity-70 mt-3 flex items-center gap-1">
+          <LightBulbIcon class="w-4 h-4" />
+          Estos settings se aplican automáticamente al generar
         </p>
       </div>
     </div>
@@ -69,6 +76,7 @@
 import { onMounted, computed, ref, watch } from 'vue'
 import { useAudioStore } from '@/stores/audio'
 import { storeToRefs } from 'pinia'
+import { XCircleIcon, ExclamationTriangleIcon, LightBulbIcon } from '@heroicons/vue/24/outline'
 
 // Store
 const audioStore = useAudioStore()
@@ -93,9 +101,9 @@ const handleVoiceChange = () => {
 }
 
 const getGenderIcon = (gender?: string) => {
-  if (gender === 'M') return '👨'
-  if (gender === 'F') return '👩'
-  return '🎙️'
+  if (gender === 'M') return '♂'
+  if (gender === 'F') return '♀'
+  return '🎤'
 }
 
 // Load voices on mount

@@ -1,7 +1,7 @@
 # 🤖 Claude.md - Contexto del Proyecto MediaFlowDemo v2.1
 
 **Fecha Creación**: 2025-11-22
-**Última Actualización**: 2025-11-22
+**Última Actualización**: 2025-11-29
 **Propósito**: Documentación para Claude en futuras sesiones
 
 ---
@@ -46,14 +46,21 @@ Playground → Configurar (una vez, automático para siempre)
    - Campo `is_favorite` en AudioMessage
    - Filtro especial que cruza todas las categorías
 
-4. **Vista Dual en Library** ⭐ **PENDIENTE**
+4. **Vista Dual en Library** ⭐ **ESPECIFICADO**
    - Grid (cards) + Lista (tabla)
    - Usuario elige su preferencia
+   - Ver `06-LIBRARY-TECHNICAL-SPEC.md` para detalles
 
 5. **Dashboard Simplificado** ⭐ **LANDING LISTO**
    - SIN selector de categoría
    - Mensajes recientes siempre visibles
    - Generación rápida
+
+6. **Módulo Library** ⭐ **ESPECIFICACIÓN COMPLETA**
+   - Arquitectura modular (archivos pequeños ~100-200 líneas)
+   - Composables separados para lógica reutilizable
+   - Store Pinia centralizado
+   - Ver `06-LIBRARY-TECHNICAL-SPEC.md` para implementación
 
 ---
 
@@ -158,7 +165,28 @@ frontend/
 │   └── components/
 │       ├── dashboard/
 │       │   └── Dashboard.vue           # ✅ Landing page
-│       ├── library/Library.vue         # ⚠️ Placeholder
+│       ├── library/                    # ⭐ ESPECIFICACIÓN COMPLETA
+│       │   ├── Library.vue             # Container principal
+│       │   ├── components/
+│       │   │   ├── LibraryHeader.vue
+│       │   │   ├── LibraryFilters.vue
+│       │   │   ├── LibraryGrid.vue
+│       │   │   ├── LibraryList.vue
+│       │   │   ├── ViewToggle.vue
+│       │   │   ├── MessageCard.vue
+│       │   │   └── CategoryBadge.vue
+│       │   ├── modals/
+│       │   │   ├── ScheduleModal.vue
+│       │   │   └── UploadModal.vue
+│       │   ├── composables/
+│       │   │   ├── useLibrary.ts
+│       │   │   ├── useAudioPlayer.ts
+│       │   │   ├── useFileUpload.ts
+│       │   │   └── useSelection.ts
+│       │   ├── stores/
+│       │   │   └── libraryStore.ts
+│       │   └── services/
+│       │       └── libraryApi.ts
 │       ├── calendar/Calendar.vue       # ⚠️ Placeholder
 │       └── settings/                   # ⚠️ Placeholders
 ```
@@ -283,11 +311,12 @@ vs Flujo Malo (v1.0):
 - Audio processing (LUFS, jingles)
 - Player endpoints
 
-### Semana 3: Library Module
-- CRUD completo
-- Vista dual (Grid + List)
-- Favoritos
-- Edit in Dashboard
+### Semana 3: Library Module ⭐ ESPECIFICACIÓN LISTA
+- ✅ Especificación técnica completa (`06-LIBRARY-TECHNICAL-SPEC.md`)
+- ⏳ CRUD completo
+- ⏳ Vista dual (Grid + List)
+- ⏳ Favoritos
+- ⏳ Edit in Dashboard
 
 ### Semana 4: Calendar
 ### Semana 5: Settings/Playground ⭐ CRÍTICO
@@ -429,9 +458,11 @@ npm run test:unit
 - `02-ARCHITECTURE-v2.1.md` - ⭐ Arquitectura actualizada v2.1
 - `03-ROADMAP-v2.1.md` - Roadmap de 6 semanas
 - `04-IMPLEMENTATION-GUIDE.md` - Ejemplos de código
+- `05-PLAYGROUND-TECHNICAL-SPEC.md` - Especificación técnica Playground
+- `06-LIBRARY-TECHNICAL-SPEC.md` - ⭐ Especificación técnica Library (NUEVO)
 - `PLAYGROUND-ANALYSIS.md` - Análisis del playground actual
 - `README.md` - Guía de inicio rápido
-- `SETUP-COMPLETE.md` - Estado del setup
+- `LEGACY-SYSTEM-REUSABLE-ASSETS.md` - Assets reutilizables del sistema legacy
 
 **URLs Importantes**:
 - Backend API: http://localhost:3001
@@ -466,25 +497,67 @@ npm run test:unit
 
 ---
 
-## 🔄 Estado Actual de Tareas (2025-11-22)
+## 🔄 Estado Actual de Tareas (2025-11-29)
+
+**Completado**:
+- ✅ API client (client.ts + audio.ts)
+- ✅ Especificación técnica Library (`06-LIBRARY-TECHNICAL-SPEC.md`)
 
 **En Progreso**:
-- ✅ API client (client.ts + audio.ts) - COMPLETADO
-- ⏳ Pinia store (audio.ts) - INTERRUMPIDO
-- ⏳ Frontend components (VoiceSelector, MessageGenerator, etc)
+- ⏳ Pinia store (audio.ts)
+- ⏳ Frontend components Dashboard (VoiceSelector, MessageGenerator, etc)
 
-**Próximos Pasos**:
+**Próximos Pasos Dashboard**:
 1. Completar Pinia store
 2. VoiceSelector.vue
 3. MessageGenerator.vue
 4. AudioPreview.vue
 5. RecentMessages.vue
-6. Integrar en Dashboard
+6. Integrar en Dashboard.vue
 7. Seed de voces
 8. Claude AI service
 
+**Próximos Pasos Library** (Semana 3):
+1. libraryStore.ts - Estado Pinia
+2. libraryApi.ts - Llamadas API
+3. Library.vue - Container
+4. LibraryGrid.vue - Vista grid
+5. MessageCard.vue - Card individual
+6. useAudioPlayer.ts - Reproducción
+7. CategoryBadge.vue - Dropdown categorías
+8. ScheduleModal.vue - Programación
+9. UploadModal.vue - Subir audio
+
 ---
 
-**Última actualización**: 2025-11-22
+## 📊 Resumen Módulo Library
+
+**Diferencias clave v1 → v2.1**:
+
+| Aspecto | v1 (Legacy) | v2.1 (Nuevo) |
+|---------|-------------|--------------|
+| Categorías | Hardcoded (7 fijas) | Dinámicas (Settings) |
+| Favoritos | No existe | Cross-category |
+| Vista | Solo Grid | Grid + Lista |
+| Editar | Modifica original | Copia a Dashboard |
+| Arquitectura | 1 archivo (1236 líneas) | Modular (~100 líneas c/u) |
+
+**Funciones principales**:
+- Preview/Reproducir audio
+- Categorías dinámicas (dropdown)
+- Favoritos (⭐ toggle)
+- Programar en calendario
+- Enviar a radio
+- Editar en Dashboard (copia)
+- Subir audios externos
+- Eliminar (individual + batch)
+- Selección múltiple
+- Vista Grid/Lista toggle
+
+**Ver**: `06-LIBRARY-TECHNICAL-SPEC.md` para implementación completa.
+
+---
+
+**Última actualización**: 2025-11-29
 **Autor**: Claude (Anthropic)
-**Versión**: 1.0
+**Versión**: 1.1

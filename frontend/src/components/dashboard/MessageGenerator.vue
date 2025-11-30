@@ -62,14 +62,22 @@
             :disabled="!canGenerate"
           >
             <span v-if="isLoading" class="loading loading-spinner"></span>
-            <span v-else>🎙️ Generar Audio</span>
+            <span v-else class="flex items-center gap-2">
+              <MicrophoneIcon class="h-5 w-5" />
+              Generar Audio
+            </span>
           </button>
         </div>
 
         <!-- Error Display -->
         <div v-if="error" class="alert alert-error mt-4">
-          <span>❌ {{ error }}</span>
-          <button @click="clearError" class="btn btn-sm btn-ghost">✕</button>
+          <div class="flex items-center gap-2">
+            <XCircleIcon class="h-5 w-5" />
+            <span>{{ error }}</span>
+          </div>
+          <button @click="clearError" class="btn btn-sm btn-ghost">
+            <XMarkIcon class="h-4 w-4" />
+          </button>
         </div>
 
         <!-- Progress Info -->
@@ -88,6 +96,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAudioStore } from '@/stores/audio'
 import { storeToRefs } from 'pinia'
+import { MicrophoneIcon, XCircleIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import type { Voice } from '@/types/audio'
 
 // Emit events
@@ -124,9 +133,9 @@ const canGenerate = computed(() => {
 
 // Methods
 const getGenderIcon = (gender?: string) => {
-  if (gender === 'M') return '👨'
-  if (gender === 'F') return '👩'
-  return '🎙️'
+  if (gender === 'M') return '♂'
+  if (gender === 'F') return '♀'
+  return '🎤'
 }
 
 const handleVoiceChange = () => {

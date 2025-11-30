@@ -124,6 +124,35 @@ export const useAudioStore = defineStore('audio', () => {
     error.value = null
   }
 
+  /**
+   * Save current audio to library
+   */
+  async function saveToLibrary(audioId: number) {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      console.log('💾 Saving audio to library...', audioId)
+
+      const response = await audioApi.saveToLibrary(audioId)
+
+      // Update current audio if it matches
+      if (currentAudio.value && currentAudio.value.audio_id === audioId) {
+        // Mark as saved in local state (for UI feedback)
+        (currentAudio.value as any).is_saved = true
+      }
+
+      console.log('✅ Audio saved to library:', response.message)
+      return response
+    } catch (e: any) {
+      error.value = `Error al guardar: ${e.response?.data?.detail || e.message}`
+      console.error('❌ Error saving to library:', e)
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     // State
     voices,
@@ -144,5 +173,6 @@ export const useAudioStore = defineStore('audio', () => {
     loadRecentMessages,
     clearCurrentAudio,
     clearError,
+    saveToLibrary,
   }
 })
