@@ -2,15 +2,20 @@
 Library API Endpoints
 Handles audio message library with filtering, pagination, and favorites - v2.1
 """
+import os
 import logging
+import uuid
+from datetime import datetime
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_
+from pydub import AudioSegment
 
 from app.db.session import get_db
 from app.models.audio import AudioMessage
 from app.models.category import Category
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -314,4 +319,223 @@ async def batch_delete_messages(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to batch delete: {str(e)}",
+        )
+
+
+# Allowed audio formats for upload
+ALLOWED_AUDIO_TYPES = {
+    "audio/mpeg": "mp3",
+    "audio/mp3": "mp3",
+    "audio/wav": "wav",
+    "audio/x-wav": "wav",
+    "audio/flac": "flac",
+    "audio/aac": "aac",
+    "audio/ogg": "ogg",
+    "audio/mp4": "m4a",
+    "audio/x-m4a": "m4a",
+    "audio/opus": "opus",
+}
+
+MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB
+
+
+@router.post(
+    "/upload",
+    summary="Upload External Audio",
+    description="Upload an external audio file (MP3, WAV, FLAC, AAC, OGG, M4A) to the library",
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_audio(
+    audio: UploadFile = File(..., description="Audio file to upload"),
+    display_name: Optional[str] = Form(None, description="Optional display name"),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Upload an external audio file to the library.
+
+    - Validates format (MP3, WAV, FLAC, AAC, OGG, M4A, Opus)
+    - Validates size (max 50MB)
+    - Extracts metadata (duration, size) using pydub
+    - Creates AudioMessage record with voice_id=null
+    """
+    try:
+        logger.info(f"📤 Upload request: {audio.filename}, content_type={audio.content_type}")
+
+        # Validate content type
+        content_type = audio.content_type
+        if content_type not in ALLOWED_AUDIO_TYPES:
+            logger.warning(f"⚠️ Invalid audio format: {content_type}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Formato no permitido. Use: MP3, WAV, FLAC, AAC, OGG, M4A, Opus",
+            )
+
+        # Read file content
+        file_content = await audio.read()
+        file_size = len(file_content)
+
+        # Validate size
+        if file_size > MAX_UPLOAD_SIZE:
+            logger.warning(f"⚠️ File too large: {file_size} bytes")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Archivo excede el límite de 50MB (tamaño: {file_size / 1024 / 1024:.1f}MB)",
+            )
+
+        if file_size == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El archivo está vacío",
+            )
+
+        # Generate unique filename
+        ext = ALLOWED_AUDIO_TYPES[content_type]
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        unique_id = str(uuid.uuid4())[:8]
+        filename = f"upload_{timestamp}_{unique_id}.{ext}"
+        file_path = os.path.join(settings.AUDIO_PATH, filename)
+
+        # Ensure directory exists
+        os.makedirs(settings.AUDIO_PATH, exist_ok=True)
+
+        # Save file
+        with open(file_path, "wb") as f:
+            f.write(file_content)
+
+        logger.info(f"💾 File saved: {filename}")
+
+        # Extract audio metadata using pydub
+        try:
+            audio_segment = AudioSegment.from_file(file_path)
+            duration = len(audio_segment) / 1000.0  # milliseconds to seconds
+        except Exception as e:
+            # If pydub fails, still save but without duration
+            logger.warning(f"⚠️ Could not extract audio metadata: {e}")
+            duration = None
+
+        # Determine display name
+        if not display_name:
+            # Use original filename without extension
+            original_name = audio.filename or "Audio subido"
+            display_name = os.path.splitext(original_name)[0][:100]
+
+        # Create database record
+        audio_message = AudioMessage(
+            filename=filename,
+            display_name=display_name,
+            file_path=file_path,
+            file_size=file_size,
+            duration=duration,
+            format=ext,
+            original_text="[Audio subido]",  # Marker for uploaded files
+            voice_id="uploaded",  # Special marker for uploaded files
+            status="ready",
+            priority=4,
+        )
+
+        db.add(audio_message)
+        await db.commit()
+        await db.refresh(audio_message)
+
+        logger.info(f"✅ Audio uploaded: ID={audio_message.id}, filename={filename}")
+
+        return {
+            "success": True,
+            "data": {
+                "id": audio_message.id,
+                "filename": audio_message.filename,
+                "display_name": audio_message.display_name,
+                "file_size": audio_message.file_size,
+                "duration": audio_message.duration,
+                "format": audio_message.format,
+                "original_text": audio_message.original_text,
+                "voice_id": audio_message.voice_id,
+                "category_id": audio_message.category_id,
+                "is_favorite": audio_message.is_favorite,
+                "status": audio_message.status,
+                "created_at": audio_message.created_at.isoformat() if audio_message.created_at else None,
+                "audio_url": f"/storage/audio/{audio_message.filename}",
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Upload failed: {str(e)}", exc_info=True)
+        # Clean up file if it was saved
+        if 'file_path' in locals() and os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except:
+                pass
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Upload failed: {str(e)}",
+        )
+
+
+@router.post(
+    "/{message_id}/send-to-radio",
+    summary="Send Audio to Radio",
+    description="Send audio for immediate playback on radio/player",
+)
+async def send_to_radio(
+    message_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Send an audio message to the radio for immediate playback.
+
+    This marks the message as sent to the player and records the delivery time.
+    The actual integration with AzuraCast/player is for future implementation.
+    """
+    try:
+        logger.info(f"📻 Send to radio request: ID={message_id}")
+
+        # Find the audio message
+        result = await db.execute(
+            select(AudioMessage).filter(AudioMessage.id == message_id)
+        )
+        msg = result.scalar_one_or_none()
+
+        if not msg:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Message {message_id} not found",
+            )
+
+        if msg.status == "deleted":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot send deleted message to radio",
+            )
+
+        # Mark as sent to player
+        msg.sent_to_player = True
+        msg.delivered_at = datetime.utcnow()
+
+        await db.commit()
+        await db.refresh(msg)
+
+        logger.info(f"✅ Audio sent to radio: {msg.filename}")
+
+        return {
+            "success": True,
+            "message": "Audio enviado a la radio",
+            "data": {
+                "id": msg.id,
+                "filename": msg.filename,
+                "display_name": msg.display_name,
+                "sent_to_player": msg.sent_to_player,
+                "delivered_at": msg.delivered_at.isoformat() if msg.delivered_at else None,
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Send to radio failed: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Send to radio failed: {str(e)}",
         )
