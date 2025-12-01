@@ -9,7 +9,8 @@ import type {
   AudioGenerateRequest,
   AudioGenerateResponse,
   AISuggestionsRequest,
-  AISuggestionsResponse
+  AISuggestionsResponse,
+  MusicTrack
 } from '@/types/audio'
 
 export const audioApi = {
@@ -63,6 +64,15 @@ export const audioApi = {
     return apiClient.patch<{ success: boolean; message: string; data: any }>(
       `/api/v1/audio/${audioId}/save-to-library`
     )
+  },
+
+  /**
+   * Get all active music tracks for jingle selection
+   */
+  async getMusicTracks(): Promise<MusicTrack[]> {
+    return apiClient.get<MusicTrack[]>('/api/v1/settings/music', {
+      params: { active_only: true }
+    })
   },
 }
 

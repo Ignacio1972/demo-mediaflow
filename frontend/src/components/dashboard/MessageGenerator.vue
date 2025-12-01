@@ -24,15 +24,16 @@
             <select
               v-model="selectedMusic"
               class="select select-bordered w-full"
-              :disabled="isLoading"
+              :disabled="isLoading || activeMusicTracks.length === 0"
             >
               <option value="">🎵 Sin música</option>
-              <option value="Cool.mp3">🎸 Cool</option>
-              <option value="Smooth.mp3">🎷 Smooth</option>
-              <option value="Uplift.mp3">🎹 Uplift</option>
-              <option value="Kids.mp3">🎈 Kids</option>
-              <option value="Pop.mp3">🎤 Pop</option>
-              <option value="Slow.mp3">🎻 Slow</option>
+              <option
+                v-for="track in activeMusicTracks"
+                :key="track.id"
+                :value="track.filename"
+              >
+                {{ getMusicIcon(track.mood) }} {{ track.display_name }}
+              </option>
             </select>
           </div>
 
@@ -106,7 +107,7 @@ const emit = defineEmits<{
 
 // Store
 const audioStore = useAudioStore()
-const { voices, isLoading, error } = storeToRefs(audioStore)
+const { voices, activeMusicTracks, isLoading, error } = storeToRefs(audioStore)
 
 // Form state
 const messageText = ref('')
@@ -136,6 +137,19 @@ const getGenderIcon = (gender?: string) => {
   if (gender === 'M') return '♂'
   if (gender === 'F') return '♀'
   return '🎤'
+}
+
+const getMusicIcon = (mood?: string) => {
+  const icons: Record<string, string> = {
+    energetic: '🎸',
+    calm: '🎻',
+    happy: '🎈',
+    inspiring: '🎹',
+    relaxed: '🎷',
+    upbeat: '🎤',
+    festive: '🎉',
+  }
+  return icons[mood || ''] || '🎵'
 }
 
 const handleVoiceChange = () => {
@@ -182,10 +196,13 @@ const setMessageText = (text: string) => {
   console.log('✅ Message text set from AI suggestion')
 }
 
-// Load voices on mount
+// Load voices and music on mount
 onMounted(async () => {
   if (voices.value.length === 0) {
     await audioStore.loadVoices()
+  }
+  if (activeMusicTracks.value.length === 0) {
+    await audioStore.loadMusicTracks()
   }
 })
 

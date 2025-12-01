@@ -9,12 +9,14 @@ import type {
   Voice,
   AudioMessage,
   AudioGenerateRequest,
-  AudioGenerateResponse
+  AudioGenerateResponse,
+  MusicTrack
 } from '@/types/audio'
 
 export const useAudioStore = defineStore('audio', () => {
   // State
   const voices = ref<Voice[]>([])
+  const musicTracks = ref<MusicTrack[]>([])
   const selectedVoice = ref<Voice | null>(null)
   const recentMessages = ref<AudioMessage[]>([])
   const currentAudio = ref<AudioGenerateResponse | null>(null)
@@ -28,6 +30,14 @@ export const useAudioStore = defineStore('audio', () => {
 
   const activeVoices = computed(() => {
     return voices.value.filter(v => v.active)
+  })
+
+  const activeMusicTracks = computed(() => {
+    return musicTracks.value.filter(t => t.active)
+  })
+
+  const defaultMusicTrack = computed(() => {
+    return musicTracks.value.find(t => t.is_default) || null
   })
 
   // Actions
@@ -111,6 +121,21 @@ export const useAudioStore = defineStore('audio', () => {
   }
 
   /**
+   * Load music tracks from API
+   */
+  async function loadMusicTracks() {
+    try {
+      console.log('🎵 Loading music tracks from API...')
+      musicTracks.value = await audioApi.getMusicTracks()
+      console.log(`✅ Loaded ${musicTracks.value.length} music tracks`)
+      return musicTracks.value
+    } catch (e: any) {
+      console.error('❌ Error loading music tracks:', e)
+      // No throw - no es crítico si falla
+    }
+  }
+
+  /**
    * Clear current audio
    */
   function clearCurrentAudio() {
@@ -156,6 +181,7 @@ export const useAudioStore = defineStore('audio', () => {
   return {
     // State
     voices,
+    musicTracks,
     selectedVoice,
     recentMessages,
     currentAudio,
@@ -165,9 +191,12 @@ export const useAudioStore = defineStore('audio', () => {
     // Computed
     defaultVoice,
     activeVoices,
+    activeMusicTracks,
+    defaultMusicTrack,
 
     // Actions
     loadVoices,
+    loadMusicTracks,
     setSelectedVoice,
     generateAudio,
     loadRecentMessages,

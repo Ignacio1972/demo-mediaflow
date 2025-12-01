@@ -21,6 +21,7 @@ from app.schemas.audio import (
 from app.models.audio import AudioMessage
 from app.models.voice_settings import VoiceSettings
 from app.services.tts import voice_manager, elevenlabs_service
+from app.services.audio import jingle_service
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -97,11 +98,11 @@ async def generate_audio(
         # Ensure directory exists
         os.makedirs(settings.AUDIO_PATH, exist_ok=True)
 
-        # Save audio file
+        # Save audio file (TTS only first)
         with open(file_path, "wb") as f:
             f.write(audio_bytes)
 
-        logger.info(f"💾 Audio saved: {filename}")
+        logger.info(f"💾 TTS audio saved: {filename}")
 
         # Get audio metadata
         audio = AudioSegment.from_file(file_path)
@@ -116,6 +117,40 @@ async def generate_audio(
             adjusted_audio = audio + voice.volume_adjustment
             adjusted_audio.export(file_path, format="mp3", bitrate="192k")
             file_size = os.path.getsize(file_path)
+
+        # If jingle is requested and music file is provided, mix with music
+        if request.add_jingles and request.music_file:
+            logger.info(f"🎵 Creating jingle with music: {request.music_file}")
+
+            # Generate jingle filename
+            jingle_filename = f"jingle_{timestamp}_{voice.id}.mp3"
+            jingle_path = os.path.join(settings.AUDIO_PATH, jingle_filename)
+
+            # Get voice-specific jingle settings if available
+            voice_jingle_settings = voice.jingle_settings if voice.jingle_settings else None
+
+            # Create jingle
+            jingle_result = await jingle_service.create_jingle(
+                voice_audio_path=file_path,
+                music_filename=request.music_file,
+                output_path=jingle_path,
+                voice_jingle_settings=voice_jingle_settings
+            )
+
+            if jingle_result['success']:
+                # Remove original TTS file, use jingle instead
+                os.remove(file_path)
+                filename = jingle_filename
+                file_path = jingle_path
+                duration = jingle_result['duration']
+                file_size = os.path.getsize(file_path)
+                logger.info(f"🎉 Jingle created successfully: {filename} ({duration:.2f}s)")
+            else:
+                # Jingle creation failed, keep original TTS
+                logger.warning(
+                    f"⚠️ Jingle creation failed: {jingle_result.get('error')}, "
+                    f"using TTS-only audio"
+                )
 
         # Create display name from text (first 50 chars)
         display_name = (

@@ -9,6 +9,7 @@ from app.models.audio import AudioMessage
 from app.models.schedule import Schedule, ScheduleLog
 from app.models.player import PlayerStatus
 from app.models.client_config import ClientConfig
+from app.models.music_track import MusicTrack
 
 __all__ = [
     "Base",
@@ -19,4 +20,5 @@ __all__ = [
     "ScheduleLog",
     "PlayerStatus",
     "ClientConfig",
+    "MusicTrack",
 ]

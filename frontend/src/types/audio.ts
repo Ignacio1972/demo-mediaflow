@@ -106,3 +106,22 @@ export interface AISuggestionsRequest {
 export interface AISuggestionsResponse {
   suggestions: string[]
 }
+
+// Music Track for jingles
+export interface MusicTrack {
+  id: number
+  filename: string
+  display_name: string
+  file_size?: number
+  duration?: number
+  bitrate?: string
+  is_default: boolean
+  active: boolean
+  order: number
+  artist?: string
+  genre?: string
+  mood?: string
+  audio_url: string
+  created_at?: string
+  updated_at?: string
+}
