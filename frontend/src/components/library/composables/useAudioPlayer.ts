@@ -1,6 +1,5 @@
 import { ref, onUnmounted } from 'vue'
 import type { AudioMessage } from '@/types/audio'
-import { libraryApi } from '../services/libraryApi'
 
 export function useAudioPlayer() {
   const currentMessage = ref<AudioMessage | null>(null)
@@ -59,7 +58,8 @@ export function useAudioPlayer() {
     stopPlayback()
 
     currentMessage.value = message
-    audio.src = libraryApi.getAudioUrl(message.filename)
+    // Use audio_url from API response (same as Dashboard RecentMessages)
+    audio.src = message.audio_url || `/storage/audio/${message.filename}`
     audio.play().catch(err => {
       console.error('[useAudioPlayer] Play error:', err)
       isPlaying.value = false

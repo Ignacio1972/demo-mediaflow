@@ -54,6 +54,7 @@ export interface AudioMessage {
   priority: number
   created_at: string
   updated_at: string
+  audio_url?: string  // URL for audio playback (provided by API)
 }
 
 export interface Category {

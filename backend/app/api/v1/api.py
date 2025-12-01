@@ -3,7 +3,7 @@ API v1 Router
 Aggregates all API v1 endpoints
 """
 from fastapi import APIRouter
-from app.api.v1.endpoints import audio, ai, library, categories, schedules
+from app.api.v1.endpoints import audio, ai, library, categories, schedules, settings
 
 api_router = APIRouter()
 
@@ -42,6 +42,12 @@ api_router.include_router(
     tags=["schedules"]
 )
 
+# Include settings endpoints (Playground)
+api_router.include_router(
+    settings.router,
+    prefix="/settings",
+    tags=["settings"]
+)
+
 # Future routers will be added here:
 # api_router.include_router(player.router, prefix="/player", tags=["player"])
-# api_router.include_router(settings.router, prefix="/settings", tags=["settings"])

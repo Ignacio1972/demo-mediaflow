@@ -35,7 +35,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'voices',
         name: 'settings-voices',
-        component: () => import('@/components/settings/VoiceManager.vue'),
+        component: () => import('@/components/settings/voices/VoiceManager.vue'),
       },
       {
         path: 'audio',
