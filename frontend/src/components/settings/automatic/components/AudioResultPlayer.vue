@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import type { AutomaticGenerateResponse } from '../composables/useAutomaticMode'
 
 const props = defineProps<{
@@ -104,6 +104,26 @@ defineEmits<{
 
 const audioRef = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
+
+// Auto-play when new audio is generated
+watch(() => props.audioData, async (newAudio, oldAudio) => {
+  if (newAudio && (!oldAudio || newAudio.filename !== oldAudio.filename)) {
+    console.log('🎵 New audio detected, preparing auto-play:', newAudio.filename)
+
+    await nextTick()
+
+    if (audioRef.value) {
+      setTimeout(async () => {
+        try {
+          await audioRef.value!.play()
+          console.log('🔊 Auto-playing generated audio')
+        } catch (error) {
+          console.warn('⚠️ Auto-play prevented by browser:', error)
+        }
+      }, 100)
+    }
+  }
+}, { deep: true, immediate: true })
 
 // Build full URL for audio
 const fullAudioUrl = computed(() => {
