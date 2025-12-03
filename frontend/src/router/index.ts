@@ -50,7 +50,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'automatic',
         name: 'settings-automatic',
-        component: () => import('@/components/settings/AutomaticMode.vue'),
+        component: () => import('@/components/settings/automatic/AutomaticMode.vue'),
       },
     ],
   },
