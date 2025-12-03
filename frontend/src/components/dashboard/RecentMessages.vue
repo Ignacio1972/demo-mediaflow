@@ -77,6 +77,11 @@
                     class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52"
                   >
                     <li>
+                      <a @click="saveToLibrary(message)">
+                        💾 Guardar en Biblioteca
+                      </a>
+                    </li>
+                    <li>
                       <a @click="downloadMessage(message)">
                         ⬇️ Descargar
                       </a>
@@ -185,6 +190,24 @@ const copyUrl = async (message: AudioMessage) => {
     alert('✅ URL copiada al portapapeles')
   } catch (e) {
     console.error('Failed to copy URL:', e)
+  }
+}
+
+const saveToLibrary = async (message: AudioMessage) => {
+  try {
+    console.log('💾 Guardando en biblioteca:', message.id)
+    await audioStore.saveToLibrary(message.id)
+
+    // Update local message state (mark as saved visually)
+    const msg = messages.value.find(m => m.id === message.id)
+    if (msg) {
+      (msg as any).is_favorite = true
+    }
+
+    alert('✅ Audio guardado en biblioteca')
+  } catch (e: any) {
+    console.error('Error al guardar en biblioteca:', e)
+    alert(`❌ Error: ${e.message || 'No se pudo guardar'}`)
   }
 }
 

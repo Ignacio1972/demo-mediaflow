@@ -50,10 +50,10 @@ async def get_library_messages(
     try:
         logger.info(f"📚 Library request: page={page}, per_page={per_page}, search={search}")
 
-        # Build base query
-        query = select(AudioMessage)
+        # Build base query - ALWAYS filter by is_favorite=True (only show saved messages)
+        query = select(AudioMessage).filter(AudioMessage.is_favorite == True)
 
-        # Apply filters
+        # Apply additional filters
         if search:
             search_term = f"%{search}%"
             query = query.filter(
@@ -66,8 +66,8 @@ async def get_library_messages(
         if category_id:
             query = query.filter(AudioMessage.category_id == category_id)
 
-        if is_favorite is not None:
-            query = query.filter(AudioMessage.is_favorite == is_favorite)
+        # Note: is_favorite parameter is kept for API compatibility but ignored
+        # Library always shows only saved messages (is_favorite=True)
 
         # Count total
         count_query = select(func.count()).select_from(query.subquery())

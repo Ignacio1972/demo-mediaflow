@@ -180,8 +180,8 @@ const handleGenerate = async () => {
     // Emit event
     emit('audioGenerated', response)
 
-    // Clear form on success
-    messageText.value = ''
+    // Keep text in the form (don't clear - like legacy system)
+    // messageText.value = ''
 
     console.log('✅ Audio generated successfully')
   } catch (e) {

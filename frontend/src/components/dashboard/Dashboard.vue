@@ -23,30 +23,6 @@
           <RecentMessages />
         </div>
       </div>
-
-      <!-- Features Info (Bottom) -->
-      <div class="card bg-base-200 shadow-xl mt-6">
-        <div class="card-body">
-          <h3 class="card-title text-xl mb-4 flex items-center gap-2">
-            <SparklesIcon class="h-6 w-6" />
-            Workflow de Generación
-          </h3>
-          <div class="space-y-2">
-            <div class="flex items-start gap-3">
-              <span class="badge badge-primary badge-lg">1</span>
-              <span class="text-sm"><strong>Sugerencias IA:</strong> Describe qué anunciar → Claude genera 2 opciones</span>
-            </div>
-            <div class="flex items-start gap-3">
-              <span class="badge badge-secondary badge-lg">2</span>
-              <span class="text-sm"><strong>Edición:</strong> Selecciona una sugerencia → Edita y mejora el texto</span>
-            </div>
-            <div class="flex items-start gap-3">
-              <span class="badge badge-accent badge-lg">3</span>
-              <span class="text-sm"><strong>Generación:</strong> Cuando estés listo → Genera audio TTS profesional</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </main>
   </div>
 </template>
@@ -55,7 +31,6 @@
 import { ref, onMounted } from 'vue'
 import { useAudioStore } from '@/stores/audio'
 import { storeToRefs } from 'pinia'
-import { SparklesIcon } from '@heroicons/vue/24/outline'
 import AISuggestions from './AISuggestions.vue'
 import MessageGenerator from './MessageGenerator.vue'
 import AudioPreview from './AudioPreview.vue'

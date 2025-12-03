@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from pydub import AudioSegment
 
 from app.db.session import get_db
@@ -27,6 +27,71 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Maximum number of temporary (unsaved) messages to keep
+MAX_RECENT_MESSAGES = 50
+
+
+async def cleanup_old_temporary_messages(db: AsyncSession) -> int:
+    """
+    Delete old temporary messages (is_favorite=False) when limit is exceeded.
+
+    Keeps only the MAX_RECENT_MESSAGES most recent temporary messages.
+    Deletes both database records and physical audio files.
+
+    Returns:
+        Number of messages deleted
+    """
+    try:
+        # Count temporary messages
+        count_query = select(func.count()).where(AudioMessage.is_favorite == False)
+        result = await db.execute(count_query)
+        total_temp = result.scalar() or 0
+
+        if total_temp <= MAX_RECENT_MESSAGES:
+            return 0  # No cleanup needed
+
+        # Calculate how many to delete
+        to_delete_count = total_temp - MAX_RECENT_MESSAGES
+
+        logger.info(
+            f"🧹 Cleanup: {total_temp} temporary messages found, "
+            f"deleting {to_delete_count} oldest"
+        )
+
+        # Get oldest temporary messages to delete
+        query = (
+            select(AudioMessage)
+            .where(AudioMessage.is_favorite == False)
+            .order_by(AudioMessage.created_at.asc())
+            .limit(to_delete_count)
+        )
+        result = await db.execute(query)
+        messages_to_delete = result.scalars().all()
+
+        deleted_count = 0
+        for msg in messages_to_delete:
+            # Delete physical audio file if it exists
+            if msg.file_path and os.path.exists(msg.file_path):
+                try:
+                    os.remove(msg.file_path)
+                    logger.debug(f"🗑️ Deleted file: {msg.file_path}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Failed to delete file {msg.file_path}: {e}")
+
+            # Delete from database
+            await db.delete(msg)
+            deleted_count += 1
+
+        await db.commit()
+
+        logger.info(f"✅ Cleanup completed: {deleted_count} messages deleted")
+        return deleted_count
+
+    except Exception as e:
+        logger.error(f"❌ Cleanup failed: {str(e)}", exc_info=True)
+        await db.rollback()
+        return 0
 
 
 @router.post(
@@ -183,6 +248,11 @@ async def generate_audio(
         await db.refresh(audio_message)
 
         logger.info(f"✅ Audio message created: ID={audio_message.id}")
+
+        # Cleanup old temporary messages if limit exceeded
+        deleted_count = await cleanup_old_temporary_messages(db)
+        if deleted_count > 0:
+            logger.info(f"🧹 Auto-cleanup: {deleted_count} old temporary messages deleted")
 
         # Build audio URL (relative for frontend proxy)
         audio_url = f"/storage/audio/{filename}"

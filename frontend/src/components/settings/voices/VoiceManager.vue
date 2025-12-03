@@ -1,6 +1,8 @@
 <template>
-  <div class="voice-manager min-h-screen bg-base-100 p-6">
-    <div class="container mx-auto max-w-7xl">
+  <div class="voice-manager min-h-screen bg-base-100">
+    <SettingsNav />
+    <div class="p-6">
+      <div class="container mx-auto max-w-7xl">
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -122,6 +124,7 @@
           <button @click="voiceToDelete = null">close</button>
         </form>
       </dialog>
+      </div>
     </div>
   </div>
 </template>
@@ -132,6 +135,7 @@ import { useVoiceManager, type VoiceSettings } from './composables/useVoiceManag
 import VoiceList from './components/VoiceList.vue'
 import VoiceEditor from './components/VoiceEditor.vue'
 import VoiceAddModal from './components/VoiceAddModal.vue'
+import SettingsNav from '../SettingsNav.vue'
 
 // Composable
 const {

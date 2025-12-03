@@ -43,6 +43,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/components/settings/AudioConfig.vue'),
       },
       {
+        path: 'categories',
+        name: 'settings-categories',
+        component: () => import('@/components/settings/categories/CategoryEditor.vue'),
+      },
+      {
         path: 'automatic',
         name: 'settings-automatic',
         component: () => import('@/components/settings/AutomaticMode.vue'),
