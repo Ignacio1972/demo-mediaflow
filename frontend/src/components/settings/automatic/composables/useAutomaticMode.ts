@@ -31,6 +31,7 @@ export interface AutomaticGenerateResponse {
   filename: string
   duration: number | null
   error: string | null
+  audio_id: number | null  // ID for save-to-library functionality
 }
 
 export interface RecordingState {

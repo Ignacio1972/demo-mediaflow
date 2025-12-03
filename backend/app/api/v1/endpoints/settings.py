@@ -1399,6 +1399,7 @@ class AutomaticGenerateResponse(BaseModel):
     filename: str
     duration: Optional[float] = None
     error: Optional[str] = None
+    audio_id: Optional[int] = None  # ID for save-to-library functionality
 
 
 class AutomaticConfigResponse(BaseModel):
@@ -1620,7 +1621,36 @@ REGLAS ESTRICTAS:
         # Build audio URL (must match static files mount point in main.py)
         audio_url = f"/storage/audio/{filename}"
 
-        logger.info(f"✅ Automatic jingle generated: {filename} ({final_duration:.2f}s)")
+        # Get file size
+        file_size = os.path.getsize(output_path) if os.path.exists(output_path) else None
+
+        # Create display name from improved text (first 50 chars)
+        display_name = (
+            improved_text[:50] + "..." if len(improved_text) > 50 else improved_text
+        )
+
+        # Save to database (like Dashboard does)
+        audio_message = AudioMessage(
+            filename=filename,
+            display_name=display_name,
+            file_path=output_path,
+            file_size=file_size,
+            duration=final_duration,
+            format="mp3",
+            original_text=original_text,
+            voice_id=voice.id,
+            volume_adjustment=voice.volume_adjustment,
+            has_jingle=bool(request.music_file and request.music_file.lower() not in ['none', '', 'null']),
+            music_file=request.music_file if request.music_file and request.music_file.lower() not in ['none', '', 'null'] else None,
+            status="ready",
+            is_favorite=False,  # Not saved to library yet
+        )
+
+        db.add(audio_message)
+        await db.commit()
+        await db.refresh(audio_message)
+
+        logger.info(f"✅ Automatic jingle generated: {filename} ({final_duration:.2f}s) - ID={audio_message.id}")
 
         return {
             "success": True,
@@ -1631,6 +1661,7 @@ REGLAS ESTRICTAS:
             "filename": filename,
             "duration": final_duration,
             "error": None,
+            "audio_id": audio_message.id,
         }
 
     except HTTPException:
@@ -1646,4 +1677,5 @@ REGLAS ESTRICTAS:
             "filename": "",
             "duration": None,
             "error": str(e),
+            "audio_id": None,
         }
