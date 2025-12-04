@@ -51,6 +51,16 @@
           <BoltIcon class="h-5 w-5" />
           <span class="hidden sm:inline">Automatic</span>
         </router-link>
+
+        <!-- Playroom -->
+        <router-link
+          to="/settings/playroom"
+          class="settings-nav-link playroom-link"
+          :class="{ 'active': isActive('/settings/playroom') }"
+        >
+          <BeakerIcon class="h-5 w-5" />
+          <span class="hidden sm:inline">Playroom</span>
+        </router-link>
       </div>
     </div>
   </nav>
@@ -64,6 +74,7 @@ import {
   MusicalNoteIcon,
   FolderIcon,
   BoltIcon,
+  BeakerIcon,
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
@@ -85,6 +96,15 @@ const isActive = (path: string): boolean => {
 .settings-nav-link.active {
   @apply text-primary bg-base-300;
   @apply shadow-sm;
+}
+
+/* Playroom link styling - experimental badge */
+.playroom-link {
+  @apply hover:text-secondary;
+}
+
+.playroom-link.active {
+  @apply text-secondary;
 }
 
 /* Mobile responsive */

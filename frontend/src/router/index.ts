@@ -52,6 +52,11 @@ const routes: RouteRecordRaw[] = [
         name: 'settings-automatic',
         component: () => import('@/components/settings/automatic/AutomaticMode.vue'),
       },
+      {
+        path: 'playroom',
+        name: 'settings-playroom',
+        component: () => import('@/components/settings/playroom/PlayroomMode.vue'),
+      },
     ],
   },
 ]
