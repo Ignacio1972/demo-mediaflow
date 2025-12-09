@@ -3,10 +3,16 @@
     <!-- Header with profile info -->
     <div class="bg-base-200 px-4 py-3 flex items-center gap-3">
       <div
-        class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
+        class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold overflow-hidden"
         :style="{ backgroundColor: profile?.color || '#8B5CF6' }"
       >
-        {{ profile?.initials || '?' }}
+        <img
+          v-if="profile?.photoPath"
+          :src="profile.photoPath"
+          :alt="profile.name"
+          class="w-full h-full object-cover"
+        />
+        <span v-else>{{ profile?.initials || '?' }}</span>
       </div>
       <div>
         <p class="font-semibold text-base-content">{{ profile?.name || 'Locutor' }}</p>
@@ -76,14 +82,14 @@
     </div>
 
     <!-- Tabs for Edit Options -->
-    <div class="px-4 mb-4">
+    <div ref="tabsRef" class="px-4 mb-4">
       <div class="tabs tabs-boxed bg-base-200 h-12">
         <button
           class="tab flex-1 h-full text-xs leading-tight px-1"
           :class="{ 'tab-active': activeTab === 'preview' }"
           @click="$emit('update:activeTab', 'preview')"
         >
-          Vista previa
+          Regenerar audio
         </button>
         <button
           class="tab flex-1 h-full text-xs leading-tight px-1"
@@ -104,8 +110,18 @@
 
     <!-- Tab Content -->
     <div class="flex-1 px-4 pb-4">
-      <!-- Preview Tab (default) - Action Buttons -->
+      <!-- Regenerar Audio Tab (default) -->
       <div v-if="activeTab === 'preview'" class="flex flex-col">
+        <button
+          @click="$emit('regenerateNew')"
+          class="btn btn-secondary btn-lg w-full gap-2 mt-4"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Regenerar con IA
+        </button>
+
         <button
           @click="$emit('showConfirm')"
           class="btn btn-primary btn-lg w-full gap-2 mt-4"
@@ -125,11 +141,12 @@
       </div>
 
       <!-- Text Editor Tab -->
-      <div v-else-if="activeTab === 'text'" class="flex flex-col gap-3">
+      <div v-else-if="activeTab === 'text'" ref="textTabRef" class="flex flex-col gap-3">
         <textarea
+          ref="textareaRef"
           :value="editedText"
           @input="$emit('update:editedText', ($event.target as HTMLTextAreaElement).value)"
-          class="textarea textarea-bordered w-full min-h-[120px] text-sm"
+          class="textarea textarea-bordered w-full min-h-[180px] text-sm"
           placeholder="Edita el texto aquí..."
         ></textarea>
 
@@ -139,9 +156,9 @@
           class="btn btn-secondary btn-lg w-full gap-2"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
           </svg>
-          Regenerar Audio
+          Generar audio
         </button>
 
         <button
@@ -156,47 +173,34 @@
       </div>
 
       <!-- Voice Selector Tab -->
-      <div v-else-if="activeTab === 'voice'" class="flex flex-col gap-3">
+      <div v-else-if="activeTab === 'voice'" ref="voiceTabRef" class="flex flex-col gap-3">
         <div class="text-sm font-medium text-base-content/70 mb-2">
-          Selecciona otra voz:
+          Toca una voz para generar:
         </div>
 
-        <div class="space-y-2 max-h-[200px] overflow-y-auto">
-          <label
+        <div class="space-y-2 max-h-[280px] overflow-y-auto">
+          <button
             v-for="voice in voices"
             :key="voice.id"
-            class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors"
+            @click="onVoiceSelect(voice.id)"
+            class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors w-full text-left"
             :class="selectedVoiceId === voice.id ? 'bg-primary/10 border border-primary' : 'bg-base-200 hover:bg-base-300'"
           >
-            <input
-              type="radio"
-              name="voice"
-              :value="voice.id"
-              :checked="selectedVoiceId === voice.id"
-              @change="$emit('selectVoice', voice.id)"
-              class="radio radio-primary"
-            />
+            <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+              :class="selectedVoiceId === voice.id ? 'border-primary bg-primary' : 'border-base-content/30'"
+            >
+              <div v-if="selectedVoiceId === voice.id" class="w-2 h-2 rounded-full bg-primary-content"></div>
+            </div>
             <div>
               <p class="font-medium text-base-content">{{ voice.name }}</p>
               <p class="text-xs text-base-content/60">{{ getVoiceType(voice) }}</p>
             </div>
-          </label>
+          </button>
         </div>
 
         <button
-          @click="$emit('regenerateVoice')"
-          :disabled="!selectedVoiceId"
-          class="btn btn-secondary btn-lg w-full gap-2 mt-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Regenerar con esta voz
-        </button>
-
-        <button
           @click="$emit('showConfirm')"
-          class="btn btn-primary w-full gap-2"
+          class="btn btn-primary w-full gap-2 mt-2"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
@@ -209,6 +213,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch, nextTick } from 'vue'
 import type { VoiceProfile } from '../../composables/useMobilePlayroom'
 import type { Voice } from '@/types/audio'
 
@@ -225,7 +230,40 @@ interface Props {
   selectedVoiceId: string | null
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+// Refs for scroll
+const tabsRef = ref<HTMLElement | null>(null)
+const textTabRef = ref<HTMLElement | null>(null)
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const voiceTabRef = ref<HTMLElement | null>(null)
+
+// Scroll tabs into view (scroll up)
+const scrollToTabs = () => {
+  if (tabsRef.value) {
+    tabsRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+// Watch for tab changes to scroll
+watch(() => props.activeTab, async (newTab) => {
+  await nextTick()
+
+  if (newTab === 'text') {
+    scrollToTabs()
+    // Focus the textarea after scroll
+    setTimeout(() => {
+      textareaRef.value?.focus()
+    }, 300)
+  } else if (newTab === 'voice') {
+    scrollToTabs()
+  }
+})
+
+// Handle voice selection - emit to regenerate immediately
+const onVoiceSelect = (voiceId: string) => {
+  emit('regenerateVoice', voiceId)
+}
 
 // Helpers
 const formatTime = (seconds: number): string => {
@@ -249,8 +287,8 @@ const emit = defineEmits<{
   (e: 'showConfirm'): void
   (e: 'reset'): void
   (e: 'regenerateText'): void
-  (e: 'regenerateVoice'): void
-  (e: 'selectVoice', voiceId: string): void
+  (e: 'regenerateNew'): void
+  (e: 'regenerateVoice', voiceId: string): void
   (e: 'update:activeTab', tab: 'preview' | 'text' | 'voice'): void
   (e: 'update:editedText', text: string): void
 }>()

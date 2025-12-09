@@ -30,7 +30,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'ai',
         name: 'settings-ai',
-        component: () => import('@/components/settings/AISettings.vue'),
+        component: () => import('@/components/settings/ai-clients/AIClientManager.vue'),
       },
       {
         path: 'voices',

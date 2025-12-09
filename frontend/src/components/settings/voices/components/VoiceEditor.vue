@@ -167,6 +167,27 @@
                   </div>
                 </div>
 
+                <!-- Speed (ElevenLabs 2025) -->
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Speed (Velocidad)</span>
+                    <span class="label-text-alt font-mono">{{ localVoice.speed?.toFixed(2) }}x</span>
+                  </label>
+                  <input
+                    v-model.number="localVoice.speed"
+                    type="range"
+                    min="0.7"
+                    max="1.2"
+                    step="0.05"
+                    class="range range-info"
+                  />
+                  <div class="flex justify-between text-xs text-base-content/50 mt-1">
+                    <span>Lento (0.7x)</span>
+                    <span>Normal (1.0x)</span>
+                    <span>Rápido (1.2x)</span>
+                  </div>
+                </div>
+
                 <!-- Speaker Boost -->
                 <div class="form-control">
                   <label class="label cursor-pointer justify-start gap-3">
@@ -463,6 +484,7 @@ const hasChanges = computed(() => {
     local.stability !== original.stability ||
     local.similarity_boost !== original.similarity_boost ||
     local.use_speaker_boost !== original.use_speaker_boost ||
+    local.speed !== original.speed ||  // ElevenLabs 2025
     local.volume_adjustment !== original.volume_adjustment ||
     JSON.stringify(jingleSettings) !== JSON.stringify(original.jingle_settings || {})
   )
@@ -480,6 +502,7 @@ const handleSave = () => {
     stability: localVoice.value.stability,
     similarity_boost: localVoice.value.similarity_boost,
     use_speaker_boost: localVoice.value.use_speaker_boost,
+    speed: localVoice.value.speed,  // ElevenLabs 2025
     volume_adjustment: localVoice.value.volume_adjustment,
     jingle_settings: { ...jingleSettings },
   }

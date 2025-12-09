@@ -10,10 +10,12 @@ export interface Voice {
   description?: string
 
   // Voice settings - v2.1
+  // ElevenLabs 2025 recommended: style=0, stability=50, similarity=75
   style: number  // 0-100
   stability: number  // 0-100
   similarity_boost: number  // 0-100
   use_speaker_boost: boolean
+  speed: number  // 0.7-1.2 (ElevenLabs 2025 API)
 
   // Volume adjustment
   volume_adjustment: number  // dB
@@ -95,7 +97,7 @@ export interface AudioGenerateResponse {
   created_at: string
 }
 
-// AI Suggestions - Claude API
+// AI Suggestions - Claude API (Legacy endpoint /suggest)
 export interface AISuggestionsRequest {
   prompt: string  // Required field
   tone?: 'professional' | 'casual' | 'urgent' | 'friendly'
@@ -105,6 +107,33 @@ export interface AISuggestionsRequest {
 
 export interface AISuggestionsResponse {
   suggestions: string[]
+}
+
+// AI Announcements - Claude API with client context (New endpoint /generate)
+export interface AIAnnouncementSuggestion {
+  id: string
+  text: string
+  char_count: number
+  word_count: number
+  created_at: string
+}
+
+export interface AIGenerateRequest {
+  context: string
+  category?: string
+  tone?: 'profesional' | 'entusiasta' | 'amigable' | 'urgente' | 'informativo'
+  duration?: number
+  keywords?: string[]
+  temperature?: number
+  mode?: 'normal' | 'automatic'
+  word_limit?: [number, number]
+}
+
+export interface AIGenerateResponse {
+  success: boolean
+  suggestions: AIAnnouncementSuggestion[]
+  model: string
+  active_client_id: string | null
 }
 
 // Music Track for jingles

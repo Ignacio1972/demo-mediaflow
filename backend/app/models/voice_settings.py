@@ -21,10 +21,16 @@ class VoiceSettings(Base, TimestampMixin):
     description = Column(String(500), nullable=True)
 
     # Voice Settings (individual per voice) - CRITICAL v2.1
-    style = Column(Float, default=15.0, nullable=False)  # 0-100
-    stability = Column(Float, default=100.0, nullable=False)  # 0-100
-    similarity_boost = Column(Float, default=40.0, nullable=False)  # 0-100
+    # ElevenLabs 2025 API recommendations:
+    # - style: 0% recommended (avoid instability)
+    # - stability: ~50% for natural speech (100% = monotone)
+    # - similarity_boost: ~75% for voice clarity
+    # - speed: 0.7-1.2 range (1.0 = normal)
+    style = Column(Float, default=0.0, nullable=False)  # 0-100
+    stability = Column(Float, default=50.0, nullable=False)  # 0-100
+    similarity_boost = Column(Float, default=75.0, nullable=False)  # 0-100
     use_speaker_boost = Column(Boolean, default=True, nullable=False)
+    speed = Column(Float, default=1.0, nullable=False)  # 0.7-1.2 (ElevenLabs 2025)
 
     # Volume adjustment in dB - CRITICAL v2.1
     volume_adjustment = Column(Float, default=0.0, nullable=False)  # -20 to +20 dB

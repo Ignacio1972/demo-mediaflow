@@ -115,13 +115,15 @@ class VoiceManager:
             "stability": voice.stability / 100.0,
             "similarity_boost": voice.similarity_boost / 100.0,
             "use_speaker_boost": voice.use_speaker_boost,
+            "speed": voice.speed,  # ElevenLabs 2025: already in 0.7-1.2 range
         }
 
         logger.debug(
             f"🎛️ Voice '{voice.name}' settings: "
             f"style={settings['style']:.2f}, "
             f"stability={settings['stability']:.2f}, "
-            f"similarity={settings['similarity_boost']:.2f}"
+            f"similarity={settings['similarity_boost']:.2f}, "
+            f"speed={settings['speed']:.2f}"
         )
 
         return settings
@@ -190,6 +192,7 @@ class VoiceManager:
             "stability": voice.stability,
             "similarity_boost": voice.similarity_boost,
             "use_speaker_boost": voice.use_speaker_boost,
+            "speed": voice.speed,  # ElevenLabs 2025
             "volume_adjustment": voice.volume_adjustment,
             "jingle_settings": voice.jingle_settings,
         }

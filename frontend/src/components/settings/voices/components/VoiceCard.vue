@@ -48,10 +48,11 @@
       </div>
 
       <!-- Quick Stats -->
-      <div class="flex gap-4 mt-2 text-xs text-base-content/50">
+      <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-base-content/50">
         <span>Style: {{ voice.style }}%</span>
         <span>Stability: {{ voice.stability }}%</span>
         <span>Similarity: {{ voice.similarity_boost }}%</span>
+        <span>Speed: {{ voice.speed?.toFixed(2) }}x</span>
       </div>
     </div>
   </div>

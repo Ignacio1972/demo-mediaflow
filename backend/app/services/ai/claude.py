@@ -3,6 +3,9 @@ Claude AI Service
 Handles AI-powered text suggestions and improvements
 """
 import logging
+import re
+import uuid
+from datetime import datetime
 from typing import Optional, Dict, List
 from anthropic import AsyncAnthropic
 from app.core.config import settings
@@ -12,6 +15,26 @@ logger = logging.getLogger(__name__)
 
 class ClaudeService:
     """Service for Claude AI text generation and suggestions"""
+
+    # Tone instructions for announcements (Spanish)
+    TONE_INSTRUCTIONS = {
+        "profesional": "Manten un tono formal, serio y confiable. Usa lenguaje corporativo y evita expresiones coloquiales. Se conciso y directo.",
+        "entusiasta": "Usa un tono energetico, emocionante y motivador. Incluye expresiones como 'Increible!', 'No te lo pierdas!', 'Aprovecha ahora!'. Transmite emocion y urgencia positiva.",
+        "amigable": "Se cercano, calido y acogedor. Habla como si fueras un amigo dando un buen consejo. Usa un lenguaje casual pero respetuoso.",
+        "urgente": "Transmite importancia y necesidad de accion inmediata. Usa palabras como 'ATENCION', 'IMPORTANTE', 'ULTIMO MOMENTO', 'AHORA'. Se directo y enfatico.",
+        "informativo": "Se claro, objetivo y directo. Presenta los datos de forma organizada sin adornos ni emociones. Enfocate en transmitir informacion precisa."
+    }
+
+    # Category-specific contexts
+    CATEGORY_CONTEXTS = {
+        "ofertas": "Enfocate en el ahorro, descuentos y beneficios. Crea urgencia y emocion por la oferta.",
+        "eventos": "Destaca la experiencia unica, la diversion y la importancia de asistir. Menciona fecha y hora si es relevante.",
+        "informacion": "Se claro, directo y util. Proporciona la informacion esencial de manera concisa.",
+        "servicios": "Resalta la calidad, conveniencia y beneficios del servicio. Invita a la accion.",
+        "horarios": "Comunica claramente los horarios, se especifico y menciona cualquier cambio importante.",
+        "emergencias": "Se directo, claro y tranquilizador. Proporciona instrucciones especificas si es necesario.",
+        "general": "Manten un tono versatil que se adapte a diferentes tipos de mensajes."
+    }
 
     def __init__(self):
         self.client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -282,6 +305,193 @@ Mensaje tres aquí
 """
 
         return prompt
+
+
+    async def generate_announcements(
+        self,
+        context: str,
+        category: str = "general",
+        tone: str = "profesional",
+        duration: int = 10,
+        keywords: Optional[List[str]] = None,
+        temperature: float = 0.8,
+        client_context: Optional[str] = None,
+        mode: str = "normal",
+        word_limit: Optional[List[int]] = None
+    ) -> List[Dict]:
+        """
+        Generate announcement suggestions using Claude AI
+
+        Args:
+            context: Description of what to announce
+            category: Announcement category (ofertas, eventos, etc.)
+            tone: Message tone (profesional, entusiasta, amigable, urgente, informativo)
+            duration: Target duration in seconds
+            keywords: Optional keywords to include
+            temperature: Creativity level (0-1)
+            client_context: Client/business context (system prompt)
+            mode: "normal" (2 suggestions) or "automatic" (1 suggestion)
+            word_limit: [min_words, max_words] for automatic mode
+
+        Returns:
+            List of suggestions with metadata
+        """
+        try:
+            # Build prompts
+            system_prompt = self._build_announcement_system_prompt(
+                category=category,
+                tone=tone,
+                client_context=client_context
+            )
+
+            user_prompt = self._build_announcement_user_prompt(
+                context=context,
+                duration=duration,
+                keywords=keywords,
+                mode=mode,
+                word_limit=word_limit
+            )
+
+            logger.info(f"🤖 Generating announcements: mode={mode}, tone={tone}, category={category}")
+
+            response = await self.client.messages.create(
+                model=self.model,
+                max_tokens=800,
+                temperature=temperature,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_prompt}]
+            )
+
+            # Parse response
+            raw_text = response.content[0].text.strip()
+            suggestions = self._parse_announcement_response(raw_text, mode)
+
+            logger.info(f"✅ Generated {len(suggestions)} announcement suggestions")
+            return suggestions
+
+        except Exception as e:
+            logger.error(f"❌ Announcement generation failed: {str(e)}", exc_info=True)
+            raise
+
+    def _build_announcement_system_prompt(
+        self,
+        category: str,
+        tone: str,
+        client_context: Optional[str]
+    ) -> str:
+        """Build system prompt with client context for announcements"""
+        # Base: client context or generic
+        if client_context:
+            base = f"{client_context}\n\n"
+        else:
+            base = "Eres un experto en crear anuncios comerciales efectivos y atractivos para negocios locales.\n\n"
+
+        # General instructions
+        base += "Genera anuncios cortos (maximo 100 palabras), claros y atractivos en espanol chileno. "
+
+        # Tone instruction
+        tone_instruction = self.TONE_INSTRUCTIONS.get(tone, self.TONE_INSTRUCTIONS["profesional"])
+        base += f"{tone_instruction} "
+
+        # Avoid emojis
+        base += "Evita usar emojis o caracteres especiales. "
+
+        # Category instruction
+        category_instruction = self.CATEGORY_CONTEXTS.get(category, self.CATEGORY_CONTEXTS["general"])
+        base += category_instruction
+
+        return base
+
+    def _build_announcement_user_prompt(
+        self,
+        context: str,
+        duration: int,
+        keywords: Optional[List[str]],
+        mode: str,
+        word_limit: Optional[List[int]]
+    ) -> str:
+        """Build user prompt based on mode"""
+        if mode == "automatic":
+            # Automatic mode: 1 suggestion with specific limits
+            min_words = word_limit[0] if word_limit else 15
+            max_words = word_limit[1] if word_limit else 35
+
+            prompt = f"Mejora este mensaje para un anuncio de radio:\n\n"
+            prompt += f"Mensaje original: {context}\n\n"
+            prompt += f"IMPORTANTE: Tu respuesta debe ser UN SOLO anuncio de EXACTAMENTE entre {min_words} y {max_words} palabras. "
+            prompt += "Se claro, directo y atractivo. "
+            prompt += "No incluyas explicaciones, solo el texto del anuncio. "
+            prompt += "CUENTA LAS PALABRAS y asegurate de cumplir el limite."
+            return prompt
+
+        # Normal mode: 2 options
+        prompt = "Genera 2 opciones diferentes de anuncios para lo siguiente:\n\n"
+        prompt += f"Contexto: {context}\n"
+
+        if keywords:
+            prompt += f"Palabras clave a incluir: {', '.join(keywords)}\n"
+
+        prompt += f"Duracion aproximada al leer: {duration} segundos\n"
+        prompt += "\nFormato de respuesta: Proporciona exactamente 2 opciones numeradas, "
+        prompt += "cada una en un parrafo separado. No incluyas titulos ni explicaciones adicionales."
+
+        return prompt
+
+    def _parse_announcement_response(self, text: str, mode: str) -> List[Dict]:
+        """Parse Claude response into structured suggestions"""
+        suggestions = []
+
+        if mode == "automatic":
+            # Automatic mode: single suggestion
+            cleaned = text.strip()
+            if cleaned:
+                suggestions.append({
+                    "id": f"sug_{uuid.uuid4().hex[:8]}",
+                    "text": cleaned,
+                    "char_count": len(cleaned),
+                    "word_count": len(cleaned.split()),
+                    "created_at": datetime.now().isoformat()
+                })
+            return suggestions
+
+        # Normal mode: find 2 numbered suggestions
+        patterns = [
+            r'(\d+)[.\)]\s*(.+?)(?=\d+[.\)]|$)',  # 1. text or 1) text
+        ]
+
+        for pattern in patterns:
+            matches = re.findall(pattern, text, re.DOTALL)
+            for _, match in matches:
+                cleaned = match.strip()
+                if cleaned and len(cleaned) > 20:
+                    suggestions.append({
+                        "id": f"sug_{uuid.uuid4().hex[:8]}",
+                        "text": cleaned,
+                        "char_count": len(cleaned),
+                        "word_count": len(cleaned.split()),
+                        "created_at": datetime.now().isoformat()
+                    })
+            if len(suggestions) >= 2:
+                break
+
+        # Fallback: split by paragraphs
+        if len(suggestions) < 2:
+            paragraphs = [p.strip() for p in text.split('\n') if p.strip() and len(p.strip()) > 20]
+            for para in paragraphs:
+                if len(suggestions) >= 2:
+                    break
+                # Remove numbering if present
+                para = re.sub(r'^\d+[.\)]\s*', '', para)
+                if not any(s['text'] == para for s in suggestions):
+                    suggestions.append({
+                        "id": f"sug_{uuid.uuid4().hex[:8]}",
+                        "text": para,
+                        "char_count": len(para),
+                        "word_count": len(para.split()),
+                        "created_at": datetime.now().isoformat()
+                    })
+
+        return suggestions[:2]
 
 
 # Singleton instance

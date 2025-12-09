@@ -25,10 +25,12 @@ class VoiceSettingsCreate(BaseModel):
     description: Optional[str] = None
     active: bool = True
     is_default: bool = False
-    style: float = Field(50.0, ge=0, le=100)
-    stability: float = Field(55.0, ge=0, le=100)
-    similarity_boost: float = Field(80.0, ge=0, le=100)
+    # ElevenLabs 2025 recommended defaults
+    style: float = Field(0.0, ge=0, le=100)  # 0% recommended
+    stability: float = Field(50.0, ge=0, le=100)  # ~50% for natural speech
+    similarity_boost: float = Field(75.0, ge=0, le=100)  # ~75% for clarity
     use_speaker_boost: bool = True
+    speed: float = Field(1.0, ge=0.7, le=1.2)  # ElevenLabs 2025: 0.7-1.2
     volume_adjustment: float = Field(0.0, ge=-20, le=20)
     jingle_settings: Optional[JingleSettingsSchema] = None
 
@@ -45,6 +47,7 @@ class VoiceSettingsUpdate(BaseModel):
     stability: Optional[float] = Field(None, ge=0, le=100)
     similarity_boost: Optional[float] = Field(None, ge=0, le=100)
     use_speaker_boost: Optional[bool] = None
+    speed: Optional[float] = Field(None, ge=0.7, le=1.2)  # ElevenLabs 2025
     volume_adjustment: Optional[float] = Field(None, ge=-20, le=20)
     jingle_settings: Optional[dict] = None
 
@@ -81,6 +84,7 @@ class VoiceResponse(BaseModel):
     stability: float
     similarity_boost: float
     use_speaker_boost: bool
+    speed: float  # ElevenLabs 2025: 0.7-1.2
     volume_adjustment: float
     jingle_settings: Optional[dict] = None
     created_at: Optional[str] = None

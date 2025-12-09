@@ -179,13 +179,14 @@ const handleSubmit = async () => {
       elevenlabs_id: formData.elevenlabs_id.trim(),
       gender: formData.gender || undefined,
       description: formData.description.trim() || undefined,
-      // Default settings
+      // Default settings (ElevenLabs 2025 recommended)
       active: true,
       is_default: false,
-      style: 50,
-      stability: 55,
-      similarity_boost: 80,
+      style: 0,  // ElevenLabs recommends 0%
+      stability: 50,  // ~50% for natural speech
+      similarity_boost: 75,  // ~75% for clarity
       use_speaker_boost: true,
+      speed: 1.0,  // Normal speed (0.7-1.2 range)
       volume_adjustment: 0,
     }
 

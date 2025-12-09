@@ -4,10 +4,13 @@ Handles AI-powered suggestions and improvements
 """
 import logging
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.session import get_db
 from app.services.ai.claude import claude_service
+from app.services.ai.client_manager import ai_client_manager
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +46,36 @@ class VariationsRequest(BaseModel):
 class VariationsResponse(BaseModel):
     variations: List[str]
     original: str
+
+
+# New announcement generation models
+class GenerateAnnouncementsRequest(BaseModel):
+    """Request for generating announcement suggestions"""
+    context: str = Field(..., min_length=5, max_length=1000, description="Description of the announcement")
+    category: str = Field(default="general", description="Announcement category")
+    tone: str = Field(default="profesional", description="Message tone")
+    duration: int = Field(default=10, ge=5, le=30, description="Duration in seconds")
+    keywords: Optional[List[str]] = Field(default=None, description="Keywords to include")
+    temperature: float = Field(default=0.8, ge=0, le=1, description="Creativity level")
+    mode: str = Field(default="normal", pattern="^(normal|automatic)$", description="Generation mode")
+    word_limit: Optional[List[int]] = Field(default=None, description="[min, max] words for automatic mode")
+
+
+class AnnouncementSuggestion(BaseModel):
+    """A single announcement suggestion"""
+    id: str
+    text: str
+    char_count: int
+    word_count: int
+    created_at: str
+
+
+class GenerateAnnouncementsResponse(BaseModel):
+    """Response with generated announcement suggestions"""
+    success: bool
+    suggestions: List[AnnouncementSuggestion]
+    model: str
+    active_client_id: Optional[str] = None
 
 
 @router.post(
@@ -147,4 +180,60 @@ async def generate_variations(request: VariationsRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate variations: {str(e)}",
+        )
+
+
+@router.post(
+    "/generate",
+    response_model=GenerateAnnouncementsResponse,
+    summary="Generate Announcements",
+    description="Generate announcement suggestions using Claude AI with client context",
+)
+async def generate_announcements(
+    request: GenerateAnnouncementsRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Generate announcement suggestions using Claude AI.
+
+    This endpoint replicates the legacy system functionality:
+    - Gets context from the active AI client automatically
+    - Generates 2 suggestions in normal mode, 1 in automatic mode
+    - Returns metadata for each suggestion (word count, char count)
+    """
+    try:
+        logger.info(f"🤖 Generating announcements: mode={request.mode}, tone={request.tone}")
+
+        # Get active client context
+        active_client = await ai_client_manager.get_active_client(db)
+        client_context = active_client.context if active_client else None
+        active_client_id = active_client.id if active_client else None
+
+        # Generate suggestions
+        suggestions = await claude_service.generate_announcements(
+            context=request.context,
+            category=request.category,
+            tone=request.tone,
+            duration=request.duration,
+            keywords=request.keywords,
+            temperature=request.temperature,
+            client_context=client_context,
+            mode=request.mode,
+            word_limit=request.word_limit
+        )
+
+        logger.info(f"✅ Generated {len(suggestions)} announcements")
+
+        return GenerateAnnouncementsResponse(
+            success=True,
+            suggestions=suggestions,
+            model=claude_service.model,
+            active_client_id=active_client_id
+        )
+
+    except Exception as e:
+        logger.error(f"❌ Announcement generation failed: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate announcements: {str(e)}",
         )

@@ -10,6 +10,8 @@ import type {
   AudioGenerateResponse,
   AISuggestionsRequest,
   AISuggestionsResponse,
+  AIGenerateRequest,
+  AIGenerateResponse,
   MusicTrack
 } from '@/types/audio'
 
@@ -48,11 +50,22 @@ export const audioApi = {
   },
 
   /**
-   * Generate AI text suggestions using Claude
+   * Generate AI text suggestions using Claude (legacy endpoint)
    */
   async generateAISuggestions(params: AISuggestionsRequest): Promise<AISuggestionsResponse> {
     return apiClient.post<AISuggestionsResponse>(
       '/api/v1/ai/suggest',
+      params
+    )
+  },
+
+  /**
+   * Generate AI announcements with client context
+   * Uses the active AI client's context for generation
+   */
+  async generateAnnouncements(params: AIGenerateRequest): Promise<AIGenerateResponse> {
+    return apiClient.post<AIGenerateResponse>(
+      '/api/v1/ai/generate',
       params
     )
   },

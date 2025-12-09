@@ -438,7 +438,15 @@ export function useMobilePlayroom() {
 
   const regenerateWithVoice = async (voiceId: string) => {
     selectedVoiceIdForRegenerate.value = voiceId
+    // Usa el texto mejorado actual (editedText) para mantener consistencia
     await generateAudio(editedText.value || transcript.value, voiceId)
+  }
+
+  // Regenerar con nuevo texto de IA (usa el transcript original)
+  const regenerateNewAudio = async () => {
+    if (!transcript.value.trim()) return
+    // Usa el transcript original para que la IA genere un nuevo texto mejorado
+    await generateAudio(transcript.value, selectedVoiceIdForRegenerate.value || undefined)
   }
 
   // ==================== AUDIO PLAYBACK ====================
@@ -720,6 +728,7 @@ export function useMobilePlayroom() {
     generateAudio,
     regenerateWithText,
     regenerateWithVoice,
+    regenerateNewAudio,
     playAudio,
     pauseAudio,
     togglePlayPause,

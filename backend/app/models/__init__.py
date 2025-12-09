@@ -10,6 +10,7 @@ from app.models.schedule import Schedule, ScheduleLog
 from app.models.player import PlayerStatus
 from app.models.client_config import ClientConfig
 from app.models.music_track import MusicTrack
+from app.models.ai_client import AIClient
 
 __all__ = [
     "Base",
@@ -21,4 +22,5 @@ __all__ = [
     "PlayerStatus",
     "ClientConfig",
     "MusicTrack",
+    "AIClient",
 ]

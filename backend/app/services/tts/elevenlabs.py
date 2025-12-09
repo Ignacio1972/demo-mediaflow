@@ -40,26 +40,30 @@ class ElevenLabsService:
             httpx.HTTPError: If API request fails
         """
         # Default voice settings if not provided
+        # ElevenLabs 2025 recommended defaults
         if not voice_settings:
             voice_settings = {
-                "stability": 1.0,
-                "similarity_boost": 0.5,
-                "style": 0.15,
+                "stability": 0.5,  # 50% for natural speech
+                "similarity_boost": 0.75,  # 75% for clarity
+                "style": 0.0,  # 0% recommended
                 "use_speaker_boost": True,
+                "speed": 1.0,  # Normal speed
             }
         else:
             # Convert from percentage (0-100) to decimal (0-1) if needed
             voice_settings = self._normalize_voice_settings(voice_settings)
 
         # Prepare API payload
+        # ElevenLabs 2025 API: voice_settings now includes speed parameter
         payload = {
             "text": text,
             "model_id": self.model_id,
             "voice_settings": {
-                "stability": voice_settings.get("stability", 1.0),
-                "similarity_boost": voice_settings.get("similarity_boost", 0.5),
-                "style": voice_settings.get("style", 0.15),
+                "stability": voice_settings.get("stability", 0.5),
+                "similarity_boost": voice_settings.get("similarity_boost", 0.75),
+                "style": voice_settings.get("style", 0.0),
                 "use_speaker_boost": voice_settings.get("use_speaker_boost", True),
+                "speed": voice_settings.get("speed", 1.0),  # ElevenLabs 2025
             },
         }
 
@@ -136,6 +140,7 @@ class ElevenLabsService:
     def _normalize_voice_settings(self, settings: Dict) -> Dict:
         """
         Normalize voice settings from percentage (0-100) to decimal (0-1)
+        Note: speed is NOT normalized (already in 0.7-1.2 range)
 
         Args:
             settings: Voice settings dict
@@ -152,6 +157,10 @@ class ElevenLabsService:
                     normalized[key] = value / 100.0
                 else:
                     normalized[key] = value
+            elif key == "speed":
+                # Speed is already in correct range (0.7-1.2), don't normalize
+                # Just ensure it's within valid bounds
+                normalized[key] = max(0.7, min(1.2, float(value)))
             else:
                 normalized[key] = value
 

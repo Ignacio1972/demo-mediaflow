@@ -2,24 +2,38 @@
   <div class="ai-suggestions">
     <div class="card bg-base-200 shadow-xl">
       <div class="card-body">
-        <!-- Header -->
-        <h2 class="card-title text-2xl mb-4">
-          ¿Qué necesitas anunciar?
-        </h2>
+        <!-- Header with Active Client Badge -->
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="card-title text-2xl">
+            Generar Anuncios con IA
+          </h2>
+          <div
+            v-if="activeClientName"
+            class="badge badge-primary badge-outline gap-1"
+            :title="'Usando contexto de: ' + activeClientName"
+          >
+            <CpuChipIcon class="h-3 w-3" />
+            {{ activeClientName }}
+          </div>
+        </div>
 
         <!-- Context Input -->
         <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Describe lo que quieres anunciar</span>
+            <span class="label-text-alt">{{ context.length }} / 1000</span>
+          </label>
           <textarea
             v-model="context"
-            class="textarea textarea-bordered h-24 font-mono"
-            placeholder=""
+            class="textarea textarea-bordered h-24"
+            placeholder="Ej: Oferta de 2x1 en pizzas todos los martes, nuevo horario de atencion..."
             :disabled="isGenerating"
-            maxlength="500"
+            maxlength="1000"
           ></textarea>
         </div>
 
         <!-- Quick Configuration -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 gap-4 mt-2">
           <!-- Tone Selector -->
           <div class="form-control">
             <label class="label">
@@ -30,29 +44,29 @@
               class="select select-bordered"
               :disabled="isGenerating"
             >
-              <option value="profesional">🎩 Profesional</option>
-              <option value="entusiasta">🎉 Entusiasta</option>
-              <option value="amigable">😊 Amigable</option>
-              <option value="urgente">⚡ Urgente</option>
-              <option value="informativo">📋 Informativo</option>
+              <option value="profesional">Profesional</option>
+              <option value="entusiasta">Entusiasta</option>
+              <option value="amigable">Amigable</option>
+              <option value="urgente">Urgente</option>
+              <option value="informativo">Informativo</option>
             </select>
           </div>
 
           <!-- Duration Selector -->
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Duración objetivo</span>
+              <span class="label-text font-medium">Duracion objetivo</span>
             </label>
             <select
               v-model="duration"
               class="select select-bordered"
               :disabled="isGenerating"
             >
-              <option :value="5">5 segundos (~10 palabras)</option>
-              <option :value="10">10 segundos (~20 palabras)</option>
-              <option :value="15">15 segundos (~30 palabras)</option>
-              <option :value="20">20 segundos (~40 palabras)</option>
-              <option :value="25">25 segundos (~50 palabras)</option>
+              <option :value="5">5 segundos</option>
+              <option :value="10">10 segundos</option>
+              <option :value="15">15 segundos</option>
+              <option :value="20">20 segundos</option>
+              <option :value="25">25 segundos</option>
             </select>
           </div>
         </div>
@@ -63,7 +77,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>{{ error }}</span>
-          <button @click="clearError" class="btn btn-sm btn-ghost">✕</button>
+          <button @click="clearError" class="btn btn-sm btn-ghost">Cerrar</button>
         </div>
 
         <!-- Generate Button -->
@@ -76,7 +90,7 @@
             <span v-if="isGenerating" class="loading loading-spinner"></span>
             <span v-else class="flex items-center gap-2">
               <SparklesIcon class="h-5 w-5" />
-              Generar Sugerencias con IA
+              Generar Sugerencias
             </span>
           </button>
         </div>
@@ -85,18 +99,20 @@
         <div v-if="isGenerating" class="mt-4">
           <progress class="progress progress-primary w-full"></progress>
           <p class="text-sm text-center mt-2 opacity-70">
-            Claude AI está generando sugerencias...
+            Claude AI esta generando sugerencias...
           </p>
         </div>
 
         <!-- Suggestions Panel -->
         <div v-if="suggestions.length > 0" class="mt-6">
-          <div class="divider">Sugerencias Generadas</div>
+          <div class="divider">
+            <span class="text-sm opacity-70">{{ suggestions.length }} sugerencias generadas</span>
+          </div>
 
           <div class="space-y-3">
             <div
               v-for="(suggestion, index) in suggestions"
-              :key="index"
+              :key="suggestion.id"
               class="card bg-base-300 hover:bg-base-100 transition-all cursor-pointer border-2"
               :class="selectedIndex === index ? 'border-primary' : 'border-transparent'"
               @click="selectSuggestion(index)"
@@ -104,36 +120,36 @@
               <div class="card-body p-4">
                 <!-- Suggestion Text -->
                 <p class="text-base leading-relaxed">
-                  {{ suggestion }}
+                  {{ suggestion.text }}
                 </p>
 
                 <!-- Metadata -->
                 <div class="flex items-center gap-4 text-xs opacity-70 mt-2">
                   <span class="flex items-center gap-1">
                     <DocumentTextIcon class="h-3 w-3" />
-                    {{ countWords(suggestion) }} palabras
+                    {{ suggestion.word_count }} palabras
                   </span>
                   <span class="flex items-center gap-1">
                     <Bars3BottomLeftIcon class="h-3 w-3" />
-                    {{ suggestion.length }} caracteres
+                    {{ suggestion.char_count }} caracteres
                   </span>
                   <span class="flex items-center gap-1">
                     <ClockIcon class="h-3 w-3" />
-                    ~{{ estimateDuration(suggestion) }}s
+                    ~{{ estimateDuration(suggestion.word_count) }}s
                   </span>
                 </div>
 
                 <!-- Actions -->
                 <div class="card-actions justify-end mt-3">
                   <button
-                    @click.stop="useSuggestion(suggestion)"
+                    @click.stop="useSuggestion(suggestion.text)"
                     class="btn btn-primary btn-sm gap-2"
                   >
                     <CheckIcon class="h-4 w-4" />
                     Usar este texto
                   </button>
                   <button
-                    @click.stop="copySuggestion(suggestion)"
+                    @click.stop="copySuggestion(suggestion.text)"
                     class="btn btn-ghost btn-sm gap-2"
                   >
                     <ClipboardDocumentIcon class="h-4 w-4" />
@@ -158,9 +174,11 @@
 
         <!-- Empty State -->
         <div v-else-if="!isGenerating" class="mt-6 text-center opacity-50">
-          <div class="text-6xl mb-2">💡</div>
-          <p class="text-sm">Las sugerencias aparecerán aquí</p>
-          <p class="text-xs mt-1">Completa el contexto y presiona "Generar"</p>
+          <div class="text-5xl mb-2">
+            <SparklesIcon class="h-12 w-12 mx-auto" />
+          </div>
+          <p class="text-sm">Las sugerencias apareceran aqui</p>
+          <p class="text-xs mt-1">Describe lo que quieres anunciar y presiona "Generar"</p>
         </div>
       </div>
     </div>
@@ -168,8 +186,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import audioApi from '@/api/audio'
+import { apiClient } from '@/api/client'
+import type { AIAnnouncementSuggestion, AIGenerateRequest } from '@/types/audio'
 import {
   SparklesIcon,
   DocumentTextIcon,
@@ -177,7 +197,8 @@ import {
   ClockIcon,
   CheckIcon,
   ClipboardDocumentIcon,
-  TrashIcon
+  TrashIcon,
+  CpuChipIcon
 } from '@heroicons/vue/24/outline'
 
 // Emits
@@ -187,28 +208,29 @@ const emit = defineEmits<{
 
 // State
 const context = ref('')
-const tone = ref('profesional')
+const tone = ref<AIGenerateRequest['tone']>('profesional')
 const duration = ref(15)
-const suggestions = ref<string[]>([])
+const suggestions = ref<AIAnnouncementSuggestion[]>([])
 const selectedIndex = ref<number | null>(null)
 const isGenerating = ref(false)
 const error = ref<string | null>(null)
+const activeClientName = ref<string | null>(null)
 
 // Computed
-const contextLength = computed(() => context.value.length)
-
 const canGenerate = computed(() => {
-  return context.value.trim().length > 0 && !isGenerating.value
+  return context.value.trim().length >= 5 && !isGenerating.value
 })
 
-// Tone mapping: Spanish UI -> English API
-const toneMapping: Record<string, string> = {
-  'profesional': 'professional',
-  'entusiasta': 'friendly',
-  'amigable': 'friendly',
-  'urgente': 'urgent',
-  'informativo': 'casual'
-}
+// Load active client info on mount
+onMounted(async () => {
+  try {
+    const response = await apiClient.get<{ name: string; id: string }>('/api/v1/settings/ai-clients/active')
+    activeClientName.value = response.name
+  } catch (e) {
+    // No active client or error - use default
+    activeClientName.value = null
+  }
+})
 
 // Methods
 const generateSuggestions = async () => {
@@ -220,29 +242,29 @@ const generateSuggestions = async () => {
     suggestions.value = []
     selectedIndex.value = null
 
-    console.log('🤖 Generating AI suggestions...', {
+    console.log('Generating AI announcements...', {
       context: context.value,
       tone: tone.value,
       duration: duration.value
     })
 
-    // Calculate max words based on duration
-    // Aproximadamente 2 palabras por segundo
-    const maxWords = Math.floor(duration.value * 2)
-
-    // Map Spanish tone to English for API
-    const apiTone = toneMapping[tone.value] || 'professional'
-
-    const response = await audioApi.generateAISuggestions({
-      prompt: context.value.trim(),    // Backend expects 'prompt', not 'context'
-      context: context.value.trim(),   // Also send context for additional info
-      tone: apiTone,                   // Use mapped English value
-      max_words: maxWords
+    const response = await audioApi.generateAnnouncements({
+      context: context.value.trim(),
+      tone: tone.value,
+      duration: duration.value,
+      mode: 'normal'
     })
 
-    suggestions.value = response.suggestions || []
-
-    console.log(`✅ Generated ${suggestions.value.length} suggestions`)
+    if (response.success) {
+      suggestions.value = response.suggestions
+      // Update active client name if returned
+      if (response.active_client_id) {
+        // Client name should be fetched separately or cached
+      }
+      console.log(`Generated ${suggestions.value.length} suggestions`)
+    } else {
+      throw new Error('Error en la generacion')
+    }
 
     // Auto-scroll to suggestions
     setTimeout(() => {
@@ -254,7 +276,7 @@ const generateSuggestions = async () => {
 
   } catch (e: any) {
     error.value = e.response?.data?.detail || e.message || 'Error generando sugerencias'
-    console.error('❌ Error generating suggestions:', e)
+    console.error('Error generating suggestions:', e)
   } finally {
     isGenerating.value = false
   }
@@ -266,39 +288,13 @@ const selectSuggestion = (index: number) => {
 
 const useSuggestion = (text: string) => {
   emit('suggestionSelected', text)
-
-  // Visual feedback
-  const notification = document.createElement('div')
-  notification.className = 'toast toast-top toast-end'
-  notification.innerHTML = `
-    <div class="alert alert-success">
-      <span>✅ Texto copiado al generador</span>
-    </div>
-  `
-  document.body.appendChild(notification)
-
-  setTimeout(() => {
-    notification.remove()
-  }, 2000)
+  showToast('Texto enviado al generador', 'success')
 }
 
 const copySuggestion = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text)
-
-    // Visual feedback
-    const notification = document.createElement('div')
-    notification.className = 'toast toast-top toast-end'
-    notification.innerHTML = `
-      <div class="alert alert-info">
-        <span>📋 Copiado al portapapeles</span>
-      </div>
-    `
-    document.body.appendChild(notification)
-
-    setTimeout(() => {
-      notification.remove()
-    }, 2000)
+    showToast('Copiado al portapapeles', 'info')
   } catch (e) {
     console.error('Failed to copy:', e)
   }
@@ -313,14 +309,24 @@ const clearError = () => {
   error.value = null
 }
 
-const countWords = (text: string): number => {
-  return text.trim().split(/\s+/).length
+const estimateDuration = (wordCount: number): number => {
+  // Aproximadamente 2 palabras por segundo
+  return Math.ceil(wordCount / 2)
 }
 
-const estimateDuration = (text: string): number => {
-  // Aproximadamente 2 palabras por segundo
-  const words = countWords(text)
-  return Math.ceil(words / 2)
+const showToast = (message: string, type: 'success' | 'info' | 'error') => {
+  const notification = document.createElement('div')
+  notification.className = 'toast toast-top toast-end'
+  notification.innerHTML = `
+    <div class="alert alert-${type}">
+      <span>${message}</span>
+    </div>
+  `
+  document.body.appendChild(notification)
+
+  setTimeout(() => {
+    notification.remove()
+  }, 2000)
 }
 </script>
 

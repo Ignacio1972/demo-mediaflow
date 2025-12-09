@@ -136,6 +136,7 @@ async def create_voice(
             stability=voice_data.stability,
             similarity_boost=voice_data.similarity_boost,
             use_speaker_boost=voice_data.use_speaker_boost,
+            speed=voice_data.speed,  # ElevenLabs 2025
             volume_adjustment=voice_data.volume_adjustment,
             jingle_settings=voice_data.jingle_settings.model_dump() if voice_data.jingle_settings else None,
         )
@@ -363,11 +364,13 @@ async def test_voice(
             )
 
         # Generate audio using ElevenLabs with voice settings
+        # Including speed parameter (ElevenLabs 2025 API)
         voice_settings = {
             "stability": voice.stability,
             "similarity_boost": voice.similarity_boost,
             "style": voice.style,
             "use_speaker_boost": voice.use_speaker_boost,
+            "speed": voice.speed,
         }
 
         audio_bytes = await elevenlabs_service.generate_speech(

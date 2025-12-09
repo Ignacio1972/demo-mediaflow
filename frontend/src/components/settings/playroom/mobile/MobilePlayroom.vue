@@ -72,8 +72,8 @@
           @show-confirm="showConfirmModal = true"
           @reset="resetToSelection"
           @regenerate-text="regenerateWithText"
-          @regenerate-voice="regenerateWithVoice(selectedVoiceIdForRegenerate!)"
-          @select-voice="selectedVoiceIdForRegenerate = $event"
+          @regenerate-new="regenerateNewAudio"
+          @regenerate-voice="regenerateWithVoice"
           @update:active-tab="playingTab = $event"
           @update:edited-text="editedText = $event"
         />
@@ -163,6 +163,7 @@ const {
   stopRecording,
   regenerateWithText,
   regenerateWithVoice,
+  regenerateNewAudio,
   togglePlayPause,
   seekTo,
   sendToSpeakers,
