@@ -102,8 +102,21 @@
 
           <!-- Voice Settings -->
           <div class="collapse collapse-open bg-base-200 rounded-box">
-            <div class="collapse-title font-semibold">
-              Voice Settings (ElevenLabs)
+            <div class="collapse-title font-semibold flex items-center justify-between pr-4">
+              <span>Voice Settings (ElevenLabs)</span>
+              <label
+                class="label cursor-pointer gap-2 p-0"
+                @click.stop
+                title="Activar para usar los valores recomendados por ElevenLabs"
+              >
+                <span class="label-text text-xs">Use Defaults</span>
+                <input
+                  type="checkbox"
+                  class="toggle toggle-info toggle-sm"
+                  :checked="isUsingElevenLabsDefaults"
+                  @change="toggleElevenLabsDefaults"
+                />
+              </label>
             </div>
             <div class="collapse-content">
               <div class="space-y-6">
@@ -398,6 +411,16 @@
 import { ref, computed, watch, reactive } from 'vue'
 import type { VoiceSettings } from '../composables/useVoiceManager'
 
+// ElevenLabs recommended defaults (from official documentation)
+// https://elevenlabs.io/docs/product-guides/products/studio#settings
+const ELEVENLABS_DEFAULTS = {
+  style: 0,              // 0% - "we recommend keeping this setting at 0 at all times"
+  stability: 50,         // 50% - "stability around 50"
+  similarity_boost: 75,  // 75% - "similarity near 75"
+  speed: 1.0,            // 1.0x - normal speed
+  use_speaker_boost: true
+} as const
+
 const props = defineProps<{
   voice: VoiceSettings
   isSaving: boolean
@@ -490,7 +513,32 @@ const hasChanges = computed(() => {
   )
 })
 
+// Check if current voice settings match ElevenLabs defaults
+const isUsingElevenLabsDefaults = computed(() => {
+  const local = localVoice.value
+  return (
+    local.style === ELEVENLABS_DEFAULTS.style &&
+    local.stability === ELEVENLABS_DEFAULTS.stability &&
+    local.similarity_boost === ELEVENLABS_DEFAULTS.similarity_boost &&
+    local.speed === ELEVENLABS_DEFAULTS.speed &&
+    local.use_speaker_boost === ELEVENLABS_DEFAULTS.use_speaker_boost
+  )
+})
+
 // Handlers
+const toggleElevenLabsDefaults = (event: Event) => {
+  const checked = (event.target as HTMLInputElement).checked
+  if (checked) {
+    // Apply ElevenLabs defaults
+    localVoice.value.style = ELEVENLABS_DEFAULTS.style
+    localVoice.value.stability = ELEVENLABS_DEFAULTS.stability
+    localVoice.value.similarity_boost = ELEVENLABS_DEFAULTS.similarity_boost
+    localVoice.value.speed = ELEVENLABS_DEFAULTS.speed
+    localVoice.value.use_speaker_boost = ELEVENLABS_DEFAULTS.use_speaker_boost
+  }
+  // If unchecked, keep current values (user wants custom settings)
+}
+
 const handleSave = () => {
   const updates: Partial<VoiceSettings> = {
     name: localVoice.value.name,

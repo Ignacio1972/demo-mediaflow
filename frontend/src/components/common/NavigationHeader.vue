@@ -36,6 +36,16 @@
             <CalendarIcon class="h-6 w-6" />
           </router-link>
 
+          <!-- Operations Link -->
+          <router-link
+            to="/operations"
+            class="nav-link tooltip"
+            :class="{ 'active': isActive('/operations') }"
+            data-tooltip="Operaciones"
+          >
+            <MegaphoneIcon class="h-6 w-6" />
+          </router-link>
+
           <!-- Settings Link -->
           <router-link
             to="/settings"
@@ -58,7 +68,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { BookOpenIcon, CalendarIcon, CogIcon } from '@heroicons/vue/24/outline'
+import { BookOpenIcon, CalendarIcon, CogIcon, MegaphoneIcon } from '@heroicons/vue/24/outline'
 import ThemeSelector from './ThemeSelector.vue'
 
 const route = useRoute()

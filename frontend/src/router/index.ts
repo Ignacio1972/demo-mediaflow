@@ -23,6 +23,22 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/components/calendar/Calendar.vue'),
   },
   {
+    path: '/operations',
+    name: 'operations',
+    component: () => import('@/components/operations/Operations.vue'),
+    redirect: '/operations/vehicles',
+    children: [
+      {
+        path: 'vehicles',
+        name: 'operations-vehicles',
+        component: () => import('@/components/operations/vehicles/VehicleAnnouncement.vue'),
+      },
+      // Future operation templates:
+      // { path: 'lost-child', name: 'operations-lost-child', component: ... },
+      // { path: 'promotions', name: 'operations-promotions', component: ... },
+    ],
+  },
+  {
     path: '/settings',
     name: 'settings',
     redirect: '/settings/ai',

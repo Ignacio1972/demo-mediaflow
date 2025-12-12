@@ -1,6 +1,6 @@
 # MediaFlow v2.1 - Project Context
 
-**Last Updated**: 2025-12-03
+**Last Updated**: 2025-12-09
 **Purpose**: Context documentation for Claude AI assistants
 
 ---
@@ -198,17 +198,21 @@ frontend/src/
 Each voice has pre-configured settings that are applied automatically:
 
 ```python
+# ElevenLabs recommended defaults (from official documentation):
+# https://elevenlabs.io/docs/product-guides/products/studio#settings
 VoiceSettings:
-  - style: 15.0           # 0-100
-  - stability: 100.0      # 0-100
-  - similarity_boost: 40.0
-  - volume_adjustment: 0.0  # dB (-20 to +20)
-  - jingle_settings: {
-      music_volume: 1.65,
-      voice_volume: 2.8,
-      duck_level: 0.95,
-      intro_silence: 7.0,
-      outro_silence: 4.5
+  - style: 0.0            # 0-100 (ElevenLabs default: 0 - "keep at 0 at all times")
+  - stability: 50.0       # 0-100 (ElevenLabs default: 50 - "stability around 50")
+  - similarity_boost: 75.0 # 0-100 (ElevenLabs default: 75 - "similarity near 75")
+  - speed: 1.0            # 0.7-1.2 (ElevenLabs default: 1.0)
+  - use_speaker_boost: true
+  - volume_adjustment: 0.0  # dB (-20 to +20) - MediaFlow specific
+  - jingle_settings: {      # MediaFlow specific (per-voice customization)
+      music_volume: 1.0,
+      voice_volume: 1.0,
+      duck_level: 0.2,
+      intro_silence: 3.0,
+      outro_silence: 5.0
     }
 ```
 
@@ -244,9 +248,13 @@ Favorites span all categories - use `is_favorite` filter.
   "elevenlabs_id": "G4IAP30yc6c1gK0csDfu",
   "active": true,
   "is_default": false,
-  "style": 15.0,
-  "stability": 100.0,
-  "similarity_boost": 40.0,
+  # ElevenLabs settings (defaults from official docs)
+  "style": 0.0,             # ElevenLabs default: 0
+  "stability": 50.0,        # ElevenLabs default: 50
+  "similarity_boost": 75.0, # ElevenLabs default: 75
+  "speed": 1.0,             # ElevenLabs default: 1.0
+  "use_speaker_boost": true,
+  # MediaFlow settings
   "volume_adjustment": 0.0,
   "jingle_settings": {...}
 }

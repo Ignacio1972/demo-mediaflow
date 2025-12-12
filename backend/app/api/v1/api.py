@@ -5,6 +5,7 @@ Aggregates all API v1 endpoints
 from fastapi import APIRouter
 from app.api.v1.endpoints import audio, ai, library, categories, schedules
 from app.api.v1.endpoints.settings import router as settings_router
+from app.api.v1.endpoints.operations import router as operations_router
 
 api_router = APIRouter()
 
@@ -48,6 +49,13 @@ api_router.include_router(
     settings_router,
     prefix="/settings",
     tags=["settings"]
+)
+
+# Include operations endpoints (Vehicle announcements, etc.)
+api_router.include_router(
+    operations_router,
+    prefix="/operations",
+    tags=["operations"]
 )
 
 # Future routers will be added here:

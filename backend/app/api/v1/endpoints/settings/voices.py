@@ -14,7 +14,7 @@ from pydub import AudioSegment
 
 from app.db.session import get_db
 from app.models.voice_settings import VoiceSettings
-from app.services.tts import elevenlabs_service
+from app.services.tts import elevenlabs_service, voice_manager
 from app.core.config import settings
 from app.schemas.voice import (
     VoiceSettingsCreate,
@@ -192,7 +192,9 @@ async def update_voice(
         await db.commit()
         await db.refresh(voice)
 
-        logger.info(f"✅ Voice updated: {voice.id}")
+        # Invalidate cache so changes take effect immediately
+        voice_manager.invalidate_cache(voice_id)
+        logger.info(f"✅ Voice updated: {voice.id} (cache invalidated)")
 
         return serialize_voice(voice)
 
@@ -241,7 +243,9 @@ async def delete_voice(
         await db.delete(voice)
         await db.commit()
 
-        logger.info(f"✅ Voice deleted: {voice_id}")
+        # Invalidate cache for deleted voice
+        voice_manager.invalidate_cache(voice_id)
+        logger.info(f"✅ Voice deleted: {voice_id} (cache invalidated)")
 
     except HTTPException:
         raise
@@ -287,7 +291,9 @@ async def set_default_voice(
         voice.is_default = True
         await db.commit()
 
-        logger.info(f"✅ Default voice set: {voice_id}")
+        # Invalidate all cache since is_default changed for multiple voices
+        voice_manager.invalidate_cache()
+        logger.info(f"✅ Default voice set: {voice_id} (all cache invalidated)")
 
         return {"success": True, "message": f"Voice '{voice.name}' is now the default"}
 
@@ -324,7 +330,9 @@ async def reorder_voices(
 
         await db.commit()
 
-        logger.info("✅ Voices reordered")
+        # Invalidate all cache since order changed for multiple voices
+        voice_manager.invalidate_cache()
+        logger.info("✅ Voices reordered (all cache invalidated)")
 
         return {"success": True, "message": "Voices reordered successfully"}
 
