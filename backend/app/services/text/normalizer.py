@@ -38,9 +38,10 @@ HUNDREDS = {
 # Message templates for vehicle announcements
 VEHICLE_TEMPLATES = {
     "default": (
-        "Atencion. El vehiculo {marca}, color {color}, "
-        "patente {patente}, se encuentra mal estacionado. "
-        "Por favor, retirelo de inmediato."
+        "Atencion clientes: Se solicita al dueno del vehiculo marca {marca} "
+        "color {color}. Patente {patente} que por favor se acerque a "
+        "informaciones en Planta Baja. Repito, {marca} color {color}, "
+        "Patente {patente}, por favor acerquese a informaciones ubicada en Planta Baja."
     ),
     "formal": (
         "Estimados usuarios. Se solicita al propietario "
@@ -396,7 +397,7 @@ class TextNormalizer:
             {
                 "id": "default",
                 "name": "Estandar",
-                "description": "Anuncio estandar de vehiculo mal estacionado"
+                "description": "Solicita acercarse a informaciones en Planta Baja"
             },
             {
                 "id": "formal",

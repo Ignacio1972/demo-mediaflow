@@ -52,6 +52,16 @@
           <span class="hidden sm:inline">Automatic</span>
         </router-link>
 
+        <!-- Templates -->
+        <router-link
+          to="/settings/templates"
+          class="settings-nav-link"
+          :class="{ 'active': isActive('/settings/templates') }"
+        >
+          <DocumentTextIcon class="h-5 w-5" />
+          <span class="hidden sm:inline">Plantillas</span>
+        </router-link>
+
         <!-- Playroom -->
         <router-link
           to="/settings/playroom"
@@ -75,6 +85,7 @@ import {
   FolderIcon,
   BoltIcon,
   BeakerIcon,
+  DocumentTextIcon,
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
