@@ -87,6 +87,15 @@ export const audioApi = {
       params: { active_only: true }
     })
   },
+
+  /**
+   * Delete an audio message
+   */
+  async deleteMessage(audioId: number): Promise<{ success: boolean; message: string; data: any }> {
+    return apiClient.delete<{ success: boolean; message: string; data: any }>(
+      `/api/v1/audio/${audioId}`
+    )
+  },
 }
 
 export default audioApi

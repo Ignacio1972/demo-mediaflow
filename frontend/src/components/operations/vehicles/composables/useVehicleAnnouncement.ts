@@ -2,7 +2,7 @@
  * Vehicle Announcement Composable
  * Handles state and logic for the vehicle announcement form
  */
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, type Ref, type ComputedRef } from 'vue'
 import { apiClient } from '@/api/client'
 
 // Types
@@ -86,11 +86,27 @@ export function useVehicleAnnouncement() {
   // Form state
   const marca = ref('')
   const color = ref('')
-  const patente = ref('')
+  // Plate parts (Chilean format: XX.XX.XX)
+  const platePart1 = ref('')
+  const platePart2 = ref('')
+  const platePart3 = ref('')
   const voiceId = ref('')
   const musicFile = ref<string | null>(null)
   const template = ref('default')
-  const numberMode = ref<'words' | 'digits'>('words')
+  const numberMode = ref<'words' | 'digits'>('digits')
+
+  // Combined plate (computed from parts)
+  // Format: XX,XXXX (comma after first 2 chars, then 4 chars together)
+  const patente = computed(() => {
+    const p1 = platePart1.value.trim().toUpperCase()
+    const p2 = platePart2.value.trim().toUpperCase()
+    const p3 = platePart3.value.trim().toUpperCase()
+
+    if (!p1 && !p2 && !p3) return ''
+
+    // Format: JK,KJ32
+    return `${p1},${p2}${p3}`
+  })
 
   // Options data
   const brands = ref<VehicleBrand[]>([])
@@ -118,10 +134,16 @@ export function useVehicleAnnouncement() {
 
   // Computed
   const isFormValid = computed(() => {
+    // Each plate part should have 2 characters
+    const plateValid =
+      platePart1.value.trim().length === 2 &&
+      platePart2.value.trim().length === 2 &&
+      platePart3.value.trim().length === 2
+
     return (
       marca.value.trim().length >= 2 &&
       color.value.trim().length >= 2 &&
-      patente.value.trim().length >= 4 &&
+      plateValid &&
       voiceId.value.length > 0
     )
   })
@@ -162,10 +184,11 @@ export function useVehicleAnnouncement() {
       const response = await apiClient.get<Voice[]>('/api/v1/audio/voices')
       voices.value = response.filter(v => v.active)
 
-      // Set default voice if available
+      // Set default voice: prefer Mario, then is_default, then first voice
       if (voices.value.length > 0 && !voiceId.value) {
+        const marioVoice = voices.value.find((v: any) => v.id === 'mario')
         const defaultVoice = voices.value.find((v: any) => v.is_default)
-        voiceId.value = defaultVoice?.id || voices.value[0].id
+        voiceId.value = marioVoice?.id || defaultVoice?.id || voices.value[0].id
       }
     } catch (e: any) {
       console.error('Error loading voices:', e)
@@ -184,13 +207,8 @@ export function useVehicleAnnouncement() {
       const response = await apiClient.get<MusicTrack[]>('/api/v1/settings/music')
       musicTracks.value = response.filter(m => m.active)
 
-      // Set default music if available
-      if (musicTracks.value.length > 0 && !musicFile.value) {
-        const defaultTrack = musicTracks.value.find(m => m.is_default)
-        if (defaultTrack) {
-          musicFile.value = defaultTrack.filename
-        }
-      }
+      // Default: no music (sin música)
+      // musicFile stays null by default
     } catch (e: any) {
       console.error('Error loading music:', e)
     } finally {
@@ -297,9 +315,11 @@ export function useVehicleAnnouncement() {
   function resetForm() {
     marca.value = ''
     color.value = ''
-    patente.value = ''
+    platePart1.value = ''
+    platePart2.value = ''
+    platePart3.value = ''
     template.value = 'default'
-    numberMode.value = 'words'
+    numberMode.value = 'digits'
     previewText.value = null
     plateValidation.value = null
     generatedAudio.value = null
@@ -348,7 +368,11 @@ export function useVehicleAnnouncement() {
     // Form state
     marca,
     color,
-    patente,
+    // Plate parts
+    platePart1,
+    platePart2,
+    platePart3,
+    patente, // Combined (computed, read-only)
     voiceId,
     musicFile,
     template,

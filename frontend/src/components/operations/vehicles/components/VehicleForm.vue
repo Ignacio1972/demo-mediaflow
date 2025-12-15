@@ -9,20 +9,15 @@
           <label class="label">
             <span class="label-text font-medium">Marca del vehiculo</span>
           </label>
-          <input
+          <select
             v-model="marca"
-            type="text"
-            list="brands-list"
-            placeholder="Ej: Toyota, Chevrolet..."
-            class="input input-bordered w-full"
-            :class="{ 'input-error': marca && marca.length < 2 }"
-          />
-          <datalist id="brands-list">
-            <option v-for="brand in brands" :key="brand.id" :value="brand.name" />
-          </datalist>
-          <label v-if="marca && marca.length < 2" class="label">
-            <span class="label-text-alt text-error">Minimo 2 caracteres</span>
-          </label>
+            class="select select-bordered w-full"
+          >
+            <option value="" disabled>Seleccione una marca</option>
+            <option v-for="brand in brands" :key="brand.id" :value="brand.name">
+              {{ brand.name }}
+            </option>
+          </select>
         </div>
 
         <!-- Color -->
@@ -48,22 +43,60 @@
           </div>
         </div>
 
-        <!-- Patente -->
+        <!-- Patente (3 inputs) -->
         <div class="form-control mb-4">
           <label class="label">
             <span class="label-text font-medium">Patente</span>
+            <span class="label-text-alt text-base-content/60">Formato: XX.XX.XX</span>
           </label>
-          <input
-            v-model="patente"
-            type="text"
-            placeholder="Ej: BBCL-45"
-            class="input input-bordered w-full uppercase"
-            :class="{
-              'input-error': plateValidation && !plateValidation.valid,
-              'input-success': plateValidation && plateValidation.valid
-            }"
-            maxlength="10"
-          />
+          <div class="flex items-center gap-2">
+            <!-- Part 1 -->
+            <input
+              ref="plateInput1"
+              v-model="platePart1"
+              @input="handlePlateInput(1, ($event.target as HTMLInputElement).value)"
+              type="text"
+              placeholder="XX"
+              class="input input-bordered w-16 text-center uppercase font-mono text-lg tracking-wider"
+              :class="{
+                'input-error': plateValidation && !plateValidation.valid,
+                'input-success': plateValidation && plateValidation.valid
+              }"
+              maxlength="2"
+            />
+            <span class="text-2xl font-bold text-base-content/40">.</span>
+            <!-- Part 2 -->
+            <input
+              ref="plateInput2"
+              v-model="platePart2"
+              @input="handlePlateInput(2, ($event.target as HTMLInputElement).value)"
+              @keydown="handlePlateKeydown(2, $event)"
+              type="text"
+              placeholder="XX"
+              class="input input-bordered w-16 text-center uppercase font-mono text-lg tracking-wider"
+              :class="{
+                'input-error': plateValidation && !plateValidation.valid,
+                'input-success': plateValidation && plateValidation.valid
+              }"
+              maxlength="2"
+            />
+            <span class="text-2xl font-bold text-base-content/40">.</span>
+            <!-- Part 3 -->
+            <input
+              ref="plateInput3"
+              v-model="platePart3"
+              @input="handlePlateInput(3, ($event.target as HTMLInputElement).value)"
+              @keydown="handlePlateKeydown(3, $event)"
+              type="text"
+              placeholder="XX"
+              class="input input-bordered w-16 text-center uppercase font-mono text-lg tracking-wider"
+              :class="{
+                'input-error': plateValidation && !plateValidation.valid,
+                'input-success': plateValidation && plateValidation.valid
+              }"
+              maxlength="2"
+            />
+          </div>
           <!-- Plate validation feedback -->
           <label v-if="plateValidation" class="label">
             <span
@@ -186,7 +219,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import type {
   VehicleBrand,
   VehicleColor,
@@ -200,7 +233,9 @@ import type {
 interface Props {
   marca: string
   color: string
-  patente: string
+  platePart1: string
+  platePart2: string
+  platePart3: string
   voiceId: string
   musicFile: string | null
   template: string
@@ -222,7 +257,9 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   (e: 'update:marca', value: string): void
   (e: 'update:color', value: string): void
-  (e: 'update:patente', value: string): void
+  (e: 'update:platePart1', value: string): void
+  (e: 'update:platePart2', value: string): void
+  (e: 'update:platePart3', value: string): void
   (e: 'update:voiceId', value: string): void
   (e: 'update:musicFile', value: string | null): void
   (e: 'update:template', value: string): void
@@ -241,9 +278,19 @@ const color = computed({
   set: (v) => emit('update:color', v)
 })
 
-const patente = computed({
-  get: () => props.patente,
-  set: (v) => emit('update:patente', v.toUpperCase())
+const platePart1 = computed({
+  get: () => props.platePart1,
+  set: (v) => emit('update:platePart1', v.toUpperCase().slice(0, 2))
+})
+
+const platePart2 = computed({
+  get: () => props.platePart2,
+  set: (v) => emit('update:platePart2', v.toUpperCase().slice(0, 2))
+})
+
+const platePart3 = computed({
+  get: () => props.platePart3,
+  set: (v) => emit('update:platePart3', v.toUpperCase().slice(0, 2))
 })
 
 const voiceId = computed({
@@ -273,4 +320,35 @@ const selectedColorHex = computed(() => {
   )
   return found?.hex_color || null
 })
+
+// Refs for plate inputs (for auto-focus)
+const plateInput1 = ref<HTMLInputElement | null>(null)
+const plateInput2 = ref<HTMLInputElement | null>(null)
+const plateInput3 = ref<HTMLInputElement | null>(null)
+
+// Auto-focus to next input when current is filled
+function handlePlateInput(part: 1 | 2 | 3, value: string) {
+  if (value.length === 2) {
+    nextTick(() => {
+      if (part === 1) {
+        plateInput2.value?.focus()
+      } else if (part === 2) {
+        plateInput3.value?.focus()
+      }
+    })
+  }
+}
+
+// Handle backspace to go to previous input
+function handlePlateKeydown(part: 2 | 3, event: KeyboardEvent) {
+  const target = event.target as HTMLInputElement
+  if (event.key === 'Backspace' && target.value === '') {
+    event.preventDefault()
+    if (part === 2) {
+      plateInput1.value?.focus()
+    } else if (part === 3) {
+      plateInput2.value?.focus()
+    }
+  }
+}
 </script>

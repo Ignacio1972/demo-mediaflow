@@ -185,7 +185,7 @@ class TemplateResponse(BaseModel):
                 "id": "vehiculos_estandar",
                 "name": "Vehiculos - Estandar",
                 "description": "Solicita acercarse a informaciones en Planta Baja",
-                "template_text": "Atencion clientes: Se solicita al dueno del vehiculo...",
+                "template_text": "Atencion clientes: Se solicita al dueño del vehiculo...",
                 "variables": ["marca", "color", "patente"],
                 "module": "vehicles",
                 "order": 0,

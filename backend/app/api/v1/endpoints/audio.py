@@ -392,9 +392,12 @@ async def get_recent_messages(
         return [
             {
                 "id": msg.id,
+                "filename": msg.filename,
                 "display_name": msg.display_name,
+                "original_text": msg.original_text,
                 "voice_id": msg.voice_id,
                 "duration": msg.duration,
+                "is_favorite": msg.is_favorite,
                 "created_at": msg.created_at.isoformat(),
                 "audio_url": f"/storage/audio/{msg.filename}",
             }
@@ -469,4 +472,73 @@ async def save_to_library(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to save to library: {str(e)}",
+        )
+
+
+@router.delete(
+    "/{audio_id}",
+    summary="Delete Audio Message",
+    description="Delete an audio message from the recent messages list",
+    responses={
+        200: {"description": "Audio deleted successfully"},
+        404: {"model": ErrorResponse, "description": "Audio not found"},
+    },
+)
+async def delete_audio_message(
+    audio_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Delete an audio message and its associated file.
+
+    This removes the message from both the database and filesystem.
+    """
+    try:
+        logger.info(f"Deleting audio message: ID={audio_id}")
+
+        result = await db.execute(
+            select(AudioMessage).filter(AudioMessage.id == audio_id)
+        )
+        audio_message = result.scalar_one_or_none()
+
+        if not audio_message:
+            logger.warning(f"Audio not found: {audio_id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Audio message with ID {audio_id} not found",
+            )
+
+        filename = audio_message.filename
+        file_path = audio_message.file_path
+
+        # Delete physical file if exists
+        if file_path and os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+                logger.debug(f"Deleted file: {file_path}")
+            except Exception as e:
+                logger.warning(f"Failed to delete file {file_path}: {e}")
+
+        # Delete from database
+        await db.delete(audio_message)
+        await db.commit()
+
+        logger.info(f"Audio deleted: {filename}")
+
+        return {
+            "success": True,
+            "message": "Audio eliminado",
+            "data": {
+                "id": audio_id,
+                "filename": filename,
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete audio: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete audio: {str(e)}",
         )

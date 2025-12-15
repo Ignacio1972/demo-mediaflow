@@ -157,7 +157,7 @@ export const useAudioStore = defineStore('audio', () => {
       isLoading.value = true
       error.value = null
 
-      console.log('💾 Saving audio to library...', audioId)
+      console.log('Saving audio to library...', audioId)
 
       const response = await audioApi.saveToLibrary(audioId)
 
@@ -167,14 +167,35 @@ export const useAudioStore = defineStore('audio', () => {
         (currentAudio.value as any).is_saved = true
       }
 
-      console.log('✅ Audio saved to library:', response.message)
+      console.log('Audio saved to library:', response.message)
       return response
     } catch (e: any) {
       error.value = `Error al guardar: ${e.response?.data?.detail || e.message}`
-      console.error('❌ Error saving to library:', e)
+      console.error('Error saving to library:', e)
       throw e
     } finally {
       isLoading.value = false
+    }
+  }
+
+  /**
+   * Delete audio message
+   */
+  async function deleteMessage(audioId: number) {
+    try {
+      console.log('Deleting audio message...', audioId)
+
+      const response = await audioApi.deleteMessage(audioId)
+
+      // Remove from local state
+      recentMessages.value = recentMessages.value.filter(m => m.id !== audioId)
+
+      console.log('Audio deleted:', response.message)
+      return response
+    } catch (e: any) {
+      error.value = `Error al eliminar: ${e.response?.data?.detail || e.message}`
+      console.error('Error deleting message:', e)
+      throw e
     }
   }
 
@@ -203,5 +224,6 @@ export const useAudioStore = defineStore('audio', () => {
     clearCurrentAudio,
     clearError,
     saveToLibrary,
+    deleteMessage,
   }
 })

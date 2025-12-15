@@ -37,7 +37,9 @@
       <VehicleForm
         v-model:marca="marca"
         v-model:color="color"
-        v-model:patente="patente"
+        v-model:platePart1="platePart1"
+        v-model:platePart2="platePart2"
+        v-model:platePart3="platePart3"
         v-model:voiceId="voiceId"
         v-model:musicFile="musicFile"
         v-model:template="template"
@@ -84,7 +86,9 @@ const {
   // Form state
   marca,
   color,
-  patente,
+  platePart1,
+  platePart2,
+  platePart3,
   voiceId,
   musicFile,
   template,

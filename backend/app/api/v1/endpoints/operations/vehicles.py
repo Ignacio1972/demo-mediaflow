@@ -73,7 +73,7 @@ COMMON_COLORS = [
     {"id": "azul", "name": "Azul", "hex_color": "#0000FF"},
     {"id": "verde", "name": "Verde", "hex_color": "#008000"},
     {"id": "amarillo", "name": "Amarillo", "hex_color": "#FFFF00"},
-    {"id": "cafe", "name": "Cafe", "hex_color": "#8B4513"},
+    {"id": "cafe", "name": "Café", "hex_color": "#8B4513"},
     {"id": "beige", "name": "Beige", "hex_color": "#F5F5DC"},
     {"id": "naranja", "name": "Naranja", "hex_color": "#FFA500"},
     {"id": "celeste", "name": "Celeste", "hex_color": "#87CEEB"},

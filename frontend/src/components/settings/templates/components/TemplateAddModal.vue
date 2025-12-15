@@ -79,7 +79,7 @@
           </label>
           <textarea
             v-model="formData.template_text"
-            placeholder="Atencion clientes: Se solicita al dueno del vehiculo marca {marca} color {color}..."
+            placeholder="Atencion clientes: Se solicita al dueño del vehiculo marca {marca} color {color}..."
             class="textarea textarea-bordered w-full h-32 font-mono text-sm"
           ></textarea>
           <label class="label">

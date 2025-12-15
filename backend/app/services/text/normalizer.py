@@ -35,11 +35,19 @@ HUNDREDS = {
     800: "ochocientos", 900: "novecientos"
 }
 
+# Spanish letter pronunciations for TTS
+# Only letters that need special pronunciation
+LETTER_PRONUNCIATIONS = {
+    "J": "jota",
+    "V": "ve",
+    "Y": "igriega",
+}
+
 # Message templates for vehicle announcements
 VEHICLE_TEMPLATES = {
     "default": (
-        "Atencion clientes: Se solicita al dueno del vehiculo marca {marca} "
-        "color {color}. Patente {patente} que por favor se acerque a "
+        "Atencion clientes: Se solicita al dueño del vehiculo marca {marca}, "
+        "color {color}, patente {patente} que por favor se acerque a "
         "informaciones en Planta Baja. Repito, {marca} color {color}, "
         "Patente {patente}, por favor acerquese a informaciones ubicada en Planta Baja."
     ),
@@ -82,11 +90,14 @@ class TextNormalizer:
             separator: Separator between letters (default: ". ")
 
         Returns:
-            Spaced letters (e.g., "A. B. C.")
+            Spaced letters with Spanish pronunciation (e.g., "A. B. C.")
+            Special letters like J and Y are converted to their Spanish names.
 
         Example:
             >>> normalizer.normalize_letters("BBCL")
             "B. B. C. L."
+            >>> normalizer.normalize_letters("JKYJ")
+            "jota. K. igriega. jota."
         """
         if not text:
             return ""
@@ -97,8 +108,11 @@ class TextNormalizer:
         if not letters:
             return ""
 
+        # Convert letters to their pronunciation (use Spanish name if available)
+        pronounced = [LETTER_PRONUNCIATIONS.get(letter, letter) for letter in letters]
+
         # Join with separator and add final period
-        result = separator.join(letters)
+        result = separator.join(pronounced)
         if not result.endswith("."):
             result += "."
 
@@ -219,52 +233,62 @@ class TextNormalizer:
         """
         Normalize Chilean license plate for TTS pronunciation.
 
+        Uses paired format for better TTS pronunciation:
+        - Characters are grouped in pairs
+        - Within a pair: separated by comma and space
+        - Between pairs: separated by period and space
+
         Supports formats:
-        - New format (2007+): XXXX-YY (4 letters + 2 digits) e.g., "BBCL-45"
+        - New format (2007+): XXXX-YY (4 letters + 2 digits) e.g., "RFLX-32"
         - Old format: XX-YYYY (2 letters + 4 digits) e.g., "AA-1234"
 
         Args:
             plate: License plate string
-            number_mode: "words" for full words (cuarenta y cinco),
-                        "digits" for digit-by-digit (cuatro cinco)
+            number_mode: "words" for full words (not used in paired format),
+                        "digits" for digit-by-digit (default behavior)
 
         Returns:
-            TTS-friendly pronunciation
+            TTS-friendly pronunciation in paired format
 
         Example:
-            >>> normalizer.normalize_plate("BBCL-45")
-            "B. B. C. L. cuarenta y cinco"
-            >>> normalizer.normalize_plate("AA-1234", number_mode="digits")
-            "A. A. uno dos tres cuatro"
+            >>> normalizer.normalize_plate("RFLX-32")
+            "R, F. L, X. 3, 2."
+            >>> normalizer.normalize_plate("AA-1234")
+            "A, A. 1, 2. 3, 4."
         """
         if not plate:
             return ""
 
-        # Clean the plate: remove spaces, dashes, convert to uppercase
-        clean_plate = plate.upper().replace(" ", "").replace("-", "")
+        # Clean the plate: remove spaces, dashes, commas, convert to uppercase
+        clean_plate = plate.upper().replace(" ", "").replace("-", "").replace(",", "")
 
-        # Separate letters and numbers
-        letters = ""
-        numbers = ""
+        # Get all alphanumeric characters in order
+        chars = [char for char in clean_plate if char.isalnum()]
 
-        for char in clean_plate:
+        if not chars:
+            return ""
+
+        # Convert each character to its pronunciation
+        pronounced_chars = []
+        for char in chars:
             if char.isalpha():
-                letters += char
-            elif char.isdigit():
-                numbers += char
+                # Use Spanish letter name if available, otherwise the letter itself
+                pronounced_chars.append(LETTER_PRONUNCIATIONS.get(char, char))
+            else:
+                # For digits, use the digit itself (will be read as number)
+                pronounced_chars.append(char)
 
-        # Normalize each part
-        letters_normalized = self.normalize_letters(letters)
-        numbers_normalized = self.normalize_number(numbers, mode=number_mode)
+        # Group into pairs and format: "X, Y. "
+        result_parts = []
+        for i in range(0, len(pronounced_chars), 2):
+            if i + 1 < len(pronounced_chars):
+                # Complete pair
+                result_parts.append(f"{pronounced_chars[i]}, {pronounced_chars[i + 1]}.")
+            else:
+                # Single character at the end (odd number of chars)
+                result_parts.append(f"{pronounced_chars[i]}.")
 
-        # Combine parts
-        parts = []
-        if letters_normalized:
-            parts.append(letters_normalized)
-        if numbers_normalized:
-            parts.append(numbers_normalized)
-
-        return " ".join(parts)
+        return " ".join(result_parts)
 
     def validate_plate_format(self, plate: str) -> dict:
         """
