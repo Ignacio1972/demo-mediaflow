@@ -12,6 +12,9 @@ const store = useCampaignStore()
 // Modal state
 const showNewModal = ref(false)
 
+// Drag and drop state
+const draggedCampaign = ref<Campaign | null>(null)
+
 // Load campaigns on mount
 onMounted(() => {
   store.fetchCampaigns()
@@ -28,6 +31,45 @@ async function handleCreateCampaign(data: CampaignCreate) {
   } catch (error) {
     console.error('Create campaign failed:', error)
   }
+}
+
+// Drag handlers
+function handleDragStart(campaign: Campaign, event: DragEvent) {
+  draggedCampaign.value = campaign
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', campaign.id)
+  }
+}
+
+function handleDragOver(event: DragEvent) {
+  event.preventDefault()
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move'
+  }
+}
+
+async function handleDrop(targetCampaign: Campaign) {
+  if (!draggedCampaign.value || draggedCampaign.value.id === targetCampaign.id) {
+    return
+  }
+
+  const currentOrder = store.campaigns.map(c => c.id)
+  const draggedIndex = currentOrder.indexOf(draggedCampaign.value.id)
+  const targetIndex = currentOrder.indexOf(targetCampaign.id)
+
+  currentOrder.splice(draggedIndex, 1)
+  currentOrder.splice(targetIndex, 0, draggedCampaign.value.id)
+
+  try {
+    await store.reorderCampaigns(currentOrder)
+  } catch (error) {
+    console.error('Reorder failed:', error)
+  }
+}
+
+function handleDragEnd() {
+  draggedCampaign.value = null
 }
 
 // Current year for header
@@ -84,13 +126,11 @@ const currentYear = new Date().getFullYear()
         :key="campaign.id"
         :campaign="campaign"
         @click="handleCampaignClick"
+        @dragStart="handleDragStart(campaign, $event)"
+        @dragOver="handleDragOver"
+        @drop="handleDrop(campaign)"
+        @dragEnd="handleDragEnd"
       />
-    </div>
-
-    <!-- Legend -->
-    <div v-if="store.campaigns.length > 0" class="mt-8 text-sm opacity-50">
-      <span class="mr-4">IA ✓ = IA entrenada para esta campaña</span>
-      <span>IA ✗ = Sin entrenamiento de IA</span>
     </div>
 
     <!-- Modal -->

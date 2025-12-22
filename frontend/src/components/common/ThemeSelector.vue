@@ -62,6 +62,12 @@
           Cyberpunk
         </button>
       </li>
+      <li>
+        <button @click="changeTheme('caramellatte')" :class="{ 'active': currentTheme === 'caramellatte' }" class="flex items-center gap-2">
+          <SwatchIcon class="w-4 h-4" />
+          Caramellatte
+        </button>
+      </li>
     </ul>
   </div>
 </template>

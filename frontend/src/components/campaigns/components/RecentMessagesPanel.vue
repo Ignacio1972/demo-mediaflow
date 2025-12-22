@@ -1,59 +1,48 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { CollapsiblePanel } from '@/components/shared/ui'
-import type { CampaignAudio, CampaignAudiosResponse } from '@/types/campaign'
-import { apiClient } from '@/api/client'
+import { useAudioStore } from '@/stores/audio'
+import type { AudioMessage } from '@/types/audio'
 
-interface Props {
+const props = defineProps<{
   campaignId: string
-}
-
-const props = defineProps<Props>()
-
-const emit = defineEmits<{
-  select: [message: CampaignAudio]
 }>()
 
-// State
-const messages = ref<CampaignAudio[]>([])
-const isLoading = ref(false)
-const previewText = ref('')
+const emit = defineEmits<{
+  select: [message: AudioMessage]
+}>()
 
-// Load recent messages
-async function loadMessages() {
-  isLoading.value = true
-  try {
-    // apiClient returns data directly, NOT response.data
-    const response = await apiClient.get<CampaignAudiosResponse>(
-      `/api/v1/campaigns/${props.campaignId}/audios`,
-      { params: { limit: 5 } }
-    )
-    messages.value = response.audios
-    previewText.value = messages.value.length > 0
-      ? `${messages.value.length} mensajes`
-      : 'Sin mensajes'
-  } catch (error) {
-    console.error('Error loading recent messages:', error)
-    previewText.value = 'Error al cargar'
-  } finally {
-    isLoading.value = false
+// Use global audio store (same as Dashboard)
+const audioStore = useAudioStore()
+const { recentMessages, isLoading } = storeToRefs(audioStore)
+
+// Load messages on mount if empty
+onMounted(async () => {
+  if (recentMessages.value.length === 0) {
+    await audioStore.loadRecentMessages()
   }
-}
-
-onMounted(() => {
-  loadMessages()
 })
+
+// Filter by campaign and limit to 5 messages for the panel
+const messages = computed(() =>
+  recentMessages.value
+    .filter(m => m.category_id === props.campaignId)
+    .slice(0, 5)
+)
+
+// Preview text for collapsed state
+const previewText = computed(() =>
+  messages.value.length > 0
+    ? `${messages.value.length} mensajes`
+    : 'Sin mensajes'
+)
 
 // Audio player state
 const currentlyPlaying = ref<number | null>(null)
 const audioElement = ref<HTMLAudioElement | null>(null)
 
-function getAudioUrl(message: CampaignAudio): string {
-  // Build audio URL from filename
-  return `/api/v1/audio/file/${message.filename}`
-}
-
-function togglePlay(message: CampaignAudio) {
+function togglePlay(message: AudioMessage) {
   if (currentlyPlaying.value === message.id) {
     audioElement.value?.pause()
     currentlyPlaying.value = null
@@ -61,7 +50,8 @@ function togglePlay(message: CampaignAudio) {
     if (audioElement.value) {
       audioElement.value.pause()
     }
-    audioElement.value = new Audio(getAudioUrl(message))
+    const url = message.audio_url || `/api/v1/audio/file/${message.filename}`
+    audioElement.value = new Audio(url)
     audioElement.value.play()
     audioElement.value.onended = () => {
       currentlyPlaying.value = null
@@ -70,7 +60,7 @@ function togglePlay(message: CampaignAudio) {
   }
 }
 
-function selectMessage(message: CampaignAudio) {
+function selectMessage(message: AudioMessage) {
   emit('select', message)
 }
 

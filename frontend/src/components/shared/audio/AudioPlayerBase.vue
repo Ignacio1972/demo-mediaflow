@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 
 interface Props {
   audioUrl: string
@@ -93,6 +93,18 @@ function seek(event: MouseEvent) {
 
   audioElement.value.currentTime = percentage * audioDuration.value
 }
+
+// Autoplay on mount if enabled
+onMounted(async () => {
+  if (props.autoplay && props.audioUrl) {
+    await nextTick()
+    setTimeout(() => {
+      audioElement.value?.play().catch(() => {
+        // Autoplay blocked by browser
+      })
+    }, 100)
+  }
+})
 
 // Watch for URL changes
 watch(() => props.audioUrl, () => {

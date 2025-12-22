@@ -128,7 +128,8 @@ export function useCampaignWorkflow(campaignId: string) {
         text: editedText.value,
         voice_id: selectedVoiceId.value,
         add_jingles: addMusic.value,
-        music_file: addMusic.value && selectedMusicFile.value ? selectedMusicFile.value : undefined
+        music_file: addMusic.value && selectedMusicFile.value ? selectedMusicFile.value : undefined,
+        category_id: campaignId  // Assign to campaign on generation
       })
 
       // Get voice name for display
@@ -151,13 +152,12 @@ export function useCampaignWorkflow(campaignId: string) {
     }
   }
 
-  // Save audio to campaign (assigns category_id)
+  // Save audio to campaign (mark as favorite - category_id already assigned on generation)
   async function saveAudioToCampaign(): Promise<boolean> {
     if (!generatedAudio.value) return false
 
     try {
       await apiClient.patch(`/api/v1/library/${generatedAudio.value.audio_id}`, {
-        category_id: campaignId,
         is_favorite: true
       })
       return true

@@ -7,7 +7,12 @@
       'opacity-50': !category.active,
       'dragging': isDragging,
     }"
+    draggable="true"
     @click="emit('click')"
+    @dragstart="onDragStart"
+    @dragover="onDragOver"
+    @drop="onDrop"
+    @dragend="onDragEnd"
   >
     <div class="flex items-center gap-3 p-3 rounded-lg bg-base-200 hover:bg-base-300">
       <!-- Drag Handle -->
@@ -62,9 +67,31 @@ defineProps<{
 
 const emit = defineEmits<{
   click: []
+  dragStart: [event: DragEvent]
+  dragOver: [event: DragEvent]
+  drop: [event: DragEvent]
+  dragEnd: [event: DragEvent]
 }>()
 
 const isDragging = ref(false)
+
+function onDragStart(event: DragEvent) {
+  isDragging.value = true
+  emit('dragStart', event)
+}
+
+function onDragOver(event: DragEvent) {
+  emit('dragOver', event)
+}
+
+function onDrop(event: DragEvent) {
+  emit('drop', event)
+}
+
+function onDragEnd(event: DragEvent) {
+  isDragging.value = false
+  emit('dragEnd', event)
+}
 </script>
 
 <style scoped>

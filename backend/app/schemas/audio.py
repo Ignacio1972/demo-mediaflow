@@ -44,6 +44,12 @@ class AudioGenerateRequest(BaseModel):
         description="Priority level for player queue",
     )
 
+    # Category ID (optional - for campaign context)
+    category_id: Optional[str] = Field(
+        default=None,
+        description="Category/Campaign ID to assign on generation",
+    )
+
     @field_validator("text")
     @classmethod
     def validate_text(cls, v: str) -> str:

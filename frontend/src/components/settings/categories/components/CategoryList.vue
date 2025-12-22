@@ -28,11 +28,10 @@
               :category="category"
               :is-selected="selectedCategory?.id === category.id"
               @click="emit('select', category)"
-              @drag-start="handleDragStart(category, $event)"
-              @drag-over="handleDragOver"
+              @dragStart="handleDragStart(category, $event)"
+              @dragOver="handleDragOver"
               @drop="handleDrop(category)"
-              @drag-end="handleDragEnd"
-              draggable="true"
+              @dragEnd="handleDragEnd"
             />
           </TransitionGroup>
         </div>

@@ -94,6 +94,28 @@ export const useCampaignStore = defineStore('campaigns', () => {
     currentCampaign.value = null
   }
 
+  async function reorderCampaigns(newOrder: string[]) {
+    try {
+      await apiClient.put('/api/v1/settings/categories/reorder', {
+        category_ids: newOrder
+      })
+
+      // Update local order
+      newOrder.forEach((id, index) => {
+        const campaign = campaigns.value.find(c => c.id === id)
+        if (campaign) {
+          campaign.order = index
+        }
+      })
+
+      // Re-sort the array
+      campaigns.value.sort((a, b) => a.order - b.order)
+    } catch (err) {
+      error.value = 'Error al reordenar campañas'
+      throw err
+    }
+  }
+
   return {
     // State
     campaigns,
@@ -109,6 +131,7 @@ export const useCampaignStore = defineStore('campaigns', () => {
     fetchCampaign,
     createCampaign,
     updateAITraining,
-    clearCurrent
+    clearCurrent,
+    reorderCampaigns
   }
 })

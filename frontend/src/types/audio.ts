@@ -68,13 +68,14 @@ export interface Category {
   active: boolean
 }
 
-// Request para generar audio (v2.1 - sin category)
+// Request para generar audio (v2.1)
 export interface AudioGenerateRequest {
   text: string
   voice_id: string
   add_jingles?: boolean
   music_file?: string
   priority?: number  // 1-5 (1=critical, 5=low)
+  category_id?: string  // Campaign/category context (assigned on generation)
 }
 
 // Response de generación de audio

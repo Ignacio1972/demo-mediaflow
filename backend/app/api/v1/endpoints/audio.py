@@ -241,6 +241,7 @@ async def generate_audio(
             music_file=request.music_file,
             status="ready",
             priority=request.priority,
+            category_id=request.category_id,
         )
 
         db.add(audio_message)
@@ -396,6 +397,7 @@ async def get_recent_messages(
                 "display_name": msg.display_name,
                 "original_text": msg.original_text,
                 "voice_id": msg.voice_id,
+                "category_id": msg.category_id,
                 "duration": msg.duration,
                 "is_favorite": msg.is_favorite,
                 "created_at": msg.created_at.isoformat(),

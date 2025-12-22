@@ -56,11 +56,12 @@ export default {
           "error": "#dc2626",
         },
       },
-      "dark",      // DaisyUI dark theme
-      "light",     // DaisyUI light theme
-      "cupcake",   // DaisyUI cupcake (pastel)
-      "cyberpunk", // DaisyUI cyberpunk
-      "business",  // DaisyUI business (profesional)
+      "dark",           // DaisyUI dark theme
+      "light",          // DaisyUI light theme
+      "cupcake",        // DaisyUI cupcake (pastel)
+      "cyberpunk",      // DaisyUI cyberpunk
+      "business",       // DaisyUI business (profesional)
+      "caramellatte",   // DaisyUI caramellatte (warm light)
     ],
     darkTheme: "mediaflow",  // Cambiar a: mediaflow | cleanwhite | nordic
     base: true,

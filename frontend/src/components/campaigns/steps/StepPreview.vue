@@ -57,12 +57,13 @@ function formatDuration(seconds: number): string {
           :duration="workflow.generatedAudio.value.duration"
           :title="workflow.editedText.value.slice(0, 60) + (workflow.editedText.value.length > 60 ? '...' : '')"
           :subtitle="`${workflow.generatedAudio.value.voice_name} - ${formatDuration(workflow.generatedAudio.value.duration)}`"
+          autoplay
         />
       </div>
 
       <!-- Success message -->
       <div v-if="saveSuccess" class="alert alert-success">
-        Audio guardado en la campana
+        Audio guardado
       </div>
 
       <!-- Actions -->
@@ -89,7 +90,7 @@ function formatDuration(seconds: number): string {
             @click="handleSave"
           >
             <span v-if="isSaving" class="loading loading-spinner loading-sm"></span>
-            Guardar en Campana
+            Guardar
           </button>
         </div>
       </div>

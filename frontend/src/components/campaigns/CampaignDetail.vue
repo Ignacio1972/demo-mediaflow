@@ -5,6 +5,7 @@ import { useCampaignStore } from './stores/campaignStore'
 import { useCampaignWorkflow } from './composables/useCampaignWorkflow'
 import type { CampaignWorkflow } from './composables/useCampaignWorkflow'
 import type { CampaignAudio } from '@/types/campaign'
+import type { AudioMessage } from '@/types/audio'
 
 // Components
 import AITrainingPanel from './components/AITrainingPanel.vue'
@@ -46,7 +47,7 @@ async function handleSaveAITraining(instructions: string) {
   await store.updateAITraining(campaignId, instructions)
 }
 
-function handleSelectRecentMessage(message: CampaignAudio) {
+function handleSelectRecentMessage(message: AudioMessage) {
   // Pre-fill the text editor with this message
   workflow.editedText.value = message.original_text
   workflow.goToStep('generate')

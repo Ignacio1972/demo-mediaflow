@@ -1096,6 +1096,68 @@ alembic upgrade head
 
 ---
 
+
+8 lucas
+
+
+Optical Character Recognition
+
+
+hrodriguezmatte@gmail.com
+
+Tengo listo recital unplugged de Leviatan o Iza el Alma en Rita Roux para Marzo o Abril. Si se animan, lo hacemos.
+
+Recibido !
+
+Como primicia, te cuento que tengo listo recital unplugged de Leviatan o Iza el Alma en Rita Roux para Marzo o Abril. Si se animan, lo hacemos. Me pidieron hacer programación musical los últimos martes de cada mes. Era parte del tema para hoy.
+
+
+
+
+Eso era parte del tema para hoy. 
+
+
+Piénsalo y lo hablamos el Martes.  
+
+
+Probablemente la mayoria del     
+
+
+
+
+ Me pidieron hacer una programación musical en Rita Roux. 
+
+
+
+Seria entretenido. 
+
+
+
+Entrada gratuita. 
+
+
+ 
+
+
+. 
+
+
+ el lugar esta ahi a tu disposicion.
+
+ 
+
+
+
+
+Hola Domingo, como estas
+Según lo conversado te enviare la factura por 1.800.000 + IVA por las nuevas funciones de Intraneuro.
+A partir del 1 de Enero la mensualidad sera de 3 UF considerando la API de IA para OCR y futuros cambios necesarios
+Muchas gracias por confiar en nosotros
+
+Hernan
+
+
+
 ## Apéndice: Campañas de Ejemplo
 
 | Campaña | Icono | Color | Fecha Típica |
