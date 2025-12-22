@@ -36,6 +36,16 @@
             <CalendarIcon class="h-6 w-6" />
           </router-link>
 
+          <!-- Campaigns Link -->
+          <router-link
+            to="/campaigns"
+            class="nav-link tooltip"
+            :class="{ 'active': isActive('/campaigns') }"
+            data-tooltip="Campañas"
+          >
+            <RocketLaunchIcon class="h-6 w-6" />
+          </router-link>
+
           <!-- Operations Link -->
           <router-link
             to="/operations"
@@ -68,7 +78,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { BookOpenIcon, CalendarIcon, CogIcon, MegaphoneIcon } from '@heroicons/vue/24/outline'
+import { BookOpenIcon, CalendarIcon, CogIcon, MegaphoneIcon, RocketLaunchIcon } from '@heroicons/vue/24/outline'
 import ThemeSelector from './ThemeSelector.vue'
 
 const route = useRoute()

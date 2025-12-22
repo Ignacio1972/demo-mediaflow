@@ -1,6 +1,6 @@
 # MediaFlow v2.1 - Project Context
 
-**Last Updated**: 2025-12-09
+**Last Updated**: 2025-12-22
 **Purpose**: Context documentation for Claude AI assistants
 
 ---
@@ -427,6 +427,104 @@ cd /var/www/mediaflow-v2/backend
 source venv/bin/activate
 python -c "from app.main import app; print('OK')"
 ```
+
+---
+
+## Campaign Manager (Completo)
+
+Modulo para gestionar campanas publicitarias anuales con generacion TTS asistida por IA.
+
+### Estado Actual
+
+| Fase | Estado | Descripcion |
+|------|--------|-------------|
+| Fase 0 | ✅ | Componentes shared/ creados |
+| Fase 1 | ✅ | Backend /api/v1/campaigns |
+| Fase 2 | ✅ | Frontend lista de campanas |
+| Fase 3 | ✅ | Detail + paneles colapsables |
+| Fase 4 | ✅ | Workflow de generacion completo |
+| Fase 5 | ✅ | Grid de audios + eliminacion |
+
+### Que Existe
+
+**Backend:**
+- `GET/POST/PATCH /api/v1/campaigns` - CRUD completo
+- `GET /api/v1/campaigns/:id/audios` - Audios por campana (incluye `audio_url`)
+- `DELETE /api/v1/library/:id` - Soft delete de audios
+- `Category.ai_instructions` - Entrenamiento IA por campana
+
+**Frontend:**
+```
+frontend/src/
+├── types/campaign.ts
+└── components/campaigns/
+    ├── CampaignList.vue              # Grid de campanas
+    ├── CampaignDetail.vue            # Layout 3:2 con componentes dinamicos
+    ├── components/
+    │   ├── CampaignCard.vue
+    │   ├── AITrainingPanel.vue       # Panel entrenamiento IA
+    │   ├── RecentMessagesPanel.vue   # Panel mensajes recientes
+    │   ├── CampaignAudioGrid.vue     # Grid de audios con paginacion
+    │   └── CampaignAudioCard.vue     # Card con play/delete
+    ├── steps/
+    │   ├── StepInput.vue             # Textarea descripcion
+    │   ├── StepSuggestions.vue       # Cards sugerencias IA
+    │   ├── StepGenerate.vue          # Selector voz + musica
+    │   └── StepPreview.vue           # Reproductor + acciones
+    ├── composables/
+    │   └── useCampaignWorkflow.ts    # State machine completa
+    ├── modals/NewCampaignModal.vue
+    └── stores/campaignStore.ts
+```
+
+**Shared:**
+```
+components/shared/
+├── audio/
+│   ├── VoiceSelectorBase.vue
+│   ├── MusicSelectorBase.vue
+│   └── AudioPlayerBase.vue
+└── ui/
+    └── CollapsiblePanel.vue
+```
+
+### Gotchas Importantes
+
+1. **apiClient devuelve data directamente:**
+   ```typescript
+   const data = await apiClient.get('/api/v1/campaigns')  // ✅ data directo
+   // NO: response.data
+   ```
+
+2. **Rutas API siempre con prefijo /api/v1/:**
+   ```typescript
+   await apiClient.get('/api/v1/campaigns/...')  // ✅
+   // NO: '/campaigns/...'
+   ```
+
+3. **Tipos correctos para audios de campana:**
+   ```typescript
+   import type { CampaignAudio } from '@/types/campaign'  // ✅
+   // NO: AudioMessage de @/types/audio
+   ```
+
+4. **Endpoint DELETE es /library/, no /audio/:**
+   ```typescript
+   await apiClient.delete(`/api/v1/library/${id}`)  // ✅ soft delete
+   // NO: /api/v1/audio/
+   ```
+
+5. **CampaignAudio incluye audio_url** - Para reproduccion directa
+
+6. **Probar despues de cada componente:**
+   ```bash
+   npm run build
+   ```
+
+### Documentacion
+
+- Plan completo: `docs/CAMPAIGN_MASTER_PLAN.md`
+- Fases: `docs/phases/PHASE_*.md`
 
 ---
 

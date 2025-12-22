@@ -129,7 +129,11 @@ class VoiceManager:
         return settings
 
     async def generate_with_voice(
-        self, text: str, voice_id: str, db: AsyncSession
+        self,
+        text: str,
+        voice_id: str,
+        db: AsyncSession,
+        model_id: Optional[str] = None,
     ) -> tuple[bytes, VoiceSettings]:
         """
         Generate TTS with automatic voice settings application
@@ -138,6 +142,7 @@ class VoiceManager:
             text: Text to convert to speech
             voice_id: Voice identifier
             db: Database session
+            model_id: Optional ElevenLabs model override
 
         Returns:
             tuple: (audio_bytes, voice_settings_used)
@@ -164,7 +169,10 @@ class VoiceManager:
 
         # Generate audio with ElevenLabs
         audio_bytes = await elevenlabs_service.generate_speech(
-            text=text, voice_id=voice.elevenlabs_id, voice_settings=voice_settings
+            text=text,
+            voice_id=voice.elevenlabs_id,
+            voice_settings=voice_settings,
+            model_id=model_id,
         )
 
         logger.info(

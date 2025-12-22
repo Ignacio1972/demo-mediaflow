@@ -6,9 +6,11 @@ import logging
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.models.category import Category
 from app.services.ai.claude import claude_service
 from app.services.ai.client_manager import ai_client_manager
 
@@ -59,6 +61,7 @@ class GenerateAnnouncementsRequest(BaseModel):
     temperature: float = Field(default=0.8, ge=0, le=1, description="Creativity level")
     mode: str = Field(default="normal", pattern="^(normal|automatic)$", description="Generation mode")
     word_limit: Optional[List[int]] = Field(default=None, description="[min, max] words for automatic mode")
+    campaign_id: Optional[str] = Field(default=None, description="Campaign ID to load AI instructions from")
 
 
 class AnnouncementSuggestion(BaseModel):
@@ -209,6 +212,17 @@ async def generate_announcements(
         client_context = active_client.context if active_client else None
         active_client_id = active_client.id if active_client else None
 
+        # Get campaign instructions if campaign_id is provided
+        campaign_instructions = None
+        if request.campaign_id:
+            result = await db.execute(
+                select(Category).filter(Category.id == request.campaign_id)
+            )
+            category = result.scalar_one_or_none()
+            if category and category.ai_instructions:
+                campaign_instructions = category.ai_instructions
+                logger.info(f"📋 Loaded AI instructions from campaign: {request.campaign_id}")
+
         # Generate suggestions
         suggestions = await claude_service.generate_announcements(
             context=request.context,
@@ -218,6 +232,7 @@ async def generate_announcements(
             keywords=request.keywords,
             temperature=request.temperature,
             client_context=client_context,
+            campaign_instructions=campaign_instructions,
             mode=request.mode,
             word_limit=request.word_limit
         )

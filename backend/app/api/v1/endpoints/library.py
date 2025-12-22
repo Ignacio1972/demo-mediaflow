@@ -220,13 +220,28 @@ async def update_message(
 
         logger.info(f"✅ Updated message {message_id}")
 
+        # Return complete message object (same structure as GET)
         return {
             "id": msg.id,
             "filename": msg.filename,
             "display_name": msg.display_name,
+            "file_path": msg.file_path,
+            "file_size": msg.file_size,
+            "duration": msg.duration,
+            "format": msg.format,
+            "original_text": msg.original_text,
+            "voice_id": msg.voice_id,
             "category_id": msg.category_id,
             "is_favorite": msg.is_favorite,
+            "volume_adjustment": msg.volume_adjustment,
+            "has_jingle": msg.has_jingle,
+            "music_file": msg.music_file,
+            "status": msg.status,
+            "sent_to_player": msg.sent_to_player,
+            "priority": msg.priority,
+            "created_at": msg.created_at.isoformat() if msg.created_at else None,
             "updated_at": msg.updated_at.isoformat() if msg.updated_at else None,
+            "audio_url": f"/storage/audio/{msg.filename}",
         }
 
     except HTTPException:

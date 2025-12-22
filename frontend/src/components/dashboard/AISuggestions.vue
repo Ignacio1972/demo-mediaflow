@@ -2,72 +2,94 @@
   <div class="ai-suggestions">
     <div class="card bg-base-200 shadow-xl">
       <div class="card-body">
-        <!-- Header with Active Client Badge -->
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="card-title text-2xl">
-            Generar Anuncios con IA
-          </h2>
-          <div
-            v-if="activeClientName"
-            class="badge badge-primary badge-outline gap-1"
-            :title="'Usando contexto de: ' + activeClientName"
-          >
-            <CpuChipIcon class="h-3 w-3" />
-            {{ activeClientName }}
-          </div>
-        </div>
+        <!-- Header -->
+        <h2 class="card-title text-2xl mb-4">
+          ¿Que quieres anunciar hoy?
+        </h2>
 
         <!-- Context Input -->
         <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium">Describe lo que quieres anunciar</span>
-            <span class="label-text-alt">{{ context.length }} / 1000</span>
-          </label>
           <textarea
             v-model="context"
-            class="textarea textarea-bordered h-24"
-            placeholder="Ej: Oferta de 2x1 en pizzas todos los martes, nuevo horario de atencion..."
+            class="textarea textarea-bordered h-56"
+            placeholder=""
             :disabled="isGenerating"
             maxlength="1000"
           ></textarea>
         </div>
 
-        <!-- Quick Configuration -->
-        <div class="grid grid-cols-2 gap-4 mt-2">
-          <!-- Tone Selector -->
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium">Tono</span>
-            </label>
-            <select
-              v-model="tone"
-              class="select select-bordered"
-              :disabled="isGenerating"
-            >
-              <option value="profesional">Profesional</option>
-              <option value="entusiasta">Entusiasta</option>
-              <option value="amigable">Amigable</option>
-              <option value="urgente">Urgente</option>
-              <option value="informativo">Informativo</option>
-            </select>
-          </div>
+        <!-- Advanced Settings Toggle -->
+        <button
+          @click="showAdvancedSettings = !showAdvancedSettings"
+          class="flex items-center gap-1 text-sm opacity-60 hover:opacity-100 transition-opacity mt-2"
+          :disabled="isGenerating"
+        >
+          <svg
+            class="h-3 w-3 transition-transform duration-200"
+            :class="{ 'rotate-90': showAdvancedSettings }"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M6 6L14 10L6 14V6Z" />
+          </svg>
+          <span>Opciones</span>
+        </button>
 
-          <!-- Duration Selector -->
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium">Duracion objetivo</span>
-            </label>
-            <select
-              v-model="duration"
-              class="select select-bordered"
-              :disabled="isGenerating"
-            >
-              <option :value="5">5 segundos</option>
-              <option :value="10">10 segundos</option>
-              <option :value="15">15 segundos</option>
-              <option :value="20">20 segundos</option>
-              <option :value="25">25 segundos</option>
-            </select>
+        <!-- Collapsible Settings Panel -->
+        <div
+          class="settings-panel overflow-hidden transition-all duration-300 ease-in-out"
+          :class="showAdvancedSettings ? 'max-h-40 opacity-100 mt-3' : 'max-h-0 opacity-0'"
+        >
+          <div class="grid grid-cols-2 gap-6">
+            <!-- Tone Slider -->
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Tono</span>
+                <span class="label-text-alt text-xs">{{ toneLabels[toneIndex] }}</span>
+              </label>
+              <input
+                type="range"
+                v-model.number="toneIndex"
+                min="0"
+                max="4"
+                step="1"
+                class="range range-primary range-sm"
+                :disabled="isGenerating"
+              />
+              <div class="flex justify-between px-1 mt-1">
+                <span
+                  v-for="(label, idx) in toneLabels"
+                  :key="label"
+                  class="text-[10px] opacity-50"
+                  :class="{ 'opacity-100 font-medium': idx === toneIndex }"
+                >|</span>
+              </div>
+            </div>
+
+            <!-- Duration Slider -->
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Duracion</span>
+                <span class="label-text-alt text-xs">{{ duration }}s</span>
+              </label>
+              <input
+                type="range"
+                v-model.number="duration"
+                min="5"
+                max="25"
+                step="5"
+                class="range range-primary range-sm"
+                :disabled="isGenerating"
+              />
+              <div class="flex justify-between px-1 mt-1">
+                <span
+                  v-for="val in [5, 10, 15, 20, 25]"
+                  :key="val"
+                  class="text-[10px] opacity-50"
+                  :class="{ 'opacity-100 font-medium': val === duration }"
+                >|</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -99,7 +121,7 @@
         <div v-if="isGenerating" class="mt-4">
           <progress class="progress progress-primary w-full"></progress>
           <p class="text-sm text-center mt-2 opacity-70">
-            Claude AI esta generando sugerencias...
+...haciendo la magia
           </p>
         </div>
 
@@ -123,22 +145,6 @@
                   {{ suggestion.text }}
                 </p>
 
-                <!-- Metadata -->
-                <div class="flex items-center gap-4 text-xs opacity-70 mt-2">
-                  <span class="flex items-center gap-1">
-                    <DocumentTextIcon class="h-3 w-3" />
-                    {{ suggestion.word_count }} palabras
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <Bars3BottomLeftIcon class="h-3 w-3" />
-                    {{ suggestion.char_count }} caracteres
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <ClockIcon class="h-3 w-3" />
-                    ~{{ estimateDuration(suggestion.word_count) }}s
-                  </span>
-                </div>
-
                 <!-- Actions -->
                 <div class="card-actions justify-end mt-3">
                   <button
@@ -148,28 +154,11 @@
                     <CheckIcon class="h-4 w-4" />
                     Usar este texto
                   </button>
-                  <button
-                    @click.stop="copySuggestion(suggestion.text)"
-                    class="btn btn-ghost btn-sm gap-2"
-                  >
-                    <ClipboardDocumentIcon class="h-4 w-4" />
-                    Copiar
-                  </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Clear Button -->
-          <div class="mt-4 text-center">
-            <button
-              @click="clearSuggestions"
-              class="btn btn-ghost btn-sm gap-2"
-            >
-              <TrashIcon class="h-4 w-4" />
-              Limpiar sugerencias
-            </button>
-          </div>
         </div>
 
         <!-- Empty State -->
@@ -192,13 +181,7 @@ import { apiClient } from '@/api/client'
 import type { AIAnnouncementSuggestion, AIGenerateRequest } from '@/types/audio'
 import {
   SparklesIcon,
-  DocumentTextIcon,
-  Bars3BottomLeftIcon,
-  ClockIcon,
-  CheckIcon,
-  ClipboardDocumentIcon,
-  TrashIcon,
-  CpuChipIcon
+  CheckIcon
 } from '@heroicons/vue/24/outline'
 
 // Emits
@@ -206,19 +189,27 @@ const emit = defineEmits<{
   suggestionSelected: [text: string]
 }>()
 
+// Tone configuration (profesional in the middle at index 2)
+const toneLabels = ['Amigable', 'Entusiasta', 'Profesional', 'Urgente', 'Informativo']
+const toneValues: AIGenerateRequest['tone'][] = ['amigable', 'entusiasta', 'profesional', 'urgente', 'informativo']
+
 // State
 const context = ref('')
-const tone = ref<AIGenerateRequest['tone']>('profesional')
-const duration = ref(15)
+const toneIndex = ref(2) // Default: profesional (middle)
+const duration = ref(10)
 const suggestions = ref<AIAnnouncementSuggestion[]>([])
 const selectedIndex = ref<number | null>(null)
 const isGenerating = ref(false)
 const error = ref<string | null>(null)
 const activeClientName = ref<string | null>(null)
+const showAdvancedSettings = ref(false)
+
+// Computed tone value from index
+const tone = computed(() => toneValues[toneIndex.value])
 
 // Computed
 const canGenerate = computed(() => {
-  return context.value.trim().length >= 5 && !isGenerating.value
+  return !isGenerating.value
 })
 
 // Load active client info on mount
@@ -291,27 +282,8 @@ const useSuggestion = (text: string) => {
   showToast('Texto enviado al generador', 'success')
 }
 
-const copySuggestion = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text)
-    showToast('Copiado al portapapeles', 'info')
-  } catch (e) {
-    console.error('Failed to copy:', e)
-  }
-}
-
-const clearSuggestions = () => {
-  suggestions.value = []
-  selectedIndex.value = null
-}
-
 const clearError = () => {
   error.value = null
-}
-
-const estimateDuration = (wordCount: number): number => {
-  // Aproximadamente 2 palabras por segundo
-  return Math.ceil(wordCount / 2)
 }
 
 const showToast = (message: string, type: 'success' | 'info' | 'error') => {

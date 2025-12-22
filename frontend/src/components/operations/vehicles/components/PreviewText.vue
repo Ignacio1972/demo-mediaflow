@@ -33,7 +33,14 @@
 
         <!-- Preview content -->
         <div v-else class="space-y-4">
-          <!-- Normalized text (what TTS will say) -->
+          <!-- Original text (visible to user) -->
+          <div>
+            <div class="bg-base-300 rounded-lg p-4 text-base-content">
+              <p class="leading-relaxed">{{ preview.original }}</p>
+            </div>
+          </div>
+
+          <!-- Normalized text (comentado para uso futuro)
           <div>
             <label class="label">
               <span class="label-text font-medium text-primary">
@@ -44,19 +51,9 @@
               <p class="leading-relaxed">{{ preview.normalized }}</p>
             </div>
           </div>
+          -->
 
-          <!-- Original text -->
-          <div class="collapse collapse-arrow bg-base-300">
-            <input type="checkbox" />
-            <div class="collapse-title text-sm font-medium">
-              Ver texto original (sin normalizar)
-            </div>
-            <div class="collapse-content">
-              <p class="text-base-content/70 text-sm">{{ preview.original }}</p>
-            </div>
-          </div>
-
-          <!-- Plate pronunciation details -->
+          <!-- Plate pronunciation details (comentado para uso futuro)
           <div v-if="preview.plate_info" class="flex items-center gap-2 text-sm">
             <span
               class="badge"
@@ -70,6 +67,7 @@
               {{ preview.components.patente_normalized }}
             </span>
           </div>
+          -->
         </div>
       </div>
     </div>

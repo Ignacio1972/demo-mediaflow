@@ -33,61 +33,18 @@
           ></audio>
         </div>
 
-        <!-- Audio info -->
-        <div class="flex flex-wrap gap-2 mb-4">
-          <span class="badge badge-primary">{{ audio.voice_name }}</span>
-          <span class="badge badge-ghost">
-            {{ formatDuration(audio.duration) }}
-          </span>
-          <span class="badge badge-ghost">{{ audio.template_used }}</span>
-        </div>
-
-        <!-- Action buttons -->
-        <div class="flex flex-wrap gap-3 justify-end">
-          <!-- Save to Library -->
+        <!-- Action button -->
+        <div class="card-actions justify-end">
           <button
-            @click="saveToLibrary"
-            class="btn btn-success"
-            :class="{ 'btn-disabled': isSaved }"
-            :disabled="savingToLibrary || isSaved"
+            @click="sendToSpeakers"
+            class="btn btn-primary"
+            :disabled="sendingToSpeakers"
           >
             <span
-              v-if="savingToLibrary"
-              class="loading loading-spinner loading-xs"
+              v-if="sendingToSpeakers"
+              class="loading loading-spinner loading-sm"
             ></span>
-            <span v-else-if="isSaved">Guardado</span>
-            <span v-else>Guardar en Biblioteca</span>
-          </button>
-
-          <!-- Send to Local Player -->
-          <button
-            @click="sendToLocalPlayer"
-            class="btn btn-outline"
-            :disabled="sendingToLocal"
-          >
-            <span
-              v-if="sendingToLocal"
-              class="loading loading-spinner loading-xs"
-            ></span>
-            <span v-else>Enviar a Maquina Local</span>
-          </button>
-
-          <!-- Send to AzuraCast -->
-          <button
-            @click="sendToAzuracast"
-            class="btn btn-outline"
-            :disabled="sendingToAzuracast"
-          >
-            <span
-              v-if="sendingToAzuracast"
-              class="loading loading-spinner loading-xs"
-            ></span>
-            <span v-else>Enviar a AzuraCast</span>
-          </button>
-
-          <!-- New announcement -->
-          <button @click="$emit('reset')" class="btn btn-ghost">
-            Nuevo Anuncio
+            <span v-else>Enviar a los Parlantes</span>
           </button>
         </div>
       </div>
@@ -97,33 +54,22 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
-import { useAudioStore } from '@/stores/audio'
 import type { VehicleAnnouncementResponse } from '../composables/useVehicleAnnouncement'
 
 const props = defineProps<{
   audio: VehicleAnnouncementResponse
 }>()
 
-const emit = defineEmits<{
-  (e: 'reset'): void
-}>()
-
-const audioStore = useAudioStore()
-
 // State
 const audioPlayer = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
-const savingToLibrary = ref(false)
-const sendingToLocal = ref(false)
-const sendingToAzuracast = ref(false)
-const isSaved = ref(false)
+const sendingToSpeakers = ref(false)
 
 // Auto-play when audio changes
 watch(
   () => props.audio,
   async (newAudio) => {
     if (newAudio) {
-      isSaved.value = false
       await nextTick()
 
       if (audioPlayer.value) {
@@ -140,58 +86,19 @@ watch(
   { immediate: true }
 )
 
-// Format duration
-function formatDuration(seconds?: number): string {
-  if (!seconds) return '0:00'
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.floor(seconds % 60)
-  return `${mins}:${secs.toString().padStart(2, '0')}`
-}
-
-// Save to Library
-async function saveToLibrary() {
-  savingToLibrary.value = true
-
-  try {
-    await audioStore.saveToLibrary(props.audio.audio_id)
-    isSaved.value = true
-  } catch (e) {
-    console.error('Error saving to library:', e)
-    alert('Error al guardar en biblioteca')
-  } finally {
-    savingToLibrary.value = false
-  }
-}
-
-// Send to Local Player
-async function sendToLocalPlayer() {
-  sendingToLocal.value = true
+// Send to Speakers (Local Player)
+async function sendToSpeakers() {
+  sendingToSpeakers.value = true
 
   try {
     // TODO: Implement local player API call
     await new Promise((resolve) => setTimeout(resolve, 1000))
-    alert('Audio enviado a Maquina Local')
+    alert('Audio enviado a los parlantes')
   } catch (e) {
-    console.error('Error sending to local:', e)
-    alert('Error al enviar a Maquina Local')
+    console.error('Error sending to speakers:', e)
+    alert('Error al enviar a los parlantes')
   } finally {
-    sendingToLocal.value = false
-  }
-}
-
-// Send to AzuraCast
-async function sendToAzuracast() {
-  sendingToAzuracast.value = true
-
-  try {
-    // TODO: Implement AzuraCast API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    alert('Audio enviado a AzuraCast')
-  } catch (e) {
-    console.error('Error sending to AzuraCast:', e)
-    alert('Error al enviar a AzuraCast')
-  } finally {
-    sendingToAzuracast.value = false
+    sendingToSpeakers.value = false
   }
 }
 </script>

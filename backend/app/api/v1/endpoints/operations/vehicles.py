@@ -13,6 +13,7 @@ from pydub import AudioSegment
 from app.db.session import get_db
 from app.models.voice_settings import VoiceSettings
 from app.models.audio import AudioMessage
+from app.models.message_template import MessageTemplate
 from app.schemas.operations import (
     VehicleAnnouncementRequest,
     VehicleAnnouncementResponse,
@@ -43,20 +44,20 @@ router = APIRouter(prefix="/vehicles", tags=["operations-vehicles"])
 
 COMMON_BRANDS = [
     {"id": "toyota", "name": "Toyota"},
-    {"id": "chevrolet", "name": "Chevrolet"},
-    {"id": "nissan", "name": "Nissan"},
-    {"id": "hyundai", "name": "Hyundai"},
-    {"id": "kia", "name": "Kia"},
-    {"id": "mazda", "name": "Mazda"},
-    {"id": "suzuki", "name": "Suzuki"},
+    {"id": "chevrolet", "name": "Chevrolet", "tts_name": "Chévrolet"},
+    {"id": "nissan", "name": "Nissan", "tts_name": "Níssan"},
+    {"id": "hyundai", "name": "Hyundai", "tts_name": "Hiúndai"},
+    {"id": "kia", "name": "Kia", "tts_name": "Kía"},
+    {"id": "mazda", "name": "Mazda", "tts_name": "Mázda"},
+    {"id": "suzuki", "name": "Suzuki", "tts_name": "Suzúki"},
     {"id": "ford", "name": "Ford"},
     {"id": "volkswagen", "name": "Volkswagen"},
-    {"id": "honda", "name": "Honda"},
-    {"id": "mitsubishi", "name": "Mitsubishi"},
-    {"id": "subaru", "name": "Subaru"},
+    {"id": "honda", "name": "Honda", "tts_name": "Hónda"},
+    {"id": "mitsubishi", "name": "Mitsubishi", "tts_name": "Mitsubíshi"},
+    {"id": "subaru", "name": "Subaru", "tts_name": "Subarú"},
     {"id": "peugeot", "name": "Peugeot"},
     {"id": "renault", "name": "Renault"},
-    {"id": "fiat", "name": "Fiat"},
+    {"id": "fiat", "name": "Fiat", "tts_name": "Fíat"},
     {"id": "jeep", "name": "Jeep"},
     {"id": "mercedes", "name": "Mercedes-Benz"},
     {"id": "bmw", "name": "BMW"},
@@ -92,13 +93,34 @@ COMMON_COLORS = [
     summary="Get Form Options",
     description="Get common options for the vehicle announcement form",
 )
-async def get_options():
+async def get_options(db: AsyncSession = Depends(get_db)):
     """
     Get common options for vehicle form: brands, colors, and templates.
 
     Returns predefined lists for dropdowns/autocomplete in the frontend.
+    Templates are loaded from the database for the 'vehicles' module.
     """
-    templates = text_normalizer.get_available_templates()
+    # Load templates from database
+    result = await db.execute(
+        select(MessageTemplate)
+        .filter(MessageTemplate.module == "vehicles")
+        .filter(MessageTemplate.active == True)
+        .order_by(MessageTemplate.order.asc())
+    )
+    db_templates = result.scalars().all()
+
+    # Convert to TemplateInfo format
+    templates = []
+    for t in db_templates:
+        templates.append({
+            "id": t.id,
+            "name": t.name,
+            "description": t.description or ""
+        })
+
+    # Fallback to hardcoded templates if no database templates exist
+    if not templates:
+        templates = text_normalizer.get_available_templates()
 
     return OperationsOptionsResponse(
         brands=[VehicleBrand(**b) for b in COMMON_BRANDS],
@@ -158,7 +180,10 @@ async def validate_plate(request: PlateValidationRequest):
     summary="Preview Normalized Text",
     description="Preview the announcement text with normalized plate pronunciation",
 )
-async def preview_text(request: TextPreviewRequest):
+async def preview_text(
+    request: TextPreviewRequest,
+    db: AsyncSession = Depends(get_db),
+):
     """
     Preview how the announcement will sound before generating audio.
 
@@ -169,12 +194,22 @@ async def preview_text(request: TextPreviewRequest):
         f"Text preview: {request.marca} {request.color} {request.patente}"
     )
 
+    # Try to load template from database
+    custom_template_text = None
+    result_db = await db.execute(
+        select(MessageTemplate).filter(MessageTemplate.id == request.template)
+    )
+    db_template = result_db.scalar_one_or_none()
+    if db_template:
+        custom_template_text = db_template.template_text
+
     result = text_normalizer.normalize_vehicle_announcement(
         marca=request.marca,
         color=request.color,
         patente=request.patente,
-        template=request.template.value,
-        number_mode=request.number_mode.value
+        template=request.template,
+        number_mode=request.number_mode.value,
+        custom_template_text=custom_template_text
     )
 
     return TextPreviewResponse(
@@ -232,13 +267,24 @@ async def generate_vehicle_announcement(
                 detail=f"Voz '{request.voice_id}' esta inactiva"
             )
 
+        # Try to load template from database
+        custom_template_text = None
+        result_template = await db.execute(
+            select(MessageTemplate).filter(MessageTemplate.id == request.template)
+        )
+        db_template = result_template.scalar_one_or_none()
+        if db_template:
+            custom_template_text = db_template.template_text
+            logger.info(f"Using database template: {db_template.id}")
+
         # Normalize text
         normalized_result = text_normalizer.normalize_vehicle_announcement(
             marca=request.marca,
             color=request.color,
             patente=request.patente,
-            template=request.template.value,
-            number_mode=request.number_mode.value
+            template=request.template,
+            number_mode=request.number_mode.value,
+            custom_template_text=custom_template_text
         )
 
         original_text = normalized_result["original"]
@@ -251,7 +297,7 @@ async def generate_vehicle_announcement(
         audio_bytes, voice_used = await voice_manager.generate_with_voice(
             text=normalized_text,
             voice_id=request.voice_id,
-            db=db
+            db=db,
         )
 
         # Generate filename
@@ -352,7 +398,7 @@ async def generate_vehicle_announcement(
             duration=duration,
             voice_id=voice.id,
             voice_name=voice.name,
-            template_used=request.template.value,
+            template_used=request.template,
             plate_info=PlateInfo(**plate_info),
         )
 

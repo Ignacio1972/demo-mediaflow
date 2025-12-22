@@ -36,11 +36,49 @@ HUNDREDS = {
 }
 
 # Spanish letter pronunciations for TTS
-# Only letters that need special pronunciation
+# Full phonetic dictionary for consistent pronunciation
 LETTER_PRONUNCIATIONS = {
+    "A": "a",
+    "B": "be",
+    "C": "ce",
+    "D": "de",
+    "E": "e",
+    "F": "efe",
+    "G": "ge",
+    "H": "hache",
+    "I": "i",
     "J": "jota",
+    "K": "ka",
+    "L": "ele",
+    "M": "eme",
+    "N": "ene",
+    "O": "o",
+    "P": "pe",
+    "Q": "cu",
+    "R": "erre",
+    "S": "ese",
+    "T": "te",
+    "U": "u",
     "V": "ve",
+    "W": "doble ve",
+    "X": "equis",
     "Y": "igriega",
+    "Z": "zeta",
+}
+
+# Brand pronunciations for TTS
+# Maps display names to accented versions for correct pronunciation
+BRAND_TTS_PRONUNCIATIONS = {
+    "Chevrolet": "Chévrolet",
+    "Subaru": "Subarú",
+    "Nissan": "Níssan",
+    "Hyundai": "Hiúndai",
+    "Kia": "Kía",
+    "Mazda": "Mázda",
+    "Suzuki": "Suzúki",
+    "Honda": "Hónda",
+    "Mitsubishi": "Mitsubíshi",
+    "Fiat": "Fíat",
 }
 
 # Message templates for vehicle announcements
@@ -272,11 +310,11 @@ class TextNormalizer:
         pronounced_chars = []
         for char in chars:
             if char.isalpha():
-                # Use Spanish letter name if available, otherwise the letter itself
+                # Use Spanish letter name
                 pronounced_chars.append(LETTER_PRONUNCIATIONS.get(char, char))
             else:
-                # For digits, use the digit itself (will be read as number)
-                pronounced_chars.append(char)
+                # Convert digit to Spanish word
+                pronounced_chars.append(UNITS.get(int(char), char))
 
         # Group into pairs and format: "X, Y. "
         result_parts = []
@@ -351,7 +389,8 @@ class TextNormalizer:
         color: str,
         patente: str,
         template: str = "default",
-        number_mode: str = "words"
+        number_mode: str = "words",
+        custom_template_text: str = None
     ) -> dict:
         """
         Generate normalized vehicle announcement text for TTS.
@@ -362,6 +401,8 @@ class TextNormalizer:
             patente: License plate (e.g., "BBCL-45")
             template: Template name ("default", "formal", "urgente", "amable")
             number_mode: "words" or "digits" for plate number pronunciation
+            custom_template_text: Optional custom template text from database.
+                                  If provided, overrides the template parameter.
 
         Returns:
             Dict with original and normalized text
@@ -374,22 +415,28 @@ class TextNormalizer:
                 "template_used": "default"
             }
         """
-        # Get template
-        template_text = self.templates.get(template, self.templates["default"])
+        # Get template - use custom if provided, otherwise use hardcoded
+        if custom_template_text:
+            template_text = custom_template_text
+        else:
+            template_text = self.templates.get(template, self.templates["default"])
 
         # Normalize the license plate
         patente_normalized = self.normalize_plate(patente, number_mode=number_mode)
 
-        # Generate original text (with raw plate)
+        # Get TTS-friendly brand name (with accent for pronunciation)
+        marca_tts = BRAND_TTS_PRONUNCIATIONS.get(marca, marca)
+
+        # Generate original text (with raw plate and display brand name)
         original_text = template_text.format(
             marca=marca,
             color=color,
             patente=patente.upper()
         )
 
-        # Generate normalized text (with TTS-friendly plate)
+        # Generate normalized text (with TTS-friendly plate and brand pronunciation)
         normalized_text = template_text.format(
-            marca=marca,
+            marca=marca_tts,
             color=color,
             patente=patente_normalized
         )

@@ -316,6 +316,7 @@ Mensaje tres aquí
         keywords: Optional[List[str]] = None,
         temperature: float = 0.8,
         client_context: Optional[str] = None,
+        campaign_instructions: Optional[str] = None,
         mode: str = "normal",
         word_limit: Optional[List[int]] = None
     ) -> List[Dict]:
@@ -330,6 +331,7 @@ Mensaje tres aquí
             keywords: Optional keywords to include
             temperature: Creativity level (0-1)
             client_context: Client/business context (system prompt)
+            campaign_instructions: Campaign-specific AI instructions (added to prompt)
             mode: "normal" (2 suggestions) or "automatic" (1 suggestion)
             word_limit: [min_words, max_words] for automatic mode
 
@@ -341,7 +343,8 @@ Mensaje tres aquí
             system_prompt = self._build_announcement_system_prompt(
                 category=category,
                 tone=tone,
-                client_context=client_context
+                client_context=client_context,
+                campaign_instructions=campaign_instructions
             )
 
             user_prompt = self._build_announcement_user_prompt(
@@ -377,17 +380,21 @@ Mensaje tres aquí
         self,
         category: str,
         tone: str,
-        client_context: Optional[str]
+        client_context: Optional[str],
+        campaign_instructions: Optional[str] = None
     ) -> str:
         """Build system prompt with client context for announcements"""
         # Base: client context or generic
         if client_context:
             base = f"{client_context}\n\n"
+            # Add instruction to respect exact spelling from context
+            base += "IMPORTANTE: Respeta EXACTAMENTE la ortografia de los nombres propios, marcas y palabras especiales mencionadas arriba. "
+            base += "Si un nombre tiene acentos o mayusculas especificas (ej: TÉJA Márket), DEBES escribirlo exactamente asi para que el TTS lo pronuncie correctamente.\n\n"
         else:
             base = "Eres un experto en crear anuncios comerciales efectivos y atractivos para negocios locales.\n\n"
 
         # General instructions
-        base += "Genera anuncios cortos (maximo 100 palabras), claros y atractivos en espanol chileno. "
+        base += "Genera anuncios concisos, claros y atractivos en espanol chileno. Respeta estrictamente el limite de palabras indicado. "
 
         # Tone instruction
         tone_instruction = self.TONE_INSTRUCTIONS.get(tone, self.TONE_INSTRUCTIONS["profesional"])
@@ -400,7 +407,22 @@ Mensaje tres aquí
         category_instruction = self.CATEGORY_CONTEXTS.get(category, self.CATEGORY_CONTEXTS["general"])
         base += category_instruction
 
+        # Campaign-specific instructions (added at the end for highest priority)
+        if campaign_instructions:
+            base += f"\n\n## Instrucciones especificas de la campana:\n{campaign_instructions}"
+
         return base
+
+    def _duration_to_word_limits(self, duration: int) -> tuple[int, int]:
+        """
+        Convert duration in seconds to word limits.
+
+        TTS typically reads at 2-3 words per second.
+        We use 2 words/sec for min and 3 words/sec for max.
+        """
+        min_words = duration * 2
+        max_words = duration * 3
+        return min_words, max_words
 
     def _build_announcement_user_prompt(
         self,
@@ -424,16 +446,20 @@ Mensaje tres aquí
             prompt += "CUENTA LAS PALABRAS y asegurate de cumplir el limite."
             return prompt
 
-        # Normal mode: 2 options
+        # Normal mode: 2 options with word limits based on duration
+        min_words, max_words = self._duration_to_word_limits(duration)
+
         prompt = "Genera 2 opciones diferentes de anuncios para lo siguiente:\n\n"
         prompt += f"Contexto: {context}\n"
 
         if keywords:
             prompt += f"Palabras clave a incluir: {', '.join(keywords)}\n"
 
-        prompt += f"Duracion aproximada al leer: {duration} segundos\n"
+        prompt += f"\nREQUISITO DE LONGITUD: Cada anuncio debe tener entre {min_words} y {max_words} palabras "
+        prompt += f"(equivalente a {duration} segundos de audio).\n"
         prompt += "\nFormato de respuesta: Proporciona exactamente 2 opciones numeradas, "
-        prompt += "cada una en un parrafo separado. No incluyas titulos ni explicaciones adicionales."
+        prompt += "cada una en un parrafo separado. No incluyas titulos ni explicaciones adicionales. "
+        prompt += "CUENTA LAS PALABRAS de cada opcion para asegurar que cumplan el limite."
 
         return prompt
 

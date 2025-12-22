@@ -11,63 +11,95 @@
           <textarea
             v-model="messageText"
             :maxlength="maxLength"
-            class="textarea textarea-bordered h-32 text-lg"
+            class="textarea textarea-bordered h-56 text-lg"
             placeholder="Escribe tu mensaje aquí..."
             :disabled="isLoading"
           ></textarea>
         </div>
 
-        <!-- Controls Row: Music | Voice | Generate -->
+        <!-- Controls Row: Voice Avatars | Generate -->
         <div class="flex items-center gap-4">
-          <!-- Music Selector -->
-          <div class="flex-1">
-            <select
-              v-model="selectedMusic"
-              class="select select-bordered w-full"
-              :disabled="isLoading || activeMusicTracks.length === 0"
-            >
-              <option value="">🎵 Sin música</option>
-              <option
-                v-for="track in activeMusicTracks"
-                :key="track.id"
-                :value="track.filename"
-              >
-                {{ getMusicIcon(track.mood) }} {{ track.display_name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Voice Selector -->
-          <div class="flex-1">
-            <select
-              v-model="selectedVoiceId"
-              @change="handleVoiceChange"
-              class="select select-bordered w-full"
-              :disabled="isLoading || voices.length === 0"
-            >
-              <option v-if="voices.length === 0" value="">Cargando voces...</option>
-              <option
-                v-for="voice in voices"
+          <!-- Voice Avatars -->
+          <div class="flex-1 flex items-center gap-2">
+            <span class="text-lg">🎤</span>
+            <div class="flex items-center gap-2">
+              <button
+                v-for="(voice, index) in voices"
                 :key="voice.id"
-                :value="voice.id"
+                @click="selectVoice(index)"
+                class="voice-avatar relative rounded-full overflow-hidden transition-all duration-200"
+                :class="{
+                  'ring-2 ring-primary ring-offset-2 ring-offset-base-200 scale-110': voiceIndex === index,
+                  'opacity-60 hover:opacity-100': voiceIndex !== index,
+                  'pointer-events-none': isLoading
+                }"
+                :title="voice.name"
               >
-                {{ getGenderIcon(voice.gender) }} {{ voice.name }}
-              </option>
-            </select>
+                <img
+                  v-if="getVoicePhoto(voice)"
+                  :src="getVoicePhoto(voice)!"
+                  :alt="voice.name"
+                  class="w-9 h-9 object-cover"
+                />
+                <div
+                  v-else
+                  class="w-9 h-9 bg-primary text-primary-content flex items-center justify-center text-xs font-bold"
+                >
+                  {{ getInitials(voice.name) }}
+                </div>
+              </button>
+            </div>
+            <span class="text-sm font-medium ml-2">{{ selectedVoiceName }}</span>
           </div>
 
           <!-- Generate Button -->
           <button
             @click="handleGenerate"
-            class="btn btn-primary btn-lg px-8"
+            class="btn btn-primary"
             :disabled="!canGenerate"
           >
             <span v-if="isLoading" class="loading loading-spinner"></span>
             <span v-else class="flex items-center gap-2">
               <MicrophoneIcon class="h-5 w-5" />
-              Generar Audio
+              Generar
             </span>
           </button>
+        </div>
+
+        <!-- Music Toggle Row -->
+        <div class="flex items-center gap-3 mt-4">
+          <span class="text-lg">🎵</span>
+          <span class="text-sm">Agregar música</span>
+          <input
+            type="checkbox"
+            v-model="addMusic"
+            class="toggle toggle-sm toggle-primary"
+            :disabled="isLoading || activeMusicTracks.length === 0"
+          />
+        </div>
+
+        <!-- Collapsible Music Badges -->
+        <div
+          class="overflow-hidden transition-all duration-300 ease-in-out"
+          :class="addMusic ? 'max-h-28 opacity-100 mt-3' : 'max-h-0 opacity-0'"
+        >
+          <div class="flex flex-wrap items-center gap-2 pl-7">
+            <button
+              v-for="(track, index) in activeMusicTracks"
+              :key="track.id"
+              @click="selectMusic(index)"
+              class="badge badge-lg gap-1 cursor-pointer transition-all"
+              :class="{
+                'badge-secondary': musicIndex === index,
+                'badge-outline opacity-60 hover:opacity-100': musicIndex !== index
+              }"
+              :disabled="isLoading"
+              :title="track.display_name"
+            >
+              <span v-if="track.is_default">⭐</span>
+              <span>{{ track.display_name }}</span>
+            </button>
+          </div>
         </div>
 
         <!-- Error Display -->
@@ -98,6 +130,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useAudioStore } from '@/stores/audio'
 import { storeToRefs } from 'pinia'
 import { MicrophoneIcon, XCircleIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { voicePhotos } from '@/assets/Characters'
 import type { Voice } from '@/types/audio'
 
 // Emit events
@@ -116,13 +149,35 @@ const selectedVoiceId = ref('')
 const priority = ref(4)
 const maxLength = 500
 
+// Slider state
+const voiceIndex = ref(0)
+const musicIndex = ref(0)
+const addMusic = ref(false)
+
 // Computed
 const textLength = computed(() => messageText.value.length)
 
 const selectedVoiceName = computed(() => {
-  const voice = voices.value.find(v => v.id === selectedVoiceId.value)
+  const voice = voices.value[voiceIndex.value]
   return voice?.name || ''
 })
+
+
+const selectedMusicName = computed(() => {
+  const track = activeMusicTracks.value[musicIndex.value]
+  return track?.display_name || ''
+})
+
+// Get voice photo by name (lowercase match)
+const getVoicePhoto = (voice: Voice): string | null => {
+  const name = voice.name.toLowerCase()
+  return voicePhotos[name] || null
+}
+
+// Get initials for fallback avatar
+const getInitials = (name: string): string => {
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+}
 
 const canGenerate = computed(() => {
   return (
@@ -133,30 +188,14 @@ const canGenerate = computed(() => {
 })
 
 // Methods
-const getGenderIcon = (gender?: string) => {
-  if (gender === 'M') return '♂'
-  if (gender === 'F') return '♀'
-  return '🎤'
+const selectVoice = (index: number) => {
+  if (isLoading.value) return
+  voiceIndex.value = index
 }
 
-const getMusicIcon = (mood?: string) => {
-  const icons: Record<string, string> = {
-    energetic: '🎸',
-    calm: '🎻',
-    happy: '🎈',
-    inspiring: '🎹',
-    relaxed: '🎷',
-    upbeat: '🎤',
-    festive: '🎉',
-  }
-  return icons[mood || ''] || '🎵'
-}
-
-const handleVoiceChange = () => {
-  const voice = voices.value.find(v => v.id === selectedVoiceId.value)
-  if (voice) {
-    audioStore.setSelectedVoice(voice)
-  }
+const selectMusic = (index: number) => {
+  if (isLoading.value) return
+  musicIndex.value = index
 }
 
 const clearError = () => {
@@ -206,10 +245,39 @@ onMounted(async () => {
   }
 })
 
+// Sync voice index with selectedVoiceId
+watch(voiceIndex, (index) => {
+  const voice = voices.value[index]
+  if (voice) {
+    selectedVoiceId.value = voice.id
+    audioStore.setSelectedVoice(voice)
+  }
+})
+
+// Sync music index with selectedMusic
+watch(musicIndex, (index) => {
+  if (addMusic.value) {
+    const track = activeMusicTracks.value[index]
+    selectedMusic.value = track?.filename || ''
+  }
+})
+
+// Handle music toggle
+watch(addMusic, (enabled) => {
+  if (!enabled) {
+    selectedMusic.value = ''
+  } else if (activeMusicTracks.value.length > 0) {
+    const track = activeMusicTracks.value[musicIndex.value]
+    selectedMusic.value = track?.filename || ''
+  }
+})
+
 // Auto-select first voice when voices are loaded
 watch(voices, (newVoices) => {
   if (newVoices.length > 0 && !selectedVoiceId.value) {
     const defaultVoice = newVoices.find(v => v.is_default) || newVoices[0]
+    const defaultIndex = newVoices.findIndex(v => v.id === defaultVoice.id)
+    voiceIndex.value = defaultIndex >= 0 ? defaultIndex : 0
     selectedVoiceId.value = defaultVoice.id
     audioStore.setSelectedVoice(defaultVoice)
   }
@@ -224,5 +292,18 @@ defineExpose({
 <style scoped>
 .message-generator {
   width: 100%;
+}
+
+.voice-avatar {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.voice-avatar:hover {
+  transform: scale(1.05);
+}
+
+.voice-avatar:active {
+  transform: scale(0.95);
 }
 </style>

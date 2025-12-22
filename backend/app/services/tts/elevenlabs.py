@@ -24,6 +24,7 @@ class ElevenLabsService:
         text: str,
         voice_id: str,
         voice_settings: Optional[Dict[str, float]] = None,
+        model_id: Optional[str] = None,
     ) -> bytes:
         """
         Generate speech audio from text using ElevenLabs API
@@ -32,6 +33,7 @@ class ElevenLabsService:
             text: The text to convert to speech
             voice_id: ElevenLabs voice ID (e.g., 'G4IAP30yc6c1gK0csDfu')
             voice_settings: Voice configuration with style, stability, similarity_boost
+            model_id: Optional ElevenLabs model (defaults to ELEVENLABS_MODEL_ID)
 
         Returns:
             bytes: MP3 audio data
@@ -55,9 +57,11 @@ class ElevenLabsService:
 
         # Prepare API payload
         # ElevenLabs 2025 API: voice_settings now includes speed parameter
+        # Use provided model_id or fall back to default
+        effective_model = model_id or self.model_id
         payload = {
             "text": text,
-            "model_id": self.model_id,
+            "model_id": effective_model,
             "voice_settings": {
                 "stability": voice_settings.get("stability", 0.5),
                 "similarity_boost": voice_settings.get("similarity_boost", 0.75),
@@ -67,7 +71,7 @@ class ElevenLabsService:
             },
         }
 
-        logger.info(f"🎙️ Generating TTS for voice_id={voice_id}, text_length={len(text)}")
+        logger.info(f"🎙️ Generating TTS: voice_id={voice_id}, model={effective_model}, text_length={len(text)}")
         logger.debug(f"Voice settings: {payload['voice_settings']}")
 
         # Make API request

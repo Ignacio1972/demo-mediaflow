@@ -23,6 +23,16 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/components/calendar/Calendar.vue'),
   },
   {
+    path: '/campaigns',
+    name: 'campaigns',
+    component: () => import('@/components/campaigns/CampaignList.vue'),
+  },
+  {
+    path: '/campaigns/:id',
+    name: 'campaign-detail',
+    component: () => import('@/components/campaigns/CampaignDetail.vue'),
+  },
+  {
     path: '/operations',
     name: 'operations',
     component: () => import('@/components/operations/Operations.vue'),

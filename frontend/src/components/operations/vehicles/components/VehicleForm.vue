@@ -172,7 +172,7 @@
           </select>
         </div>
 
-        <!-- Modo de pronunciacion de numeros -->
+        <!-- Modo de pronunciacion de numeros (comentado para uso futuro)
         <div class="form-control mb-4">
           <label class="label">
             <span class="label-text font-medium">Pronunciacion de patente</span>
@@ -198,6 +198,7 @@
             </label>
           </div>
         </div>
+        -->
 
         <!-- Generate button -->
         <div class="card-actions justify-end mt-4">

@@ -29,18 +29,18 @@
             <span v-else>Guardar en Biblioteca</span>
           </button>
 
-          <!-- Enviar a Máquina Local -->
+          <!-- Enviar a los Parlantes -->
           <button
             @click="sendToLocalPlayer"
             class="btn btn-outline"
             :disabled="sendingToLocal"
-            title="Enviar al reproductor local"
+            title="Enviar a los parlantes"
           >
             <span v-if="sendingToLocal" class="loading loading-spinner loading-xs"></span>
-            <span v-else>Enviar a Maquina Local</span>
+            <span v-else>Enviar a los parlantes</span>
           </button>
 
-          <!-- Enviar a AzuraCast -->
+          <!-- COMENTADO: Botón de AzuraCast (preservado para futura implementación)
           <button
             @click="sendToAzuracast"
             class="btn btn-outline"
@@ -50,6 +50,7 @@
             <span v-if="sendingToAzuracast" class="loading loading-spinner loading-xs"></span>
             <span v-else>Enviar a AzuraCast</span>
           </button>
+          -->
         </div>
       </div>
     </div>
@@ -74,7 +75,8 @@ const audioPlayer = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const savingToLibrary = ref(false)
 const sendingToLocal = ref(false)
-const sendingToAzuracast = ref(false)
+// COMENTADO: Variable para AzuraCast (preservada para futura implementación)
+// const sendingToAzuracast = ref(false)
 const isSaved = ref(false)
 
 // Reset isSaved when audio changes
@@ -146,24 +148,24 @@ const sendToLocalPlayer = async () => {
   }
 }
 
-// Send to AzuraCast
-const sendToAzuracast = async () => {
-  if (!props.audio) return
-
-  sendingToAzuracast.value = true
-
-  try {
-    // TODO: Implement AzuraCast API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    console.log('Enviado a AzuraCast:', props.audio.filename)
-    alert('Audio enviado a AzuraCast')
-  } catch (e) {
-    console.error('Error al enviar a AzuraCast:', e)
-    alert('Error al enviar a AzuraCast')
-  } finally {
-    sendingToAzuracast.value = false
-  }
-}
+// COMENTADO: Función para AzuraCast (preservada para futura implementación)
+// const sendToAzuracast = async () => {
+//   if (!props.audio) return
+//
+//   sendingToAzuracast.value = true
+//
+//   try {
+//     // TODO: Implement AzuraCast API call
+//     await new Promise(resolve => setTimeout(resolve, 1000))
+//     console.log('Enviado a AzuraCast:', props.audio.filename)
+//     alert('Audio enviado a AzuraCast')
+//   } catch (e) {
+//     console.error('Error al enviar a AzuraCast:', e)
+//     alert('Error al enviar a AzuraCast')
+//   } finally {
+//     sendingToAzuracast.value = false
+//   }
+// }
 </script>
 
 <style scoped>

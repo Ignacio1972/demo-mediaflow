@@ -7,14 +7,6 @@ from typing import Optional, List
 from enum import Enum
 
 
-class AnnouncementTemplate(str, Enum):
-    """Available announcement templates."""
-    DEFAULT = "default"
-    FORMAL = "formal"
-    URGENTE = "urgente"
-    AMABLE = "amable"
-
-
 class NumberMode(str, Enum):
     """Number pronunciation modes for license plates."""
     WORDS = "words"      # 45 -> "cuarenta y cinco"
@@ -53,9 +45,9 @@ class VehicleAnnouncementRequest(BaseModel):
         None,
         description="Background music filename (optional)"
     )
-    template: AnnouncementTemplate = Field(
-        AnnouncementTemplate.DEFAULT,
-        description="Message template to use"
+    template: str = Field(
+        "default",
+        description="Template ID to use (from database or hardcoded)"
     )
     number_mode: NumberMode = Field(
         NumberMode.WORDS,
@@ -119,7 +111,7 @@ class TextPreviewRequest(BaseModel):
     marca: str = Field(..., min_length=2, max_length=50)
     color: str = Field(..., min_length=2, max_length=30)
     patente: str = Field(..., min_length=1, max_length=10)
-    template: AnnouncementTemplate = Field(AnnouncementTemplate.DEFAULT)
+    template: str = Field("default", description="Template ID to use")
     number_mode: NumberMode = Field(NumberMode.WORDS)
 
 
@@ -185,6 +177,7 @@ class VehicleBrand(BaseModel):
     """Vehicle brand suggestion."""
     id: str
     name: str
+    tts_name: Optional[str] = None  # Accented version for TTS pronunciation
 
 
 class VehicleColor(BaseModel):

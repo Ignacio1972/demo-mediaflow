@@ -9,6 +9,7 @@ import { apiClient } from '@/api/client'
 export interface VehicleBrand {
   id: string
   name: string
+  tts_name?: string  // Accented version for TTS pronunciation
 }
 
 export interface VehicleColor {
@@ -166,6 +167,14 @@ export function useVehicleAnnouncement() {
       brands.value = response.brands
       colors.value = response.colors
       templates.value = response.templates
+
+      // Set default template if available and current template not in list
+      if (templates.value.length > 0) {
+        const currentExists = templates.value.some(t => t.id === template.value)
+        if (!currentExists) {
+          template.value = templates.value[0].id
+        }
+      }
     } catch (e: any) {
       console.error('Error loading options:', e)
       error.value = 'Error cargando opciones'

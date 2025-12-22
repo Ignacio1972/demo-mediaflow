@@ -4,17 +4,6 @@
       <div class="card-body flex flex-col overflow-hidden">
         <div class="flex items-center justify-between flex-shrink-0">
           <h3 class="card-title text-xl">Mensajes Recientes</h3>
-          <button
-            @click="refresh"
-            class="btn btn-ghost btn-sm btn-square"
-            :disabled="isLoading"
-            title="Actualizar"
-          >
-            <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </button>
         </div>
 
         <!-- Loading State -->
@@ -162,10 +151,6 @@ const showSuccessToast = () => {
 }
 
 // Methods
-const refresh = async () => {
-  await audioStore.loadRecentMessages()
-}
-
 const formatDuration = (seconds?: number): string => {
   if (!seconds) return '0:00'
   const mins = Math.floor(seconds / 60)
@@ -256,23 +241,25 @@ const deleteMessage = async (message: AudioMessage) => {
   const messageEl = messageRefs.value.get(message.id)
 
   try {
-    // Slide-out animation to the left
+    // Delete from store FIRST (API call)
+    await audioStore.deleteMessage(message.id)
+
+    // Only animate if API call succeeded
     if (messageEl) {
       messageEl.style.transition = 'transform 0.3s ease, opacity 0.3s ease'
       messageEl.style.transform = 'translateX(-100%)'
       messageEl.style.opacity = '0'
 
-      // After animation, delete from store
-      setTimeout(async () => {
-        await audioStore.deleteMessage(message.id)
+      // After animation, clean up refs
+      setTimeout(() => {
         messageRefs.value.delete(message.id)
       }, 300)
     } else {
-      await audioStore.deleteMessage(message.id)
+      messageRefs.value.delete(message.id)
     }
   } catch (e: any) {
     console.error('Error al eliminar mensaje:', e)
-    // Reset styles on error
+    // Reset styles on error (in case animation started somehow)
     if (messageEl) {
       messageEl.style.transition = ''
       messageEl.style.transform = ''
@@ -284,7 +271,7 @@ const deleteMessage = async (message: AudioMessage) => {
 // Load recent messages on mount
 onMounted(async () => {
   if (messages.value.length === 0) {
-    await refresh()
+    await audioStore.loadRecentMessages()
   }
 })
 </script>
