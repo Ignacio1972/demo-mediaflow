@@ -20,7 +20,9 @@ const workflow = inject<CampaignWorkflow>('workflow')!
         class="textarea textarea-bordered w-full h-28"
         placeholder="Ej: ofertas de carne para asado
 Ej: promocion 2x1 en bebidas
-Ej: llegaron productos nuevos"
+Ej: llegaron productos nuevos
+
+(Opcional: deja vacio para sugerencia general)"
       />
 
       <!-- Error message -->
@@ -31,7 +33,15 @@ Ej: llegaron productos nuevos"
       <!-- Actions -->
       <div class="flex justify-between items-center mt-4">
         <div class="text-sm opacity-50">
-          Minimo 3 caracteres
+          <template v-if="workflow.hasInputText.value">
+            Se generaran sugerencias basadas en tu descripcion
+          </template>
+          <template v-else-if="workflow.campaignName.value">
+            Se generara una sugerencia general para "{{ workflow.campaignName.value }}"
+          </template>
+          <template v-else>
+            Escribe algo o espera a que cargue la campana
+          </template>
         </div>
 
         <button

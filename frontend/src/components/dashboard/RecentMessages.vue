@@ -1,9 +1,9 @@
 <template>
   <div class="recent-messages h-full flex flex-col">
-    <div class="card bg-base-200 shadow-xl h-full flex flex-col">
-      <div class="card-body flex flex-col overflow-hidden">
+    <div class="card bg-base-200 shadow-xl h-full flex flex-col overflow-hidden">
+      <div class="card-body p-4 sm:p-6 flex flex-col overflow-hidden">
         <div class="flex items-center justify-between flex-shrink-0">
-          <h3 class="card-title text-xl">Mensajes Recientes</h3>
+          <h3 class="card-title text-lg sm:text-xl">Mensajes Recientes</h3>
         </div>
 
         <!-- Loading State -->
@@ -21,7 +21,7 @@
         </div>
 
         <!-- Messages List with Scroll -->
-        <div v-else class="messages-container flex-1 overflow-y-auto overflow-x-hidden pr-1">
+        <div v-else class="messages-container flex-1 min-w-0 overflow-y-auto overflow-x-hidden pr-1">
           <div class="space-y-3">
             <div
               v-for="message in messages"
@@ -42,7 +42,7 @@
 
                 <!-- Metadata -->
                 <div class="flex items-center gap-2 text-xs opacity-60 mt-1">
-                  <span>{{ message.voice_id }}</span>
+                  <span class="truncate max-w-[80px] sm:max-w-[100px]">{{ message.voice_id }}</span>
                   <span>·</span>
                   <span>{{ formatDuration(message.duration) }}</span>
                   <span>·</span>
@@ -279,12 +279,18 @@ onMounted(async () => {
 <style scoped>
 .recent-messages {
   width: 100%;
-  min-height: 600px;
+  min-height: auto;
+}
+
+@media (min-width: 1024px) {
+  .recent-messages {
+    min-height: 600px;
+  }
 }
 
 .messages-container {
   max-height: calc(100vh - 250px);
-  min-height: 500px;
+  min-height: 300px;
   scrollbar-width: thin;
   scrollbar-color: oklch(var(--bc) / 0.2) transparent;
 }

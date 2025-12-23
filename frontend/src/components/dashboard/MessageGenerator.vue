@@ -1,27 +1,27 @@
 <template>
   <div class="message-generator">
-    <div class="card bg-base-200 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">
+    <div class="card bg-base-200 shadow-xl overflow-hidden">
+      <div class="card-body p-4 sm:p-6 lg:p-8">
+        <h2 class="card-title text-xl sm:text-2xl">
           📝 Generar Mensaje TTS
         </h2>
 
         <!-- Text Input -->
-        <div class="form-control mb-6">
+        <div class="form-control mb-4 sm:mb-6">
           <textarea
             v-model="messageText"
             :maxlength="maxLength"
-            class="textarea textarea-bordered h-56 text-lg"
+            class="textarea textarea-bordered h-32 sm:h-56 text-base sm:text-lg"
             placeholder="Escribe tu mensaje aquí..."
             :disabled="isLoading"
           ></textarea>
         </div>
 
         <!-- Controls Row: Voice Avatars | Generate -->
-        <div class="flex items-center gap-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
           <!-- Voice Avatars -->
-          <div class="flex-1 flex items-center gap-2">
-            <span class="text-lg">🎤</span>
+          <div class="flex-1 min-w-0 flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+            <span class="text-lg flex-shrink-0">🎤</span>
             <div class="flex items-center gap-2">
               <button
                 v-for="(voice, index) in voices"
@@ -49,17 +49,17 @@
                 </div>
               </button>
             </div>
-            <span class="text-sm font-medium ml-2">{{ selectedVoiceName }}</span>
+            <span class="text-sm font-medium ml-2 hidden sm:inline">{{ selectedVoiceName }}</span>
           </div>
 
           <!-- Generate Button -->
           <button
             @click="handleGenerate"
-            class="btn btn-primary"
+            class="btn btn-primary w-full sm:w-auto"
             :disabled="!canGenerate"
           >
             <span v-if="isLoading" class="loading loading-spinner"></span>
-            <span v-else class="flex items-center gap-2">
+            <span v-else class="flex items-center justify-center gap-2">
               <MicrophoneIcon class="h-5 w-5" />
               Generar
             </span>

@@ -127,6 +127,26 @@
         :item-name="deleteItemName"
         @confirm="confirmDelete"
       />
+
+      <BroadcastModal
+        v-model:open="showBroadcastModal"
+        :message="selectedMessage"
+        @sent="onBroadcastSent"
+      />
+
+      <!-- Success Toast - Centered -->
+      <Transition name="toast-scale">
+        <div v-if="successToast" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div class="bg-success text-success-content px-8 py-6 rounded-xl shadow-2xl max-w-lg pointer-events-auto">
+            <div class="flex items-center gap-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="text-xl font-semibold">{{ successToast }}</span>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -156,6 +176,7 @@ import EmptyState from './components/EmptyState.vue'
 import UploadModal from './modals/UploadModal.vue'
 import ScheduleModal from './modals/ScheduleModal.vue'
 import DeleteConfirmModal from './modals/DeleteConfirmModal.vue'
+import BroadcastModal from './modals/BroadcastModal.vue'
 
 const router = useRouter()
 const store = useLibraryStore()
@@ -182,10 +203,14 @@ const {
 const showUploadModal = ref(false)
 const showScheduleModal = ref(false)
 const showDeleteModal = ref(false)
+const showBroadcastModal = ref(false)
 const selectedMessage = ref<AudioMessage | null>(null)
 const deleteCount = ref(0)
 const deleteItemName = ref<string | undefined>(undefined)
 const pendingDeleteIds = ref<number[]>([])
+
+// Toast state
+const successToast = ref<string | null>(null)
 
 // Handlers
 async function handleToggleFavorite(id: number) {
@@ -206,7 +231,8 @@ function handleAction(action: MessageAction, message: AudioMessage) {
       showScheduleModal.value = true
       break
     case 'send-to-radio':
-      sendToRadio(message)
+      selectedMessage.value = message
+      showBroadcastModal.value = true
       break
     case 'edit-in-dashboard':
       editInDashboard(message)
@@ -217,13 +243,11 @@ function handleAction(action: MessageAction, message: AudioMessage) {
   }
 }
 
-async function sendToRadio(message: AudioMessage) {
-  try {
-    await store.sendToRadio(message.id)
-    // Show success notification
-  } catch (err) {
-    // Error handled by store
-  }
+function onBroadcastSent(_branchCount: number) {
+  successToast.value = 'El audio se ha enviado exitosamente a los parlantes'
+  setTimeout(() => {
+    successToast.value = null
+  }, 3000)
 }
 
 function editInDashboard(message: AudioMessage) {
@@ -288,3 +312,23 @@ onMounted(async () => {
   ])
 })
 </script>
+
+<style scoped>
+.toast-scale-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.toast-scale-leave-active {
+  transition: all 0.2s ease-in;
+}
+
+.toast-scale-enter-from {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.toast-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+</style>

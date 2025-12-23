@@ -16,11 +16,11 @@
         </div>
 
         <!-- Main Action Buttons (3 buttons like old dashboard) -->
-        <div class="flex flex-wrap gap-3 mt-4 justify-end">
+        <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3 mt-4 sm:justify-end">
           <!-- Guardar en Biblioteca -->
           <button
             @click="saveToLibrary"
-            class="btn btn-success"
+            class="btn btn-success w-full sm:w-auto"
             :class="{ 'btn-disabled': isSaved }"
             :disabled="savingToLibrary || isSaved"
           >
@@ -32,7 +32,7 @@
           <!-- Enviar a los Parlantes -->
           <button
             @click="sendToLocalPlayer"
-            class="btn btn-outline"
+            class="btn btn-outline w-full sm:w-auto"
             :disabled="sendingToLocal"
             title="Enviar a los parlantes"
           >

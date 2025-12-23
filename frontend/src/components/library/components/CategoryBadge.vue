@@ -5,7 +5,6 @@
       :style="badgeStyle"
       @click.stop="toggleDropdown"
     >
-      <span>{{ category?.icon || '📁' }}</span>
       <span>{{ category?.name || 'Sin categoria' }}</span>
       <ChevronDownIcon class="h-3 w-3" />
     </button>
@@ -21,7 +20,7 @@
     >
       <div
         v-if="isOpen"
-        class="absolute z-50 mt-1 w-48 bg-base-100 rounded-lg shadow-lg border border-base-300 py-1"
+        class="absolute z-50 mt-1 w-48 max-h-64 overflow-y-auto bg-base-100 rounded-lg shadow-lg border border-base-300 py-1"
       >
         <button
           v-for="cat in categories"
@@ -30,7 +29,6 @@
           :class="{ 'bg-base-200': cat.id === categoryId }"
           @click="selectCategory(cat.id)"
         >
-          <span :style="{ color: cat.color }">{{ cat.icon }}</span>
           <span class="flex-1">{{ cat.name }}</span>
           <CheckIcon v-if="cat.id === categoryId" class="h-4 w-4 text-success" />
         </button>
@@ -42,7 +40,6 @@
           :class="{ 'bg-base-200': !categoryId }"
           @click="selectCategory(null)"
         >
-          <span>📁</span>
           <span class="flex-1">Sin categoria</span>
           <CheckIcon v-if="!categoryId" class="h-4 w-4 text-success" />
         </button>

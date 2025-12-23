@@ -79,12 +79,12 @@ const currentStepComponent = computed(() => {
 <template>
   <div class="min-h-screen">
     <!-- Header -->
-    <header class="bg-base-200 border-b border-base-300 px-6 py-4">
+    <header class="bg-base-200 border-b border-base-300 px-4 md:px-6 py-3 md:py-4">
       <div class="flex items-center justify-between">
         <!-- Back + Title -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
           <button
-            class="btn btn-ghost btn-sm"
+            class="btn btn-ghost btn-sm md:btn-md md:text-xl font-bold"
             @click="goBack"
           >
             Campañas
@@ -92,14 +92,14 @@ const currentStepComponent = computed(() => {
 
           <div
             v-if="store.currentCampaign"
-            class="flex items-center gap-2"
+            class="flex items-center gap-2 min-w-0"
           >
             <DynamicIcon
               :name="store.currentCampaign.icon"
               fallback="Folder"
-              class="w-6 h-6"
+              class="w-5 h-5 md:w-6 md:h-6 flex-shrink-0"
             />
-            <h1 class="text-xl font-bold">{{ store.currentCampaign.name }}</h1>
+            <h1 class="text-base md:text-xl font-bold truncate">{{ store.currentCampaign.name }}</h1>
           </div>
         </div>
 
@@ -121,10 +121,10 @@ const currentStepComponent = computed(() => {
     </div>
 
     <!-- Main Content -->
-    <main v-else-if="store.currentCampaign" class="p-6">
-      <div class="flex gap-6">
+    <main v-else-if="store.currentCampaign" class="p-4 md:p-6">
+      <div class="flex flex-col md:flex-row gap-4 md:gap-6">
         <!-- Left Column (3/5) - Workflow -->
-        <div class="flex-[3] space-y-6">
+        <div class="w-full md:flex-[3] space-y-4 md:space-y-6">
           <!-- Dynamic Step Component -->
           <component
             :is="currentStepComponent"
@@ -133,7 +133,7 @@ const currentStepComponent = computed(() => {
         </div>
 
         <!-- Right Column (2/5) - Panels -->
-        <div class="flex-[2] space-y-4">
+        <div class="w-full md:flex-[2] space-y-4">
           <!-- AI Training Panel -->
           <AITrainingPanel
             :campaign-id="campaignId"

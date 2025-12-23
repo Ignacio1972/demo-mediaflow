@@ -1,7 +1,7 @@
 <template>
   <div class="ai-suggestions-v2">
-    <div class="card bg-base-100 border-2 border-base-300 rounded-2xl shadow-sm">
-      <div class="card-body p-8">
+    <div class="card bg-base-100 border-2 border-base-300 rounded-2xl shadow-sm overflow-hidden">
+      <div class="card-body p-4 sm:p-6 lg:p-8">
         <!-- Header with title and subtitle -->
         <div class="mb-6">
           <h2 class="text-2xl font-bold tracking-tight">
@@ -16,7 +16,7 @@
         <div class="space-y-2">
           <textarea
             v-model="context"
-            class="textarea bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 rounded-xl w-full h-40 text-base leading-relaxed resize-none transition-all"
+            class="textarea bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 rounded-xl w-full h-28 sm:h-40 text-base leading-relaxed resize-none transition-all"
             placeholder="Ej: Promoción de tacos al pastor 2x1 los martes..."
             :disabled="isGenerating"
             maxlength="1000"
@@ -50,7 +50,7 @@
             class="overflow-hidden transition-all duration-300 ease-out"
             :class="showAdvancedSettings ? 'max-h-48 opacity-100 mt-5' : 'max-h-0 opacity-0'"
           >
-            <div class="grid grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
               <!-- Tone Selector -->
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
@@ -163,15 +163,15 @@
               ></div>
 
               <!-- Suggestion Text -->
-              <p class="text-base leading-relaxed pr-24">
+              <p class="text-base leading-relaxed sm:pr-24">
                 {{ suggestion.text }}
               </p>
 
               <!-- Use Button (appears on hover or when selected) -->
               <button
                 @click.stop="useSuggestion(suggestion.text)"
-                class="absolute right-4 top-1/2 -translate-y-1/2 btn btn-primary btn-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                :class="{ 'opacity-100': selectedIndex === index }"
+                class="mt-3 sm:mt-0 sm:absolute sm:right-4 sm:top-1/2 sm:-translate-y-1/2 btn btn-primary btn-sm rounded-lg w-full sm:w-auto sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                :class="{ 'sm:opacity-100': selectedIndex === index }"
               >
                 <CheckIcon class="h-4 w-4" />
                 <span>Usar</span>

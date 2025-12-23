@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { apiClient } from '@/api/client'
 import { useAudioStore } from '@/stores/audio'
+import { useCampaignStore } from '../stores/campaignStore'
 
 // Estados del workflow
 export type WorkflowStep = 'input' | 'suggestions' | 'generate' | 'preview'
@@ -37,6 +38,7 @@ interface AIGenerateResponse {
 
 export function useCampaignWorkflow(campaignId: string) {
   const audioStore = useAudioStore()
+  const campaignStore = useCampaignStore()
 
   // Current step
   const currentStep = ref<WorkflowStep>('input')
@@ -79,14 +81,28 @@ export function useCampaignWorkflow(campaignId: string) {
 
   // STEP 1 → STEP 2: Request suggestions from AI
   async function requestSuggestions() {
-    if (inputText.value.trim().length < 3) return
+    const currentCampaignName = campaignStore.currentCampaign?.name
+
+    // Determinar el contexto a enviar
+    let contextToSend = inputText.value.trim()
+
+    // Si está vacío, usar el nombre de la campaña como fallback
+    if (!contextToSend && currentCampaignName) {
+      contextToSend = `Anuncio general para campaña ${currentCampaignName}`
+    }
+
+    // Validar que tenemos algo para enviar (mínimo 5 caracteres para el backend)
+    if (contextToSend.length < 5) {
+      suggestionsError.value = 'Escribe al menos 5 caracteres o deja vacío para sugerencia general'
+      return
+    }
 
     isGeneratingSuggestions.value = true
     suggestionsError.value = null
 
     try {
       const response = await apiClient.post<AIGenerateResponse>('/api/v1/ai/generate', {
-        context: inputText.value,
+        context: contextToSend,
         tone: 'profesional',
         campaign_id: campaignId
       })
@@ -168,7 +184,11 @@ export function useCampaignWorkflow(campaignId: string) {
   }
 
   // Computed helpers
+  const campaignName = computed(() => campaignStore.currentCampaign?.name || '')
+
   const canRequestSuggestions = computed(() => !isGeneratingSuggestions.value)
+
+  const hasInputText = computed(() => inputText.value.trim().length > 0)
 
   const canGenerateAudio = computed(() =>
     editedText.value.trim().length >= 10 &&
@@ -209,6 +229,8 @@ export function useCampaignWorkflow(campaignId: string) {
     audioError,
 
     // Computed
+    campaignName,
+    hasInputText,
     canRequestSuggestions,
     canGenerateAudio,
 

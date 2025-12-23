@@ -1,23 +1,12 @@
 <template>
-  <div class="min-h-screen bg-base-100">
+  <div class="min-h-screen bg-base-100 overflow-x-hidden">
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8 max-w-[1600px]">
-      <!-- Demo Toggle -->
-      <div class="flex items-center justify-end gap-3 mb-6">
-        <span class="text-sm text-base-content/60">Nuevo diseño</span>
-        <input
-          type="checkbox"
-          v-model="useNewDesign"
-          class="toggle toggle-primary toggle-sm"
-        />
-      </div>
-
+    <main class="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-[1600px] overflow-x-hidden">
       <div class="grid lg:grid-cols-5 gap-6">
         <!-- Left Column: AI + Message Generator (3/5) -->
-        <div class="lg:col-span-3 space-y-6">
+        <div class="lg:col-span-3 space-y-6 min-w-0">
           <!-- Step 1: AI Suggestions -->
-          <AISuggestionsV2 v-if="useNewDesign" @suggestion-selected="handleSuggestionSelected" />
-          <AISuggestions v-else @suggestion-selected="handleSuggestionSelected" />
+          <AISuggestionsV2 @suggestion-selected="handleSuggestionSelected" />
 
           <!-- Step 2 & 3: Message Generator + Audio Preview -->
           <MessageGenerator
@@ -30,7 +19,7 @@
         </div>
 
         <!-- Right Column: Recent Messages (2/5) -->
-        <div class="lg:col-span-2">
+        <div class="lg:col-span-2 min-w-0">
           <RecentMessages />
         </div>
       </div>
@@ -42,7 +31,6 @@
 import { ref, onMounted } from 'vue'
 import { useAudioStore } from '@/stores/audio'
 import { storeToRefs } from 'pinia'
-import AISuggestions from './AISuggestions.vue'
 import AISuggestionsV2 from './AISuggestionsV2.vue'
 import MessageGenerator from './MessageGenerator.vue'
 import AudioPreview from './AudioPreview.vue'
@@ -51,9 +39,6 @@ import RecentMessages from './RecentMessages.vue'
 // Store
 const audioStore = useAudioStore()
 const { currentAudio } = storeToRefs(audioStore)
-
-// Design toggle
-const useNewDesign = ref(true)
 
 // Refs
 const messageGeneratorRef = ref<InstanceType<typeof MessageGenerator> | null>(null)

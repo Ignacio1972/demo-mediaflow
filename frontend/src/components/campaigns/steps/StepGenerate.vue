@@ -81,16 +81,33 @@ function handleMusicSelect(filename: string | null) {
         </label>
       </div>
 
-      <!-- Voice selector -->
+      <!-- Voice selector + Generate button (same row) -->
       <div class="mb-4">
         <label class="label">
           <span class="label-text">Selecciona la voz</span>
         </label>
-        <VoiceSelectorBase
-          :voices="audioStore.activeVoices"
-          :selected-voice-id="workflow.selectedVoiceId.value"
-          @select="handleVoiceSelect"
-        />
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div class="flex-1 min-w-0">
+            <VoiceSelectorBase
+              :voices="audioStore.activeVoices"
+              :selected-voice-id="workflow.selectedVoiceId.value"
+              @select="handleVoiceSelect"
+            />
+          </div>
+
+          <!-- Generate button -->
+          <button
+            class="btn btn-primary w-full sm:w-auto flex-shrink-0"
+            :disabled="!workflow.canGenerateAudio.value"
+            @click="workflow.generateAudio"
+          >
+            <span
+              v-if="workflow.isGeneratingAudio.value"
+              class="loading loading-spinner"
+            ></span>
+            Generar Audio
+          </button>
+        </div>
       </div>
 
       <!-- Music toggle + selector -->
@@ -117,23 +134,8 @@ function handleMusicSelect(filename: string | null) {
       </div>
 
       <!-- Error -->
-      <div v-if="workflow.audioError.value" class="alert alert-error mb-4">
+      <div v-if="workflow.audioError.value" class="alert alert-error">
         {{ workflow.audioError.value }}
-      </div>
-
-      <!-- Generate button -->
-      <div class="card-actions justify-end">
-        <button
-          class="btn btn-primary btn-lg"
-          :disabled="!workflow.canGenerateAudio.value"
-          @click="workflow.generateAudio"
-        >
-          <span
-            v-if="workflow.isGeneratingAudio.value"
-            class="loading loading-spinner"
-          ></span>
-          Generar Audio
-        </button>
       </div>
     </div>
   </div>

@@ -100,9 +100,9 @@ function handleDragEnd() {
             </p>
           </div>
 
-          <!-- New Campaign Button -->
+          <!-- New Campaign Button (hidden on mobile) -->
           <button
-            class="btn btn-primary gap-2 rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+            class="hidden md:flex btn btn-primary gap-2 rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
             @click="showNewModal = true"
           >
             <PlusIcon class="w-5 h-5" />

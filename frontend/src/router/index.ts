@@ -5,7 +5,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    redirect: '/dashboard',
+    redirect: '/campaigns',
   },
   {
     path: '/dashboard',
@@ -49,6 +49,11 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/mobile',
+    name: 'mobile',
+    component: () => import('@/components/mobile/MobilePage.vue'),
+  },
+  {
     path: '/settings',
     name: 'settings',
     redirect: '/settings/ai',
@@ -82,11 +87,6 @@ const routes: RouteRecordRaw[] = [
         path: 'templates',
         name: 'settings-templates',
         component: () => import('@/components/settings/templates/TemplateManager.vue'),
-      },
-      {
-        path: 'playroom',
-        name: 'settings-playroom',
-        component: () => import('@/components/settings/playroom/PlayroomMode.vue'),
       },
     ],
   },
