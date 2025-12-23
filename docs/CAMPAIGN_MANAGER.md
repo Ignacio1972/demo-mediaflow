@@ -1096,6 +1096,16 @@ alembic upgrade head
 
 ---
 
+folio ges 854433
+
+
+<Rabbit />
+
+Desarrollo Nuevas Funciones Intraneuro v2.0
+
+F1A62
+
+Acabo de hacer una plantilla con 10 fechas especiales, por ejemplo: Día del Padre, Día del Niño, Fiestas Patrias, Navidad, Halloween, etc. Estoy haciendo un entrenamiento de inteligencia artificial para que genere slogans, o promociones y ofertas, etc., que tengan relación para cada uno de esos eventos. Por lo tanto, necesito que hagas varios párrafos para entrenar a la inteligencia artificial con cada uno de estos ítems, que son los siguientes: Día del padre, día del niño, día de la madre, fiestas patrias, Navidad, Año Nuevo, halloween, black Friday . Para que los párrafos sean consistentes, partamos con uno de los eventos, como por ejemplo el Día del Padre. Dame un par de párrafos para entrenar a la inteligencia artificial. La tienda se llama Easy por lo tanto, en algún momento hay que mencionar algo relacionado con la tienda, que es el que hace estas promociones. Adelante con el Día del Padre. 
 
 8 lucas
 

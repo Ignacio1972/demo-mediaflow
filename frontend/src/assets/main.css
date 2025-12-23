@@ -2,7 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar for dark theme */
+/* ============================================
+   DESIGN SYSTEM V2 - GLOBAL STYLES
+   Professional, consistent look across all themes
+   ============================================ */
+
+/* ============================================
+   CUSTOM SCROLLBAR
+   ============================================ */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -13,18 +21,424 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-base-300 rounded;
+  @apply bg-base-300 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary;
+  @apply bg-primary/50;
 }
 
-/* Custom animations */
-@keyframes fadeIn {
+/* ============================================
+   TYPOGRAPHY - DS V2
+   ============================================ */
+
+h1, .text-3xl, .text-4xl {
+  @apply font-bold tracking-tight;
+}
+
+h2, h3, .card-title {
+  @apply font-semibold tracking-tight;
+}
+
+p, .prose {
+  @apply leading-relaxed;
+}
+
+/* ============================================
+   CARDS - DS V2
+   Professional cards with visible borders
+   ============================================ */
+
+.card {
+  @apply bg-base-100 border-2 border-base-300 rounded-2xl shadow-sm;
+  @apply overflow-hidden transition-all duration-200;
+}
+
+.card:hover {
+  @apply shadow-md;
+}
+
+.card-body {
+  @apply p-6 gap-4;
+}
+
+.card-title {
+  @apply text-xl font-bold flex items-center gap-2;
+}
+
+.card-actions {
+  @apply pt-2;
+}
+
+/* Interactive cards */
+.card-hover,
+.card[class*="cursor-pointer"] {
+  @apply hover:shadow-xl hover:-translate-y-1 hover:border-primary/30 transition-all duration-200;
+}
+
+/* ============================================
+   BUTTONS - DS V2
+   Rounded buttons with shadows
+   ============================================ */
+
+.btn {
+  @apply rounded-xl font-medium transition-all duration-200;
+}
+
+.btn-primary {
+  @apply shadow-lg shadow-primary/25;
+}
+
+.btn-primary:hover {
+  @apply shadow-xl shadow-primary/30;
+}
+
+.btn-secondary {
+  @apply shadow-lg shadow-secondary/20;
+}
+
+.btn-accent {
+  @apply shadow-lg shadow-accent/20;
+}
+
+.btn-ghost {
+  @apply shadow-none hover:bg-base-200;
+}
+
+.btn-outline {
+  @apply border-2;
+}
+
+/* Button sizes */
+.btn-sm {
+  @apply rounded-lg;
+}
+
+.btn-lg {
+  @apply rounded-xl text-base;
+}
+
+/* Button with icon alignment */
+.btn svg,
+.btn .icon {
+  @apply w-5 h-5;
+}
+
+/* Button group */
+.btn-group .btn,
+.join .btn {
+  @apply border-0;
+}
+
+/* ============================================
+   FORMS - DS V2
+   Inputs with visible borders and transitions
+   ============================================ */
+
+.input,
+.select,
+.textarea {
+  @apply bg-base-200/50 border-2 border-base-300 rounded-xl;
+  @apply transition-all duration-200;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  @apply bg-base-100 border-primary outline-none;
+  @apply ring-2 ring-primary/20;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  @apply text-base-content/40;
+}
+
+/* Labels */
+.label-text {
+  @apply font-medium text-sm;
+}
+
+.label-text-alt {
+  @apply text-xs text-base-content/50;
+}
+
+/* Form control spacing */
+.form-control {
+  @apply space-y-2;
+}
+
+/* Checkbox and Radio */
+.checkbox,
+.radio {
+  @apply border-2 border-base-300;
+}
+
+.checkbox:checked,
+.radio:checked {
+  @apply border-primary;
+}
+
+/* Toggle */
+.toggle {
+  @apply border-2 border-base-300;
+}
+
+/* ============================================
+   NAVIGATION - DS V2
+   ============================================ */
+
+header {
+  @apply bg-base-100 border-b-2 border-base-300/60;
+  @apply backdrop-blur-sm;
+}
+
+.nav-link {
+  @apply relative rounded-xl px-4 py-2;
+  @apply transition-all duration-200;
+}
+
+.nav-link:hover {
+  @apply bg-base-200;
+}
+
+.nav-link.active {
+  @apply bg-primary/10 text-primary;
+}
+
+/* ============================================
+   TABLES - DS V2
+   ============================================ */
+
+.table {
+  @apply w-full bg-base-100;
+}
+
+.table th {
+  @apply font-semibold text-xs uppercase tracking-wider;
+  @apply text-base-content/60 bg-base-200/50;
+  @apply py-3 px-4;
+}
+
+.table td {
+  @apply py-4 px-4;
+}
+
+.table tr {
+  @apply border-b border-base-300/60 transition-colors;
+}
+
+.table tr:hover {
+  @apply bg-base-200/30;
+}
+
+.table tr:last-child {
+  @apply border-b-0;
+}
+
+/* ============================================
+   BADGES - DS V2
+   Pill-shaped badges with subtle backgrounds
+   ============================================ */
+
+.badge {
+  @apply font-medium rounded-full px-3 py-1;
+}
+
+.badge-primary {
+  @apply bg-primary/10 text-primary border-0;
+}
+
+.badge-secondary {
+  @apply bg-secondary/10 text-secondary border-0;
+}
+
+.badge-accent {
+  @apply bg-accent/10 text-accent border-0;
+}
+
+.badge-success {
+  @apply bg-success/10 text-success border-0;
+}
+
+.badge-warning {
+  @apply bg-warning/10 text-warning border-0;
+}
+
+.badge-error {
+  @apply bg-error/10 text-error border-0;
+}
+
+.badge-info {
+  @apply bg-info/10 text-info border-0;
+}
+
+.badge-ghost {
+  @apply bg-base-200 text-base-content border-0;
+}
+
+/* ============================================
+   MODALS - DS V2
+   ============================================ */
+
+.modal-box {
+  @apply bg-base-100 border-2 border-base-300/60 rounded-2xl;
+  @apply p-6 max-w-lg shadow-2xl;
+}
+
+.modal-box h3 {
+  @apply text-xl font-bold mb-4;
+}
+
+/* ============================================
+   ALERTS - DS V2
+   ============================================ */
+
+.alert {
+  @apply rounded-2xl border-2 p-4;
+}
+
+.alert-info {
+  @apply bg-info/10 border-info/20 text-info;
+}
+
+.alert-success {
+  @apply bg-success/10 border-success/20 text-success;
+}
+
+.alert-warning {
+  @apply bg-warning/10 border-warning/20 text-warning;
+}
+
+.alert-error {
+  @apply bg-error/10 border-error/20 text-error;
+}
+
+/* ============================================
+   DROPDOWN - DS V2
+   ============================================ */
+
+.dropdown-content {
+  @apply bg-base-100 border-2 border-base-300/60 rounded-xl;
+  @apply shadow-xl p-2;
+}
+
+.dropdown-content li > a,
+.dropdown-content li > button {
+  @apply rounded-lg px-4 py-2;
+}
+
+.dropdown-content li > a:hover,
+.dropdown-content li > button:hover {
+  @apply bg-base-200;
+}
+
+/* ============================================
+   MENU - DS V2
+   ============================================ */
+
+.menu {
+  @apply bg-base-100 p-2;
+}
+
+.menu li > a,
+.menu li > button {
+  @apply rounded-xl px-4 py-3;
+  @apply transition-all duration-200;
+}
+
+.menu li > a:hover,
+.menu li > button:hover {
+  @apply bg-base-200;
+}
+
+.menu li > a.active,
+.menu li > button.active {
+  @apply bg-primary/10 text-primary;
+}
+
+/* ============================================
+   TABS - DS V2
+   ============================================ */
+
+.tabs-boxed {
+  @apply bg-base-200 p-1 rounded-xl;
+}
+
+.tab {
+  @apply rounded-lg transition-all duration-200;
+}
+
+.tab-active {
+  @apply bg-base-100 shadow-sm;
+}
+
+/* ============================================
+   PROGRESS & LOADING - DS V2
+   ============================================ */
+
+.progress {
+  @apply bg-base-200 rounded-full h-2;
+}
+
+.skeleton {
+  @apply animate-pulse bg-base-300 rounded-xl;
+}
+
+.loading {
+  @apply text-primary;
+}
+
+/* ============================================
+   DIVIDERS - DS V2
+   ============================================ */
+
+.divider {
+  @apply text-base-content/40 text-xs font-medium uppercase tracking-wider;
+}
+
+.divider::before,
+.divider::after {
+  @apply bg-base-300;
+}
+
+/* ============================================
+   STATS - DS V2
+   ============================================ */
+
+.stat {
+  @apply border-base-300/60;
+}
+
+.stat-title {
+  @apply text-base-content/50 text-sm font-medium;
+}
+
+.stat-value {
+  @apply font-bold;
+}
+
+.stat-desc {
+  @apply text-base-content/40 text-xs;
+}
+
+/* ============================================
+   TOOLTIP - DS V2
+   ============================================ */
+
+.tooltip::before {
+  @apply bg-neutral text-neutral-content rounded-lg px-3 py-2;
+  @apply text-sm font-medium;
+}
+
+/* ============================================
+   ANIMATIONS - DS V2
+   ============================================ */
+
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -32,11 +446,182 @@
   }
 }
 
-.fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-/* Card hover effects */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes itemEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+.item-enter {
+  animation: itemEnter 0.4s ease-out backwards;
+}
+
+/* ============================================
+   UTILITY CLASSES - DS V2
+   ============================================ */
+
+/* Glass effect */
+.glass-effect {
+  @apply backdrop-blur-md bg-base-100/80 border border-base-300/30;
+}
+
+/* Card hover effect class */
 .card-hover {
   @apply transition-all duration-200 hover:shadow-xl hover:-translate-y-1;
+}
+
+/* Gradient text */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+}
+
+/* Primary shadow utilities */
+.shadow-primary-sm {
+  box-shadow: 0 4px 14px -3px oklch(var(--p) / 0.15);
+}
+
+.shadow-primary-md {
+  box-shadow: 0 8px 25px -5px oklch(var(--p) / 0.25);
+}
+
+.shadow-primary-lg {
+  box-shadow: 0 12px 35px -5px oklch(var(--p) / 0.30);
+}
+
+/* Page header subtitle margin (aligns with icon box width + gap) */
+.ml-13 {
+  margin-left: 3.25rem; /* 52px = 40px icon box + 12px gap */
+}
+
+/* ============================================
+   THEME-SPECIFIC OVERRIDES
+   Fine-tuning for individual themes
+   ============================================ */
+
+/* --- HRM Theme (Caramellatte style) --- */
+[data-theme="hrm"] {
+  .btn {
+    @apply rounded-full;
+  }
+
+  .btn-ghost {
+    @apply border-2 border-base-300 bg-base-100;
+  }
+
+  .checkbox:checked,
+  .toggle:checked {
+    @apply bg-accent border-accent;
+  }
+}
+
+/* --- Mediaflow Theme (Dark tech style) --- */
+[data-theme="mediaflow"] {
+  .card {
+    @apply shadow-lg shadow-primary/5 border-base-300/50;
+  }
+
+  .card:hover {
+    @apply shadow-primary/10;
+  }
+
+  .btn-primary {
+    @apply shadow-md shadow-primary/30;
+  }
+
+  .btn-primary:hover {
+    @apply shadow-lg shadow-primary/40;
+  }
+
+  .input:focus,
+  .select:focus,
+  .textarea:focus {
+    @apply ring-primary/30 shadow-sm shadow-primary/20;
+  }
+}
+
+/* --- Nordic Theme (Clean minimal) --- */
+[data-theme="nordic"] {
+  .card {
+    @apply shadow-sm border-base-300/50;
+  }
+
+  .btn {
+    @apply shadow-none;
+  }
+
+  header {
+    @apply shadow-none;
+  }
+}
+
+/* --- Cleanwhite Theme (Professional light) --- */
+[data-theme="cleanwhite"] {
+  .card {
+    @apply shadow-md border-base-200;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    @apply shadow-inner shadow-base-200/50;
+  }
+}
+
+/* --- Nexus Theme (Modern dashboard) --- */
+[data-theme="nexus"] {
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary to-primary/90;
+  }
 }

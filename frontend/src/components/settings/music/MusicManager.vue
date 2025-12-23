@@ -1,16 +1,16 @@
 <template>
   <div class="music-manager">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-primary flex items-center gap-3">
-          <span class="text-4xl">🎵</span>
-          Music Manager
-        </h1>
-        <p class="text-sm text-base-content/60 mt-1">
-          Gestiona la música disponible para jingles en el Dashboard
-        </p>
+    <div class="mb-10">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
+          <MusicalNoteIcon class="w-5 h-5 text-primary" />
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight">Music Manager</h1>
       </div>
+      <p class="text-base-content/50 ml-13">
+        Gestiona la música disponible para jingles en el Dashboard
+      </p>
     </div>
 
     <!-- Toast Messages -->
@@ -115,6 +115,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { MusicalNoteIcon } from '@heroicons/vue/24/outline'
 import { useMusicManager } from './composables/useMusicManager'
 import MusicList from './components/MusicList.vue'
 import MusicUpload from './components/MusicUpload.vue'

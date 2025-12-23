@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { CampaignCreate } from '@/types/campaign'
+import IconSelector from '@/components/shared/ui/IconSelector.vue'
 
 interface Props {
   isOpen: boolean
@@ -17,13 +18,6 @@ const emit = defineEmits<{
 const name = ref('')
 const selectedIcon = ref('')
 const selectedColor = ref('')
-
-// Available icons
-const icons = [
-  '🎄', '🎆', '🐰', '👧', '💐', '👔', '🇨🇱', '📚',
-  '💕', '🏷️', '🔥', '🛒', '🎁', '💰', '⭐', '🎉',
-  '📦', '💝', '🦃', '☀️', '🎃', '❄️', '🌸', '🎓'
-]
 
 // Available colors
 const colors = [
@@ -108,17 +102,8 @@ function handleCreate() {
         <label class="label">
           <span class="label-text">Icono</span>
         </label>
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="icon in icons"
-            :key="icon"
-            type="button"
-            class="btn btn-square btn-sm text-xl"
-            :class="{ 'btn-primary': selectedIcon === icon, 'btn-ghost': selectedIcon !== icon }"
-            @click="selectedIcon = selectedIcon === icon ? '' : icon"
-          >
-            {{ icon }}
-          </button>
+        <div class="p-3 bg-base-200 rounded-lg">
+          <IconSelector v-model="selectedIcon" />
         </div>
       </div>
 

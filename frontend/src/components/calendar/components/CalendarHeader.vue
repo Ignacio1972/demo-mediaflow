@@ -1,12 +1,14 @@
 <template>
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
     <!-- Title -->
     <div>
-      <h1 class="text-2xl font-bold text-base-content flex items-center gap-2">
-        <CalendarDaysIcon class="h-7 w-7 text-primary" />
-        Calendario de Programacion
-      </h1>
-      <p class="text-sm text-base-content/60 mt-1">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
+          <CalendarDaysIcon class="w-5 h-5 text-primary" />
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight">Calendario</h1>
+      </div>
+      <p class="text-base-content/50 ml-13">
         {{ activeCount }} programaciones activas
       </p>
     </div>

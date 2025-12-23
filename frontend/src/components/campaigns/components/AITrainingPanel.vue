@@ -66,8 +66,7 @@ async function handleSave() {
       <div class="flex justify-end">
         <button
           class="btn btn-primary btn-sm"
-          :class="{ 'btn-disabled': !isDirty }"
-          :disabled="!isDirty || isSaving"
+          :disabled="isSaving"
           @click="handleSave"
         >
           <span v-if="isSaving" class="loading loading-spinner loading-xs"></span>

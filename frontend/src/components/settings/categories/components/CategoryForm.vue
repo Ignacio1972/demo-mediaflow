@@ -10,10 +10,11 @@
           <div class="flex items-center gap-2">
             <span class="text-sm text-base-content/60">Preview:</span>
             <span
-              class="badge gap-1 text-white"
+              class="badge gap-2 text-white py-3"
               :style="{ backgroundColor: formData.color }"
             >
-              {{ formData.icon }} {{ formData.name || 'Sin nombre' }}
+              <DynamicIcon :name="formData.icon" fallback="Folder" class="w-4 h-4" />
+              {{ formData.name || 'Sin nombre' }}
             </span>
           </div>
         </div>
@@ -58,37 +59,10 @@
             <!-- Icon -->
             <div class="form-control">
               <label class="label">
-                <span class="label-text font-medium">Icono (Emoji)</span>
+                <span class="label-text font-medium">Icono</span>
               </label>
-              <div class="flex gap-2">
-                <input
-                  v-model="formData.icon"
-                  type="text"
-                  class="input input-bordered flex-1 text-center text-2xl"
-                  placeholder="📦"
-                  maxlength="4"
-                />
-                <div class="dropdown dropdown-end">
-                  <label tabindex="0" class="btn btn-outline">
-                    Emojis
-                  </label>
-                  <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mt-2">
-                    <li class="menu-title">Comunes</li>
-                    <li>
-                      <div class="grid grid-cols-5 gap-1">
-                        <button
-                          v-for="emoji in commonEmojis"
-                          :key="emoji"
-                          type="button"
-                          class="btn btn-ghost btn-sm text-xl p-1"
-                          @click="formData.icon = emoji"
-                        >
-                          {{ emoji }}
-                        </button>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
+              <div class="p-3 bg-base-200 rounded-lg">
+                <IconSelector v-model="formData.icon" />
               </div>
             </div>
 
@@ -211,6 +185,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import type { Category, CategoryUpdate } from '../composables/useCategoryEditor'
+import IconSelector from '@/components/shared/ui/IconSelector.vue'
+import DynamicIcon from '@/components/shared/ui/DynamicIcon.vue'
 
 const props = defineProps<{
   category: Category
@@ -222,14 +198,6 @@ const emit = defineEmits<{
   cancel: []
   delete: [categoryId: string]
 }>()
-
-// Common emojis for quick selection
-const commonEmojis = [
-  '📦', '🎉', '📢', '🎵', '🔔',
-  '⭐', '🏷️', '📌', '🎯', '💡',
-  '🛒', '🎁', '📻', '🎤', '📣',
-  '🚀', '💬', '📝', '🔥', '✨',
-]
 
 // Preset colors
 const presetColors = [
@@ -249,7 +217,7 @@ const formData = reactive({
 // Initialize form data when category changes
 watch(() => props.category, (newCategory) => {
   formData.name = newCategory.name
-  formData.icon = newCategory.icon || '📁'
+  formData.icon = newCategory.icon || 'Folder'
   formData.color = newCategory.color || '#6B7280'
   formData.active = newCategory.active
 }, { immediate: true })
@@ -258,7 +226,7 @@ watch(() => props.category, (newCategory) => {
 const hasChanges = computed(() => {
   return (
     formData.name !== props.category.name ||
-    formData.icon !== (props.category.icon || '📁') ||
+    formData.icon !== (props.category.icon || 'Folder') ||
     formData.color !== (props.category.color || '#6B7280') ||
     formData.active !== props.category.active
   )
@@ -267,7 +235,7 @@ const hasChanges = computed(() => {
 // Reset form to original values
 const resetForm = () => {
   formData.name = props.category.name
-  formData.icon = props.category.icon || '📁'
+  formData.icon = props.category.icon || 'Folder'
   formData.color = props.category.color || '#6B7280'
   formData.active = props.category.active
   emit('cancel')
@@ -282,7 +250,7 @@ const handleSubmit = () => {
   if (formData.name !== props.category.name) {
     updates.name = formData.name
   }
-  if (formData.icon !== (props.category.icon || '📁')) {
+  if (formData.icon !== (props.category.icon || 'Folder')) {
     updates.icon = formData.icon
   }
   if (formData.color !== (props.category.color || '#6B7280')) {

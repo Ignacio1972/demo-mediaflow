@@ -1,52 +1,50 @@
 <template>
   <div class="audio-result">
-    <div class="card bg-base-200 shadow-lg">
-      <div class="card-body">
-        <h2 class="card-title text-lg mb-4">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6 text-success"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          Audio Generado
-        </h2>
+    <div class="card bg-base-100 border-2 border-success/30 rounded-2xl shadow-sm">
+      <div class="card-body p-6">
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-6">
+          <div class="flex items-center justify-center w-10 h-10 bg-success/10 rounded-xl">
+            <CheckCircleIcon class="w-5 h-5 text-success" />
+          </div>
+          <div>
+            <h2 class="text-xl font-bold tracking-tight">Audio Generado</h2>
+            <p class="text-sm text-base-content/50">Listo para reproducir o enviar</p>
+          </div>
+        </div>
 
         <!-- Audio Player -->
-        <div class="mb-4">
-          <audio
-            ref="audioPlayer"
-            :src="audio.audio_url"
-            controls
-            class="w-full"
-            @play="isPlaying = true"
-            @pause="isPlaying = false"
-            @ended="isPlaying = false"
-          ></audio>
+        <div class="mb-6">
+          <div class="bg-base-200/50 border-2 border-base-300 rounded-xl p-4">
+            <audio
+              ref="audioPlayer"
+              :src="audio.audio_url"
+              controls
+              class="w-full"
+              @play="isPlaying = true"
+              @pause="isPlaying = false"
+              @ended="isPlaying = false"
+            ></audio>
+          </div>
         </div>
 
         <!-- Action button -->
-        <div class="card-actions justify-end">
-          <button
-            @click="sendToSpeakers"
-            class="btn btn-primary"
-            :disabled="sendingToSpeakers"
-          >
-            <span
-              v-if="sendingToSpeakers"
-              class="loading loading-spinner loading-sm"
-            ></span>
-            <span v-else>Enviar a los Parlantes</span>
-          </button>
-        </div>
+        <button
+          @click="sendToSpeakers"
+          class="btn btn-primary w-full h-12 rounded-xl font-semibold
+                 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30
+                 transition-all duration-200"
+          :disabled="sendingToSpeakers"
+        >
+          <span
+            v-if="sendingToSpeakers"
+            class="loading loading-spinner loading-sm"
+          ></span>
+          <template v-else>
+            <SpeakerWaveIcon class="w-5 h-5" />
+            <span>Enviar a los Parlantes</span>
+          </template>
+        </button>
       </div>
     </div>
   </div>
@@ -54,6 +52,7 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
+import { CheckCircleIcon, SpeakerWaveIcon } from '@heroicons/vue/24/outline'
 import type { VehicleAnnouncementResponse } from '../composables/useVehicleAnnouncement'
 
 const props = defineProps<{

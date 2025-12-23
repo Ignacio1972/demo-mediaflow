@@ -1,17 +1,19 @@
 <template>
   <div class="vehicle-form">
-    <div class="card bg-base-200 shadow-lg">
-      <div class="card-body">
-        <h2 class="card-title text-lg mb-4">Datos del Vehiculo</h2>
+    <div class="card bg-base-100 border-2 border-base-300 rounded-2xl shadow-sm">
+      <div class="card-body p-6">
+        <!-- Header -->
+        <div class="mb-6">
+          <h2 class="text-xl font-bold tracking-tight">Datos del Vehículo</h2>
+          <p class="text-sm text-base-content/50 mt-1">Ingresa la información para generar el anuncio</p>
+        </div>
 
         <!-- Marca -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text font-medium">Marca del vehiculo</span>
-          </label>
+        <div class="space-y-2 mb-5">
+          <label class="text-sm font-medium">Marca del vehículo</label>
           <select
             v-model="marca"
-            class="select select-bordered w-full"
+            class="select bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 rounded-xl w-full transition-all duration-200"
           >
             <option value="" disabled>Seleccione una marca</option>
             <option v-for="brand in brands" :key="brand.id" :value="brand.name">
@@ -21,14 +23,12 @@
         </div>
 
         <!-- Color -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text font-medium">Color</span>
-          </label>
-          <div class="flex gap-2">
+        <div class="space-y-2 mb-5">
+          <label class="text-sm font-medium">Color</label>
+          <div class="flex gap-3">
             <select
               v-model="color"
-              class="select select-bordered flex-1"
+              class="select bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 rounded-xl flex-1 transition-all duration-200"
             >
               <option value="" disabled>Seleccione un color</option>
               <option v-for="c in colors" :key="c.id" :value="c.name">
@@ -37,19 +37,19 @@
             </select>
             <div
               v-if="selectedColorHex"
-              class="w-10 h-10 rounded-lg border border-base-300"
+              class="w-11 h-11 rounded-xl border-2 border-base-300 shadow-sm transition-all duration-200"
               :style="{ backgroundColor: selectedColorHex }"
             ></div>
           </div>
         </div>
 
         <!-- Patente (3 inputs) -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text font-medium">Patente</span>
-            <span class="label-text-alt text-base-content/60">Formato: XX.XX.XX</span>
-          </label>
-          <div class="flex items-center gap-2">
+        <div class="space-y-2 mb-5">
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium">Patente</label>
+            <span class="text-xs text-base-content/40">Formato: XX.XX.XX</span>
+          </div>
+          <div class="flex items-center gap-3">
             <!-- Part 1 -->
             <input
               ref="plateInput1"
@@ -57,14 +57,14 @@
               @input="handlePlateInput(1, ($event.target as HTMLInputElement).value)"
               type="text"
               placeholder="XX"
-              class="input input-bordered w-16 text-center uppercase font-mono text-lg tracking-wider"
+              class="input bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 w-16 text-center uppercase font-mono text-lg tracking-wider rounded-xl transition-all duration-200"
               :class="{
-                'input-error': plateValidation && !plateValidation.valid,
-                'input-success': plateValidation && plateValidation.valid
+                'border-error bg-error/5': plateValidation && !plateValidation.valid,
+                'border-success bg-success/5': plateValidation && plateValidation.valid
               }"
               maxlength="2"
             />
-            <span class="text-2xl font-bold text-base-content/40">.</span>
+            <span class="text-2xl font-bold text-base-content/30">·</span>
             <!-- Part 2 -->
             <input
               ref="plateInput2"
@@ -73,14 +73,14 @@
               @keydown="handlePlateKeydown(2, $event)"
               type="text"
               placeholder="XX"
-              class="input input-bordered w-16 text-center uppercase font-mono text-lg tracking-wider"
+              class="input bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 w-16 text-center uppercase font-mono text-lg tracking-wider rounded-xl transition-all duration-200"
               :class="{
-                'input-error': plateValidation && !plateValidation.valid,
-                'input-success': plateValidation && plateValidation.valid
+                'border-error bg-error/5': plateValidation && !plateValidation.valid,
+                'border-success bg-success/5': plateValidation && plateValidation.valid
               }"
               maxlength="2"
             />
-            <span class="text-2xl font-bold text-base-content/40">.</span>
+            <span class="text-2xl font-bold text-base-content/30">·</span>
             <!-- Part 3 -->
             <input
               ref="plateInput3"
@@ -89,39 +89,35 @@
               @keydown="handlePlateKeydown(3, $event)"
               type="text"
               placeholder="XX"
-              class="input input-bordered w-16 text-center uppercase font-mono text-lg tracking-wider"
+              class="input bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 w-16 text-center uppercase font-mono text-lg tracking-wider rounded-xl transition-all duration-200"
               :class="{
-                'input-error': plateValidation && !plateValidation.valid,
-                'input-success': plateValidation && plateValidation.valid
+                'border-error bg-error/5': plateValidation && !plateValidation.valid,
+                'border-success bg-success/5': plateValidation && plateValidation.valid
               }"
               maxlength="2"
             />
           </div>
           <!-- Plate validation feedback -->
-          <label v-if="plateValidation" class="label">
-            <span
-              v-if="plateValidation.valid"
-              class="label-text-alt text-success"
-            >
+          <div v-if="plateValidation" class="pt-1">
+            <p v-if="plateValidation.valid" class="text-xs text-success">
               {{ plateValidation.pronunciation }}
-            </span>
-            <span v-else class="label-text-alt text-error">
+            </p>
+            <p v-else class="text-xs text-error">
               {{ plateValidation.error }}
-            </span>
-          </label>
-          <label v-if="plateValidation?.warning" class="label pt-0">
-            <span class="label-text-alt text-warning">
-              {{ plateValidation.warning }}
-            </span>
-          </label>
+            </p>
+          </div>
+          <p v-if="plateValidation?.warning" class="text-xs text-warning">
+            {{ plateValidation.warning }}
+          </p>
         </div>
 
         <!-- Plantilla -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text font-medium">Estilo del mensaje</span>
-          </label>
-          <select v-model="template" class="select select-bordered w-full">
+        <div class="space-y-2 mb-5">
+          <label class="text-sm font-medium">Estilo del mensaje</label>
+          <select
+            v-model="template"
+            class="select bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 rounded-xl w-full transition-all duration-200"
+          >
             <option
               v-for="t in templates"
               :key="t.id"
@@ -133,13 +129,11 @@
         </div>
 
         <!-- Voz -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text font-medium">Voz</span>
-          </label>
+        <div class="space-y-2 mb-5">
+          <label class="text-sm font-medium">Voz</label>
           <select
             v-model="voiceId"
-            class="select select-bordered w-full"
+            class="select bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 rounded-xl w-full transition-all duration-200"
             :disabled="loadingVoices"
           >
             <option value="" disabled>Seleccione una voz</option>
@@ -154,13 +148,16 @@
         </div>
 
         <!-- Musica de fondo -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text font-medium">Musica de fondo</span>
-            <span class="label-text-alt text-base-content/60">Opcional</span>
-          </label>
-          <select v-model="musicFile" class="select select-bordered w-full">
-            <option :value="null">Sin musica</option>
+        <div class="space-y-2 mb-5">
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium">Música de fondo</label>
+            <span class="text-xs text-base-content/40">Opcional</span>
+          </div>
+          <select
+            v-model="musicFile"
+            class="select bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 rounded-xl w-full transition-all duration-200"
+          >
+            <option :value="null">Sin música</option>
             <option
               v-for="track in musicTracks"
               :key="track.id"
@@ -201,17 +198,22 @@
         -->
 
         <!-- Generate button -->
-        <div class="card-actions justify-end mt-4">
+        <div class="pt-4 mt-2 border-t border-base-200">
           <button
             @click="$emit('generate')"
-            class="btn btn-primary"
+            class="btn btn-primary w-full h-12 rounded-xl font-semibold
+                   shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30
+                   transition-all duration-200"
             :disabled="!isFormValid || loadingGenerate"
           >
             <span
               v-if="loadingGenerate"
               class="loading loading-spinner loading-sm"
             ></span>
-            <span v-else>Generar Audio</span>
+            <template v-else>
+              <SpeakerWaveIcon class="w-5 h-5" />
+              <span>Generar Audio</span>
+            </template>
           </button>
         </div>
       </div>
@@ -221,6 +223,7 @@
 
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue'
+import { SpeakerWaveIcon } from '@heroicons/vue/24/outline'
 import type {
   VehicleBrand,
   VehicleColor,

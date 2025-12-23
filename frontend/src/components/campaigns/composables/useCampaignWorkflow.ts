@@ -168,9 +168,7 @@ export function useCampaignWorkflow(campaignId: string) {
   }
 
   // Computed helpers
-  const canRequestSuggestions = computed(() =>
-    inputText.value.trim().length >= 3 && !isGeneratingSuggestions.value
-  )
+  const canRequestSuggestions = computed(() => !isGeneratingSuggestions.value)
 
   const canGenerateAudio = computed(() =>
     editedText.value.trim().length >= 10 &&

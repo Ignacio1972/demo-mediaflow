@@ -21,9 +21,9 @@ class CategoryBase(BaseModel):
 
     icon: Optional[str] = Field(
         default="📁",
-        max_length=10,
-        description="Emoji or icon for the category",
-        examples=["📦", "🎉", "📢", "🎵"],
+        max_length=50,
+        description="Emoji or icon name for the category",
+        examples=["📦", "🎉", "Gift", "PartyPopper"],
     )
 
     color: Optional[str] = Field(
@@ -83,8 +83,8 @@ class CategoryUpdate(BaseModel):
 
     icon: Optional[str] = Field(
         None,
-        max_length=10,
-        description="Emoji or icon for the category",
+        max_length=50,
+        description="Emoji or icon name for the category",
     )
 
     color: Optional[str] = Field(

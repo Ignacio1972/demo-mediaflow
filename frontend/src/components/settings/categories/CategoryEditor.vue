@@ -4,23 +4,23 @@
     <div class="p-6">
       <div class="container mx-auto max-w-7xl">
       <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <div>
-          <h1 class="text-3xl font-bold text-primary flex items-center gap-3">
-            <span class="text-4xl">📂</span>
-            Category Editor
-          </h1>
-          <p class="text-sm text-base-content/60 mt-1">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
+              <FolderIcon class="w-5 h-5 text-primary" />
+            </div>
+            <h1 class="text-3xl font-bold tracking-tight">Category Editor</h1>
+          </div>
+          <p class="text-base-content/50 ml-13">
             Gestiona categorías para organizar tus mensajes en la biblioteca
           </p>
         </div>
         <button
           @click="showAddModal = true"
-          class="btn btn-primary"
+          class="btn btn-primary gap-2"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
+          <PlusIcon class="w-5 h-5" />
           Nueva Categoría
         </button>
       </div>
@@ -136,6 +136,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { FolderIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { useCategoryEditor, type Category, type CategoryUpdate } from './composables/useCategoryEditor'
 import CategoryList from './components/CategoryList.vue'
 import CategoryForm from './components/CategoryForm.vue'

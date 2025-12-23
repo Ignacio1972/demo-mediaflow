@@ -24,10 +24,10 @@
 
       <!-- Color & Icon -->
       <div
-        class="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0"
+        class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 text-white"
         :style="{ backgroundColor: category.color || '#6B7280' }"
       >
-        {{ category.icon || '📁' }}
+        <DynamicIcon :name="category.icon" fallback="Folder" class="w-5 h-5 text-xl" />
       </div>
 
       <!-- Info -->
@@ -59,6 +59,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Category } from '../composables/useCategoryEditor'
+import DynamicIcon from '@/components/shared/ui/DynamicIcon.vue'
 
 defineProps<{
   category: Category

@@ -1,32 +1,25 @@
 <template>
   <div class="vehicle-announcement">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-base-content">
-        Vehiculos Mal Estacionados
-      </h1>
-      <p class="text-base-content/60 mt-1">
-        Genera anuncios de audio para vehiculos mal estacionados con pronunciacion correcta de patentes
+    <div class="mb-10">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
+          <TruckIcon class="w-5 h-5 text-primary" />
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight">
+          Vehículos Mal Estacionados
+        </h1>
+      </div>
+      <p class="text-base-content/50 ml-13">
+        Genera anuncios de audio con pronunciación correcta de patentes
       </p>
     </div>
 
     <!-- Error alert -->
-    <div v-if="error" class="alert alert-error mb-6">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="stroke-current shrink-0 h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
-      <span>{{ error }}</span>
-      <button @click="error = null" class="btn btn-sm btn-ghost">
+    <div v-if="error" class="alert bg-error/10 border-2 border-error/20 rounded-2xl mb-6">
+      <ExclamationCircleIcon class="w-6 h-6 text-error shrink-0" />
+      <span class="text-error">{{ error }}</span>
+      <button @click="error = null" class="btn btn-sm btn-ghost rounded-lg hover:bg-error/10">
         Cerrar
       </button>
     </div>
@@ -77,6 +70,7 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { TruckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import VehicleForm from './components/VehicleForm.vue'
 import PreviewText from './components/PreviewText.vue'
 import AudioResult from './components/AudioResult.vue'

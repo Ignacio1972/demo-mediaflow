@@ -8,6 +8,7 @@ import type { CampaignAudio } from '@/types/campaign'
 import type { AudioMessage } from '@/types/audio'
 
 // Components
+import DynamicIcon from '@/components/shared/ui/DynamicIcon.vue'
 import AITrainingPanel from './components/AITrainingPanel.vue'
 import RecentMessagesPanel from './components/RecentMessagesPanel.vue'
 import CampaignAudioGrid from './components/CampaignAudioGrid.vue'
@@ -86,14 +87,18 @@ const currentStepComponent = computed(() => {
             class="btn btn-ghost btn-sm"
             @click="goBack"
           >
-            Campanas
+            Campañas
           </button>
 
           <div
             v-if="store.currentCampaign"
             class="flex items-center gap-2"
           >
-            <span class="text-2xl">{{ store.currentCampaign.icon || '' }}</span>
+            <DynamicIcon
+              :name="store.currentCampaign.icon"
+              fallback="Folder"
+              class="w-6 h-6"
+            />
             <h1 class="text-xl font-bold">{{ store.currentCampaign.name }}</h1>
           </div>
         </div>

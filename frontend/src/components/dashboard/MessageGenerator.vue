@@ -180,11 +180,7 @@ const getInitials = (name: string): string => {
 }
 
 const canGenerate = computed(() => {
-  return (
-    messageText.value.trim().length > 0 &&
-    selectedVoiceId.value !== '' &&
-    !isLoading.value
-  )
+  return selectedVoiceId.value !== '' && !isLoading.value
 })
 
 // Methods

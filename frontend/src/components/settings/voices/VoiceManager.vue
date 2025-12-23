@@ -4,23 +4,23 @@
     <div class="p-6">
       <div class="container mx-auto max-w-7xl">
       <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <div>
-          <h1 class="text-3xl font-bold text-primary flex items-center gap-3">
-            <span class="text-4xl">🎙️</span>
-            Voice Manager
-          </h1>
-          <p class="text-sm text-base-content/60 mt-1">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
+              <MicrophoneIcon class="w-5 h-5 text-primary" />
+            </div>
+            <h1 class="text-3xl font-bold tracking-tight">Voice Manager</h1>
+          </div>
+          <p class="text-base-content/50 ml-13">
             Gestiona voces y sus configuraciones individuales para TTS
           </p>
         </div>
         <button
           @click="showAddModal = true"
-          class="btn btn-primary"
+          class="btn btn-primary gap-2"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
+          <PlusIcon class="w-5 h-5" />
           Agregar Voz
         </button>
       </div>
@@ -131,6 +131,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { MicrophoneIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { useVoiceManager, type VoiceSettings } from './composables/useVoiceManager'
 import VoiceList from './components/VoiceList.vue'
 import VoiceEditor from './components/VoiceEditor.vue'

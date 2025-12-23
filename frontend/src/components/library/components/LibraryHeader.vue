@@ -1,11 +1,13 @@
 <template>
-  <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-10">
     <div>
-      <h1 class="text-2xl font-bold flex items-center gap-3">
-        <BookOpenIcon class="h-7 w-7 text-primary" />
-        Biblioteca de Audio
-      </h1>
-      <p class="text-base-content/60 mt-1">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
+          <BookOpenIcon class="w-5 h-5 text-primary" />
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight">Biblioteca de Audio</h1>
+      </div>
+      <p class="text-base-content/50 ml-13">
         {{ total }} mensaje{{ total !== 1 ? 's' : '' }} guardado{{ total !== 1 ? 's' : '' }}
       </p>
     </div>
