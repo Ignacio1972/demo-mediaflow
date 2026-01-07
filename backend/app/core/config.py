@@ -66,6 +66,13 @@ class Settings(BaseSettings):
     PLAYER_POLLING_INTERVAL: int = 2
     PLAYER_WEBSOCKET_URL: str = "ws://localhost:8000/ws/player"
 
+    # AzuraCast Integration
+    AZURACAST_URL: str = "http://localhost:10080"
+    AZURACAST_API_KEY: str = ""
+    AZURACAST_STATION_ID: int = 1
+    AZURACAST_STATION_NAME: str = "mediaflow"
+    AZURACAST_MEDIA_FOLDER: str = "Grabaciones"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

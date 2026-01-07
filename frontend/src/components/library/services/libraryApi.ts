@@ -92,10 +92,27 @@ export const libraryApi = {
   },
 
   /**
-   * Send message to radio for immediate playback
+   * Send message to radio/AzuraCast for playback
+   * @param id - Audio message ID
+   * @param interrupt - If true, immediately plays (interrupts current audio). Default: true
    */
-  async sendToRadio(id: number): Promise<{ success: boolean; message: string }> {
-    return apiClient.post(`${BASE_URL}/library/${id}/send-to-radio`)
+  async sendToRadio(id: number, interrupt: boolean = true): Promise<{
+    success: boolean
+    message: string
+    data?: {
+      id: number
+      filename: string
+      display_name: string
+      sent_to_player: boolean
+      delivered_at: string | null
+      azuracast: {
+        success: boolean
+        upload: { success: boolean; file_id: number; filename: string; path: string }
+        interrupt?: { success: boolean; request_id: string }
+      }
+    }
+  }> {
+    return apiClient.post(`${BASE_URL}/library/${id}/send-to-radio?interrupt=${interrupt}`)
   },
 
   /**

@@ -243,11 +243,15 @@ function handleAction(action: MessageAction, message: AudioMessage) {
   }
 }
 
-function onBroadcastSent(_branchCount: number) {
-  successToast.value = 'El audio se ha enviado exitosamente a los parlantes'
-  setTimeout(() => {
-    successToast.value = null
-  }, 3000)
+function onBroadcastSent(result: { success: boolean; interrupt: boolean; requestId?: string }) {
+  if (result.success) {
+    successToast.value = result.interrupt
+      ? 'Audio enviado y reproduciendo en AzuraCast'
+      : 'Audio subido a la libreria de AzuraCast'
+    setTimeout(() => {
+      successToast.value = null
+    }, 3000)
+  }
 }
 
 function editInDashboard(message: AudioMessage) {

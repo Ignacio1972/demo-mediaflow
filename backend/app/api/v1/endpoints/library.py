@@ -492,20 +492,24 @@ async def upload_audio(
 @router.post(
     "/{message_id}/send-to-radio",
     summary="Send Audio to Radio",
-    description="Send audio for immediate playback on radio/player",
+    description="Send audio for immediate playback on AzuraCast radio",
 )
 async def send_to_radio(
     message_id: int,
+    interrupt: bool = Query(True, description="Interrupt current playback immediately"),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Send an audio message to the radio for immediate playback.
+    Send an audio message to AzuraCast for playback.
 
-    This marks the message as sent to the player and records the delivery time.
-    The actual integration with AzuraCast/player is for future implementation.
+    - Uploads the audio file to AzuraCast media library
+    - If interrupt=True, immediately plays the file (interrupts current audio)
+    - If interrupt=False, only uploads to library without playing
     """
+    from app.services.azuracast import azuracast_client
+
     try:
-        logger.info(f"📻 Send to radio request: ID={message_id}")
+        logger.info(f"📻 Send to radio request: ID={message_id}, interrupt={interrupt}")
 
         # Find the audio message
         result = await db.execute(
@@ -525,6 +529,28 @@ async def send_to_radio(
                 detail="Cannot send deleted message to radio",
             )
 
+        # Build the file path
+        file_path = os.path.join(settings.AUDIO_PATH, msg.filename)
+        if not os.path.exists(file_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Audio file not found: {msg.filename}",
+            )
+
+        # Send to AzuraCast
+        azuracast_result = await azuracast_client.send_audio_to_radio(
+            file_path=file_path,
+            interrupt=interrupt,
+            target_filename=msg.filename,
+        )
+
+        if not azuracast_result["success"]:
+            logger.error(f"AzuraCast error: {azuracast_result['message']}")
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"AzuraCast error: {azuracast_result['message']}",
+            )
+
         # Mark as sent to player
         msg.sent_to_player = True
         msg.delivered_at = datetime.utcnow()
@@ -532,17 +558,18 @@ async def send_to_radio(
         await db.commit()
         await db.refresh(msg)
 
-        logger.info(f"✅ Audio sent to radio: {msg.filename}")
+        logger.info(f"✅ Audio sent to AzuraCast: {msg.filename}")
 
         return {
             "success": True,
-            "message": "Audio enviado a la radio",
+            "message": azuracast_result["message"],
             "data": {
                 "id": msg.id,
                 "filename": msg.filename,
                 "display_name": msg.display_name,
                 "sent_to_player": msg.sent_to_player,
                 "delivered_at": msg.delivered_at.isoformat() if msg.delivered_at else None,
+                "azuracast": azuracast_result,
             }
         }
 
