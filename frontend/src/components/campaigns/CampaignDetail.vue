@@ -17,6 +17,10 @@ import StepSuggestions from './steps/StepSuggestions.vue'
 import StepGenerate from './steps/StepGenerate.vue'
 import StepPreview from './steps/StepPreview.vue'
 
+// Modals (reused from Library)
+import BroadcastModal from '@/components/library/modals/BroadcastModal.vue'
+import ScheduleModal from '@/components/library/modals/ScheduleModal.vue'
+
 // Route & Store
 const route = useRoute()
 const router = useRouter()
@@ -56,6 +60,60 @@ function handleSelectRecentMessage(message: AudioMessage) {
 
 // Refresh trigger for audio grid
 const audioGridRefreshTrigger = ref(0)
+
+// Modal state
+const showBroadcastModal = ref(false)
+const showScheduleModal = ref(false)
+const selectedAudio = ref<CampaignAudio | null>(null)
+const successToast = ref<string | null>(null)
+
+// Convert CampaignAudio to AudioMessage format for modals
+function toAudioMessage(audio: CampaignAudio): AudioMessage {
+  return {
+    id: audio.id,
+    filename: audio.filename,
+    display_name: audio.display_name,
+    original_text: audio.original_text,
+    voice_id: audio.voice_id,
+    duration: audio.duration,
+    has_jingle: audio.has_jingle,
+    music_file: audio.music_file,
+    is_favorite: audio.is_favorite,
+    status: audio.status,
+    created_at: audio.created_at,
+    // Fields not in CampaignAudio but needed by AudioMessage
+    category_id: campaignId,
+    file_path: '',
+    file_size: 0,
+    sent_to_player: false,
+    priority: 'normal'
+  } as AudioMessage
+}
+
+// Handlers for broadcast/schedule
+function handleBroadcast(audio: CampaignAudio) {
+  selectedAudio.value = audio
+  showBroadcastModal.value = true
+}
+
+function handleSchedule(audio: CampaignAudio) {
+  selectedAudio.value = audio
+  showScheduleModal.value = true
+}
+
+function onBroadcastSent(result: { success: boolean; interrupt: boolean }) {
+  if (result.success) {
+    successToast.value = result.interrupt
+      ? 'Audio enviado y reproduciendo en AzuraCast'
+      : 'Audio subido a la libreria de AzuraCast'
+    setTimeout(() => { successToast.value = null }, 3000)
+  }
+}
+
+function onScheduleCreated() {
+  successToast.value = 'Audio programado exitosamente'
+  setTimeout(() => { successToast.value = null }, 3000)
+}
 
 async function handleAudioSaved() {
   // Refresh campaign to update audio count
@@ -154,8 +212,50 @@ const currentStepComponent = computed(() => {
         <CampaignAudioGrid
           :campaign-id="campaignId"
           :refresh-trigger="audioGridRefreshTrigger"
+          @broadcast="handleBroadcast"
+          @schedule="handleSchedule"
         />
       </div>
     </main>
+
+    <!-- Modals -->
+    <BroadcastModal
+      v-model:open="showBroadcastModal"
+      :message="selectedAudio ? toAudioMessage(selectedAudio) : null"
+      @sent="onBroadcastSent"
+    />
+
+    <ScheduleModal
+      v-model:open="showScheduleModal"
+      :message="selectedAudio ? toAudioMessage(selectedAudio) : null"
+      @created="onScheduleCreated"
+    />
+
+    <!-- Success Toast -->
+    <Transition name="toast-scale">
+      <div v-if="successToast" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+        <div class="bg-success text-success-content px-8 py-6 rounded-xl shadow-2xl max-w-lg pointer-events-auto">
+          <div class="flex items-center gap-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-xl font-semibold">{{ successToast }}</span>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.toast-scale-enter-active,
+.toast-scale-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-scale-enter-from,
+.toast-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+</style>

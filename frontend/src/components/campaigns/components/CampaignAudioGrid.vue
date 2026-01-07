@@ -11,6 +11,11 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const emit = defineEmits<{
+  schedule: [audio: CampaignAudio]
+  broadcast: [audio: CampaignAudio]
+}>()
+
 // State
 const audios = ref<CampaignAudio[]>([])
 const total = ref(0)
@@ -156,6 +161,8 @@ function prevPage() {
           :audio="audio"
           @play="handlePlay"
           @delete="handleDelete"
+          @schedule="emit('schedule', $event)"
+          @broadcast="emit('broadcast', $event)"
         />
       </div>
     </div>

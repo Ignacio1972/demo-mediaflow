@@ -12,6 +12,8 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   play: [audio: CampaignAudio]
   delete: [audio: CampaignAudio]
+  schedule: [audio: CampaignAudio]
+  broadcast: [audio: CampaignAudio]
 }>()
 
 // Playback state
@@ -77,16 +79,16 @@ onUnmounted(() => {
         <button
           class="btn btn-ghost btn-xs"
           title="Programar"
-          disabled
+          @click="emit('schedule', audio)"
         >
           📅
         </button>
         <button
           class="btn btn-ghost btn-xs"
-          title="Enviar a parlantes"
-          disabled
+          title="Enviar a radio"
+          @click="emit('broadcast', audio)"
         >
-          📤
+          📻
         </button>
         <button
           class="btn btn-ghost btn-xs text-error"
