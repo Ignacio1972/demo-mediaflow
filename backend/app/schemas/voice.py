@@ -16,6 +16,12 @@ class JingleSettingsSchema(BaseModel):
     outro_silence: float = Field(5, ge=0, le=20)
 
 
+class TTSSettingsSchema(BaseModel):
+    """Voice-specific TTS settings (for plain TTS without music)"""
+    intro_silence: float = Field(0.0, ge=0, le=5)
+    outro_silence: float = Field(0.0, ge=0, le=5)
+
+
 class VoiceSettingsCreate(BaseModel):
     """Schema for creating a new voice"""
     id: str = Field(..., min_length=1, max_length=50, pattern=r'^[a-z0-9_]+$')
@@ -33,6 +39,7 @@ class VoiceSettingsCreate(BaseModel):
     speed: float = Field(1.0, ge=0.7, le=1.2)  # ElevenLabs 2025: 0.7-1.2
     volume_adjustment: float = Field(0.0, ge=-20, le=20)
     jingle_settings: Optional[JingleSettingsSchema] = None
+    tts_settings: Optional[TTSSettingsSchema] = None
 
 
 class VoiceSettingsUpdate(BaseModel):
@@ -50,6 +57,7 @@ class VoiceSettingsUpdate(BaseModel):
     speed: Optional[float] = Field(None, ge=0.7, le=1.2)  # ElevenLabs 2025
     volume_adjustment: Optional[float] = Field(None, ge=-20, le=20)
     jingle_settings: Optional[dict] = None
+    tts_settings: Optional[dict] = None
 
 
 class VoiceReorderRequest(BaseModel):
@@ -87,6 +95,7 @@ class VoiceResponse(BaseModel):
     speed: float  # ElevenLabs 2025: 0.7-1.2
     volume_adjustment: float
     jingle_settings: Optional[dict] = None
+    tts_settings: Optional[dict] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 

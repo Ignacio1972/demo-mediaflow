@@ -22,12 +22,20 @@ export interface Voice {
 
   // Jingle settings
   jingle_settings?: JingleSettings
+
+  // TTS settings (for plain TTS without music)
+  tts_settings?: TTSSettings
 }
 
 export interface JingleSettings {
   music_volume: number
   voice_volume: number
   duck_level: number
+  intro_silence: number
+  outro_silence: number
+}
+
+export interface TTSSettings {
   intro_silence: number
   outro_silence: number
 }

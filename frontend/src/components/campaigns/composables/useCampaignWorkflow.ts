@@ -36,6 +36,11 @@ interface AIGenerateResponse {
   active_client_id: string | null
 }
 
+// Tone configuration
+export const toneLabels = ['Amigable', 'Entusiasta', 'Profesional', 'Urgente', 'Informativo']
+export const toneValues = ['amigable', 'entusiasta', 'profesional', 'urgente', 'informativo'] as const
+export type ToneValue = typeof toneValues[number]
+
 export function useCampaignWorkflow(campaignId: string) {
   const audioStore = useAudioStore()
   const campaignStore = useCampaignStore()
@@ -45,6 +50,11 @@ export function useCampaignWorkflow(campaignId: string) {
 
   // Step 1: Input
   const inputText = ref('')
+
+  // Advanced options
+  const showAdvancedOptions = ref(false)
+  const toneIndex = ref(2) // Default: profesional
+  const duration = ref(10) // Default: 10 segundos
 
   // Step 2: Suggestions
   const suggestions = ref<Suggestion[]>([])
@@ -56,7 +66,7 @@ export function useCampaignWorkflow(campaignId: string) {
   const editedText = ref('')
   const selectedVoiceId = ref('')
   const selectedMusicFile = ref<string | null>(null)
-  const addMusic = ref(false)
+  const addMusic = ref(true)
 
   // Step 4: Preview
   const generatedAudio = ref<GeneratedAudio | null>(null)
@@ -77,6 +87,10 @@ export function useCampaignWorkflow(campaignId: string) {
     generatedAudio.value = null
     suggestionsError.value = null
     audioError.value = null
+    // Reset advanced options to defaults
+    showAdvancedOptions.value = false
+    toneIndex.value = 2
+    duration.value = 10
   }
 
   // STEP 1 → STEP 2: Request suggestions from AI
@@ -103,7 +117,8 @@ export function useCampaignWorkflow(campaignId: string) {
     try {
       const response = await apiClient.post<AIGenerateResponse>('/api/v1/ai/generate', {
         context: contextToSend,
-        tone: 'profesional',
+        tone: tone.value,
+        duration: duration.value,
         campaign_id: campaignId
       })
 
@@ -196,6 +211,8 @@ export function useCampaignWorkflow(campaignId: string) {
     !isGeneratingAudio.value
   )
 
+  const tone = computed(() => toneValues[toneIndex.value])
+
   const isOnStep = computed(() => ({
     input: currentStep.value === 'input',
     suggestions: currentStep.value === 'suggestions',
@@ -210,6 +227,12 @@ export function useCampaignWorkflow(campaignId: string) {
 
     // Step 1
     inputText,
+
+    // Advanced options
+    showAdvancedOptions,
+    toneIndex,
+    duration,
+    tone,
 
     // Step 2
     suggestions,

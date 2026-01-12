@@ -39,5 +39,9 @@ class VoiceSettings(Base, TimestampMixin):
     jingle_settings = Column(JSON, nullable=True)
     # Example: {"music_volume": 1.65, "voice_volume": 2.8, "duck_level": 0.95, ...}
 
+    # TTS settings per voice (JSON) - v2.1 - for plain TTS without music
+    tts_settings = Column(JSON, nullable=True)
+    # Example: {"intro_silence": 1.0, "outro_silence": 1.0}
+
     def __repr__(self):
         return f"<VoiceSettings {self.name} (active={self.active})>"

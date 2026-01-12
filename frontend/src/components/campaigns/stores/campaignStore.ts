@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Campaign, CampaignCreate, CampaignListResponse } from '@/types/campaign'
+import type { Campaign, CampaignCreate, CampaignListResponse, CampaignViewMode } from '@/types/campaign'
 import { apiClient } from '@/api/client'
 
 export const useCampaignStore = defineStore('campaigns', () => {
@@ -9,6 +9,7 @@ export const useCampaignStore = defineStore('campaigns', () => {
   const currentCampaign = ref<Campaign | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const viewMode = ref<CampaignViewMode>('grid')
 
   // Getters
   const activeCampaigns = computed(() =>
@@ -94,6 +95,10 @@ export const useCampaignStore = defineStore('campaigns', () => {
     currentCampaign.value = null
   }
 
+  function setViewMode(mode: CampaignViewMode) {
+    viewMode.value = mode
+  }
+
   async function reorderCampaigns(newOrder: string[]) {
     try {
       await apiClient.put('/api/v1/settings/categories/reorder', {
@@ -122,6 +127,7 @@ export const useCampaignStore = defineStore('campaigns', () => {
     currentCampaign,
     isLoading,
     error,
+    viewMode,
     // Getters
     activeCampaigns,
     campaignsWithTraining,
@@ -132,6 +138,7 @@ export const useCampaignStore = defineStore('campaigns', () => {
     createCampaign,
     updateAITraining,
     clearCurrent,
+    setViewMode,
     reorderCampaigns
   }
 })

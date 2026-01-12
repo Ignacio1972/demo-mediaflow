@@ -10,7 +10,7 @@
             <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
               <MicrophoneIcon class="w-5 h-5 text-primary" />
             </div>
-            <h1 class="text-3xl font-bold tracking-tight">Voice Manager</h1>
+            <h1 class="text-3xl font-bold tracking-tight">Administración de Voces</h1>
           </div>
           <p class="text-base-content/50 ml-13">
             Gestiona voces y sus configuraciones individuales para TTS

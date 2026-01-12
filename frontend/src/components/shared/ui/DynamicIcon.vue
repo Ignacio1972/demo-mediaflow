@@ -71,6 +71,8 @@ import {
   BuildingStorefrontIcon,
   TicketIcon,
   PuzzlePieceIcon,
+  PhoneIcon,
+  UsersIcon,
 } from '@heroicons/vue/24/outline'
 
 // Icon map: name -> component
@@ -126,6 +128,8 @@ const iconMap: Record<string, Component> = {
   Store: BuildingStorefrontIcon,
   Ticket: TicketIcon,
   Puzzle: PuzzlePieceIcon,
+  Phone: PhoneIcon,
+  Users: UsersIcon,
   // Lucide icons (stroke-width will be set to 1.5 to match Heroicons)
   Rabbit: RabbitIcon,
   Snowflake: SnowflakeIcon,

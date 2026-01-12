@@ -103,7 +103,7 @@
           <!-- Voice Settings -->
           <div class="collapse collapse-open bg-base-200 rounded-box">
             <div class="collapse-title font-semibold flex items-center justify-between pr-4">
-              <span>Voice Settings (ElevenLabs)</span>
+              <span>Configuración de voz</span>
               <label
                 class="label cursor-pointer gap-2 p-0"
                 @click.stop
@@ -143,7 +143,7 @@
                 <!-- Stability -->
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text">Stability (Consistencia)</span>
+                    <span class="label-text">Stability (Tono)</span>
                     <span class="label-text-alt font-mono">{{ localVoice.stability }}%</span>
                   </label>
                   <input
@@ -155,8 +155,8 @@
                     class="range range-secondary"
                   />
                   <div class="flex justify-between text-xs text-base-content/50 mt-1">
-                    <span>Variable</span>
-                    <span>Consistente</span>
+                    <span>Entusiasta</span>
+                    <span>Serio</span>
                   </div>
                 </div>
 
@@ -257,7 +257,7 @@
           <div class="collapse collapse-arrow bg-base-200 rounded-box">
             <input type="checkbox" />
             <div class="collapse-title font-semibold">
-              Jingle Settings (Opcional)
+              Configuración de Jingles
             </div>
             <div class="collapse-content">
               <div class="grid md:grid-cols-2 gap-4">
@@ -336,6 +336,58 @@
                   />
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- TTS Settings (for plain TTS without music) -->
+          <div class="collapse collapse-arrow bg-base-200 rounded-box">
+            <input type="checkbox" />
+            <div class="collapse-title font-semibold">
+              Configuración de TTS
+            </div>
+            <div class="collapse-content">
+              <div class="grid md:grid-cols-2 gap-4">
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Intro Silence</span>
+                    <span class="label-text-alt font-mono">{{ ttsSettings.intro_silence }}s</span>
+                  </label>
+                  <input
+                    v-model.number="ttsSettings.intro_silence"
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.5"
+                    class="range range-sm"
+                  />
+                  <div class="flex justify-between text-xs text-base-content/50 mt-1">
+                    <span>0s</span>
+                    <span>5s</span>
+                  </div>
+                </div>
+
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Outro Silence</span>
+                    <span class="label-text-alt font-mono">{{ ttsSettings.outro_silence }}s</span>
+                  </label>
+                  <input
+                    v-model.number="ttsSettings.outro_silence"
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.5"
+                    class="range range-sm"
+                  />
+                  <div class="flex justify-between text-xs text-base-content/50 mt-1">
+                    <span>0s</span>
+                    <span>5s</span>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-base-content/50 mt-3">
+                Silencio agregado al TTS cuando NO se usa m&uacute;sica de fondo. &Uacute;til para evitar cortes en crossfade de radio.
+              </p>
             </div>
           </div>
 
@@ -447,6 +499,12 @@ const jingleSettings = reactive({
   outro_silence: props.voice.jingle_settings?.outro_silence ?? 5,
 })
 
+// TTS settings (for plain TTS without music)
+const ttsSettings = reactive({
+  intro_silence: props.voice.tts_settings?.intro_silence ?? 0,
+  outro_silence: props.voice.tts_settings?.outro_silence ?? 0,
+})
+
 // Test state
 const testText = ref('Hola, esta es una prueba de voz con los settings actuales.')
 const testAudioUrl = ref<string | null>(null)
@@ -460,6 +518,8 @@ watch(() => props.voice, (newVoice) => {
   jingleSettings.duck_level = newVoice.jingle_settings?.duck_level ?? 0.2
   jingleSettings.intro_silence = newVoice.jingle_settings?.intro_silence ?? 3
   jingleSettings.outro_silence = newVoice.jingle_settings?.outro_silence ?? 5
+  ttsSettings.intro_silence = newVoice.tts_settings?.intro_silence ?? 0
+  ttsSettings.outro_silence = newVoice.tts_settings?.outro_silence ?? 0
   testAudioUrl.value = null
 }, { deep: true })
 
@@ -509,7 +569,8 @@ const hasChanges = computed(() => {
     local.use_speaker_boost !== original.use_speaker_boost ||
     local.speed !== original.speed ||  // ElevenLabs 2025
     local.volume_adjustment !== original.volume_adjustment ||
-    JSON.stringify(jingleSettings) !== JSON.stringify(original.jingle_settings || {})
+    JSON.stringify(jingleSettings) !== JSON.stringify(original.jingle_settings || {}) ||
+    JSON.stringify(ttsSettings) !== JSON.stringify(original.tts_settings || {})
   )
 })
 
@@ -553,6 +614,7 @@ const handleSave = () => {
     speed: localVoice.value.speed,  // ElevenLabs 2025
     volume_adjustment: localVoice.value.volume_adjustment,
     jingle_settings: { ...jingleSettings },
+    tts_settings: { ...ttsSettings },
   }
 
   emit('save', updates)

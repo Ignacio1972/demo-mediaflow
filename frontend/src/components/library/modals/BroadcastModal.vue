@@ -2,14 +2,11 @@
   <dialog class="modal" :class="{ 'modal-open': open }">
     <div class="modal-box max-w-md">
       <!-- Header -->
-      <div class="flex items-center gap-3 mb-4">
+      <div class="flex items-center gap-3 mb-6">
         <div class="p-2 bg-primary/10 rounded-lg">
           <SignalIcon class="h-6 w-6 text-primary" />
         </div>
-        <div>
-          <h2 class="text-xl font-bold">Enviar a Radio</h2>
-          <p class="text-sm text-base-content/60">AzuraCast</p>
-        </div>
+        <h2 class="text-2xl font-bold">Enviar a los parlantes</h2>
       </div>
 
       <!-- Message Info -->
@@ -18,50 +15,38 @@
         <p class="text-xs text-base-content/50 mt-1">{{ message.filename }}</p>
       </div>
 
-      <!-- Broadcast Options -->
+      <!-- Divider -->
+      <div class="divider text-sm text-base-content/50 mt-0">Selecciona destino</div>
+
+      <!-- Branch Selection -->
       <div class="space-y-3">
-        <!-- Interrupt Option (Default) -->
-        <label
-          class="flex items-start gap-3 cursor-pointer p-4 rounded-lg border-2 transition-all"
-          :class="interruptMode ? 'bg-primary/5 border-primary' : 'bg-base-100 border-base-300 hover:border-base-content/20'"
-        >
+        <!-- Select All -->
+        <label class="flex items-center gap-3 cursor-pointer p-3 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors border border-primary/20">
           <input
-            type="radio"
-            name="broadcast-mode"
-            class="radio radio-primary mt-0.5"
-            :checked="interruptMode"
-            @change="interruptMode = true"
+            type="checkbox"
+            class="checkbox checkbox-primary"
+            :checked="allSelected"
+            @change="toggleAll"
           />
-          <div class="flex-1">
-            <div class="flex items-center gap-2">
-              <span class="font-medium">Reproducir ahora</span>
-              <span class="badge badge-primary badge-sm">Recomendado</span>
-            </div>
-            <p class="text-sm text-base-content/60 mt-1">
-              Interrumpe la programacion actual y reproduce el audio inmediatamente
-            </p>
-          </div>
+          <span class="font-medium">Enviar a todas las sucursales</span>
         </label>
 
-        <!-- Library Only Option -->
-        <label
-          class="flex items-start gap-3 cursor-pointer p-4 rounded-lg border-2 transition-all"
-          :class="!interruptMode ? 'bg-base-200 border-base-content/20' : 'bg-base-100 border-base-300 hover:border-base-content/20'"
-        >
-          <input
-            type="radio"
-            name="broadcast-mode"
-            class="radio mt-0.5"
-            :checked="!interruptMode"
-            @change="interruptMode = false"
-          />
-          <div class="flex-1">
-            <span class="font-medium">Solo subir a libreria</span>
-            <p class="text-sm text-base-content/60 mt-1">
-              Sube el archivo a AzuraCast sin reproducirlo
-            </p>
-          </div>
-        </label>
+        <!-- Individual Branches -->
+        <div class="grid grid-cols-2 gap-2">
+          <label
+            v-for="branch in branches"
+            :key="branch.id"
+            class="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-base-200 transition-colors"
+          >
+            <input
+              type="checkbox"
+              class="checkbox checkbox-sm"
+              :checked="selectedBranches.includes(branch.id)"
+              @change="toggleBranch(branch.id)"
+            />
+            <span class="text-sm">{{ branch.name }}</span>
+          </label>
+        </div>
       </div>
 
       <!-- Status Message -->
@@ -85,13 +70,16 @@
         </button>
         <button
           class="btn btn-primary"
-          :disabled="isSending"
+          :disabled="selectedBranches.length === 0 || isSending"
           @click="send"
         >
           <span v-if="isSending" class="loading loading-spinner loading-sm"></span>
           <template v-else>
             <SignalIcon class="h-4 w-4" />
-            {{ interruptMode ? 'Enviar y Reproducir' : 'Subir a Libreria' }}
+            Enviar
+            <span v-if="selectedBranches.length > 0" class="badge badge-sm">
+              {{ selectedBranches.length }}
+            </span>
           </template>
         </button>
       </div>
@@ -104,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { SignalIcon } from '@heroicons/vue/24/solid'
 import type { AudioMessage } from '@/types/audio'
 import { libraryApi } from '../services/libraryApi'
@@ -116,10 +104,20 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  'sent': [result: { success: boolean; interrupt: boolean; requestId?: string }]
+  'sent': [branchCount: number]
 }>()
 
-const interruptMode = ref(true)
+// Placeholder branches (future: load from API per tenant)
+const branches = [
+  { id: 'A', name: 'Sucursal A' },
+  { id: 'B', name: 'Sucursal B' },
+  { id: 'C', name: 'Sucursal C' },
+  { id: 'D', name: 'Sucursal D' },
+  { id: 'E', name: 'Sucursal E' },
+  { id: 'F', name: 'Sucursal F' }
+]
+
+const selectedBranches = ref<string[]>([])
 const isSending = ref(false)
 const statusMessage = ref('')
 const statusType = ref<'success' | 'error' | 'info'>('info')
@@ -127,37 +125,52 @@ const statusType = ref<'success' | 'error' | 'info'>('info')
 // Reset state when modal opens
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
-    interruptMode.value = true
+    selectedBranches.value = []
     statusMessage.value = ''
     statusType.value = 'info'
   }
 })
 
+const allSelected = computed(() =>
+  selectedBranches.value.length === branches.length
+)
+
+function toggleAll() {
+  if (allSelected.value) {
+    selectedBranches.value = []
+  } else {
+    selectedBranches.value = branches.map(b => b.id)
+  }
+}
+
+function toggleBranch(id: string) {
+  const index = selectedBranches.value.indexOf(id)
+  if (index === -1) {
+    selectedBranches.value.push(id)
+  } else {
+    selectedBranches.value.splice(index, 1)
+  }
+}
+
 async function send() {
-  if (!props.message) return
+  if (selectedBranches.value.length === 0 || !props.message) return
 
   isSending.value = true
   statusMessage.value = ''
 
   try {
-    statusMessage.value = interruptMode.value
-      ? 'Enviando audio a la radio...'
-      : 'Subiendo archivo a la libreria...'
+    const branchCount = selectedBranches.value.length
+    statusMessage.value = `Enviando a ${branchCount} sucursal${branchCount > 1 ? 'es' : ''}...`
     statusType.value = 'info'
 
-    const result = await libraryApi.sendToRadio(props.message.id, interruptMode.value)
+    // Send to radio (currently single radio, future: per-branch)
+    const result = await libraryApi.sendToRadio(props.message.id, true)
 
     if (result.success) {
       statusType.value = 'success'
-      statusMessage.value = interruptMode.value
-        ? `Audio enviado y reproduciendo (ID: ${result.data?.azuracast?.interrupt?.request_id || 'OK'})`
-        : 'Archivo subido a la libreria de AzuraCast'
+      statusMessage.value = `Audio enviado a ${branchCount} sucursal${branchCount > 1 ? 'es' : ''}`
 
-      emit('sent', {
-        success: true,
-        interrupt: interruptMode.value,
-        requestId: result.data?.azuracast?.interrupt?.request_id
-      })
+      emit('sent', branchCount)
 
       // Close modal after short delay
       setTimeout(() => {
@@ -177,6 +190,7 @@ async function send() {
 
 function close() {
   if (isSending.value) return
+  selectedBranches.value = []
   statusMessage.value = ''
   emit('update:open', false)
 }

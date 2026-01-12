@@ -33,20 +33,19 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/components/campaigns/CampaignDetail.vue'),
   },
   {
+    path: '/music',
+    name: 'music',
+    component: () => import('@/components/music/MusicPage.vue'),
+  },
+  {
     path: '/operations',
     name: 'operations',
-    component: () => import('@/components/operations/Operations.vue'),
-    redirect: '/operations/vehicles',
-    children: [
-      {
-        path: 'vehicles',
-        name: 'operations-vehicles',
-        component: () => import('@/components/operations/vehicles/VehicleAnnouncement.vue'),
-      },
-      // Future operation templates:
-      // { path: 'lost-child', name: 'operations-lost-child', component: ... },
-      // { path: 'promotions', name: 'operations-promotions', component: ... },
-    ],
+    component: () => import('@/components/operations/OperationsPage.vue'),
+  },
+  {
+    path: '/operations/vehicles',
+    name: 'operations-vehicles',
+    component: () => import('@/components/operations/vehicles/VehicleAnnouncement.vue'),
   },
   {
     path: '/mobile',

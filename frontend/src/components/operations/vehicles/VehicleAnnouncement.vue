@@ -2,6 +2,15 @@
   <div class="vehicle-announcement">
     <!-- Header -->
     <div class="mb-10">
+      <!-- Back button -->
+      <router-link
+        to="/operations"
+        class="inline-flex items-center gap-2 text-sm text-base-content/50 hover:text-primary transition-colors mb-4"
+      >
+        <ArrowLeftIcon class="w-4 h-4" />
+        Operaciones
+      </router-link>
+
       <div class="flex items-center gap-3 mb-2">
         <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
           <TruckIcon class="w-5 h-5 text-primary" />
@@ -70,7 +79,7 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { TruckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
+import { TruckIcon, ExclamationCircleIcon, ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import VehicleForm from './components/VehicleForm.vue'
 import PreviewText from './components/PreviewText.vue'
 import AudioResult from './components/AudioResult.vue'

@@ -6,9 +6,8 @@
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 class="text-3xl font-bold text-primary flex items-center gap-3">
-              <span class="text-4xl">🤖</span>
-              AI Clients Manager
+            <h1 class="text-3xl font-bold text-primary">
+              Clientes
             </h1>
             <p class="text-sm text-base-content/60 mt-1">
               Gestiona clientes y contextos de IA para generacion de anuncios

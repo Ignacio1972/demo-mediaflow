@@ -5,7 +5,7 @@
         <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
           <BookOpenIcon class="w-5 h-5 text-primary" />
         </div>
-        <h1 class="text-3xl font-bold tracking-tight">Biblioteca de Audio</h1>
+        <h1 class="text-3xl font-bold tracking-tight">Biblioteca de Anuncios</h1>
       </div>
       <p class="text-base-content/50 ml-13">
         {{ total }} mensaje{{ total !== 1 ? 's' : '' }} guardado{{ total !== 1 ? 's' : '' }}
@@ -32,8 +32,9 @@
         Subir Audio
       </button>
 
-      <!-- View Toggle -->
+      <!-- View Toggle (hidden on mobile) -->
       <ViewToggle
+        class="hidden md:flex"
         :model-value="viewMode"
         @update:model-value="emit('update:viewMode', $event)"
       />

@@ -9,6 +9,18 @@ import type { CampaignWorkflow } from '../composables/useCampaignWorkflow'
 const workflow = inject<CampaignWorkflow>('workflow')!
 const audioStore = useAudioStore()
 
+const emit = defineEmits<{
+  generated: []
+}>()
+
+// Generate audio and emit event to refresh grid
+async function handleGenerate() {
+  await workflow.generateAudio()
+  if (workflow.generatedAudio.value) {
+    emit('generated')
+  }
+}
+
 // Load voices and music on mount
 onMounted(async () => {
   await Promise.all([
@@ -99,7 +111,7 @@ function handleMusicSelect(filename: string | null) {
           <button
             class="btn btn-primary w-full sm:w-auto flex-shrink-0"
             :disabled="!workflow.canGenerateAudio.value"
-            @click="workflow.generateAudio"
+            @click="handleGenerate"
           >
             <span
               v-if="workflow.isGeneratingAudio.value"
@@ -120,7 +132,7 @@ function handleMusicSelect(filename: string | null) {
               :checked="workflow.addMusic.value"
               @change="handleMusicToggle"
             />
-            <span class="label-text">Agregar musica de fondo</span>
+            <span class="label-text">Jingle</span>
           </label>
         </div>
 

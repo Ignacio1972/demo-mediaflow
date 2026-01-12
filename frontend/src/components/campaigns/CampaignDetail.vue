@@ -17,8 +17,8 @@ import StepSuggestions from './steps/StepSuggestions.vue'
 import StepGenerate from './steps/StepGenerate.vue'
 import StepPreview from './steps/StepPreview.vue'
 
-// Modals (reused from Library)
-import BroadcastModal from '@/components/library/modals/BroadcastModal.vue'
+// Modals
+import BroadcastModal from './modals/BroadcastModal.vue'
 import ScheduleModal from '@/components/library/modals/ScheduleModal.vue'
 
 // Route & Store
@@ -101,13 +101,11 @@ function handleSchedule(audio: CampaignAudio) {
   showScheduleModal.value = true
 }
 
-function onBroadcastSent(result: { success: boolean; interrupt: boolean }) {
-  if (result.success) {
-    successToast.value = result.interrupt
-      ? 'Audio enviado y reproduciendo en AzuraCast'
-      : 'Audio subido a la libreria de AzuraCast'
-    setTimeout(() => { successToast.value = null }, 3000)
-  }
+function onBroadcastSent(branchCount: number) {
+  successToast.value = branchCount === 1
+    ? 'Audio enviado a 1 sucursal'
+    : `Audio enviado a ${branchCount} sucursales`
+  setTimeout(() => { successToast.value = null }, 3000)
 }
 
 function onScheduleCreated() {
@@ -187,6 +185,7 @@ const currentStepComponent = computed(() => {
           <component
             :is="currentStepComponent"
             @saved="handleAudioSaved"
+            @generated="handleAudioSaved"
           />
         </div>
 
@@ -221,7 +220,7 @@ const currentStepComponent = computed(() => {
     <!-- Modals -->
     <BroadcastModal
       v-model:open="showBroadcastModal"
-      :message="selectedAudio ? toAudioMessage(selectedAudio) : null"
+      :audio-id="selectedAudio?.id ?? null"
       @sent="onBroadcastSent"
     />
 

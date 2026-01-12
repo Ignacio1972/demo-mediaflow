@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCampaignStore } from './stores/campaignStore'
 import CampaignCardV2 from './components/CampaignCardV2.vue'
+import CampaignListTable from './components/CampaignListTable.vue'
 import NewCampaignModal from './modals/NewCampaignModal.vue'
 import { PlusIcon, RocketLaunchIcon } from '@heroicons/vue/24/outline'
 import type { Campaign, CampaignCreate } from '@/types/campaign'
@@ -82,7 +83,7 @@ function handleDragEnd() {
 
 <template>
   <div class="min-h-screen bg-base-100">
-    <div class="container mx-auto px-6 py-8 max-w-7xl">
+    <div class="container mx-auto px-6 py-8">
       <!-- Header Section -->
       <div class="mb-10">
         <div class="flex items-start justify-between">
@@ -100,14 +101,17 @@ function handleDragEnd() {
             </p>
           </div>
 
-          <!-- New Campaign Button (hidden on mobile) -->
-          <button
-            class="hidden md:flex btn btn-primary gap-2 rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-            @click="showNewModal = true"
-          >
-            <PlusIcon class="w-5 h-5" />
-            Nueva Campaña
-          </button>
+          <!-- Actions -->
+          <div class="flex items-center gap-3">
+            <!-- New Campaign Button (hidden on mobile) -->
+            <button
+              class="hidden md:flex btn btn-primary gap-2 rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+              @click="showNewModal = true"
+            >
+              <PlusIcon class="w-5 h-5" />
+              Nueva Campaña
+            </button>
+          </div>
         </div>
       </div>
 
@@ -152,37 +156,48 @@ function handleDragEnd() {
         </button>
       </div>
 
-      <!-- Campaigns Grid -->
-      <div
-        v-else
-        class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
-      >
-        <CampaignCardV2
-          v-for="(campaign, index) in store.campaigns"
-          :key="campaign.id"
-          :campaign="campaign"
-          :style="{ animationDelay: `${index * 50}ms` }"
-          class="campaign-card-enter"
-          @click="handleCampaignClick"
-          @dragStart="handleDragStart(campaign, $event)"
-          @dragOver="handleDragOver"
-          @drop="handleDrop(campaign)"
-          @dragEnd="handleDragEnd"
-        />
-
-        <!-- Add Campaign Card (always last) -->
-        <button
-          @click="showNewModal = true"
-          class="group flex flex-col items-center justify-center min-h-[180px] border-2 border-dashed border-base-300 rounded-2xl hover:border-primary hover:bg-primary/5 transition-all duration-200"
+      <!-- Campaigns Content -->
+      <template v-else>
+        <!-- Grid View -->
+        <div
+          v-if="store.viewMode === 'grid'"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
         >
-          <div class="flex items-center justify-center w-12 h-12 bg-base-200 group-hover:bg-primary/10 rounded-xl transition-colors mb-3">
-            <PlusIcon class="w-6 h-6 text-base-content/40 group-hover:text-primary transition-colors" />
-          </div>
-          <span class="text-sm text-base-content/50 group-hover:text-primary transition-colors">
-            Agregar
-          </span>
-        </button>
-      </div>
+          <CampaignCardV2
+            v-for="(campaign, index) in store.campaigns"
+            :key="campaign.id"
+            :campaign="campaign"
+            :style="{ animationDelay: `${index * 50}ms` }"
+            class="campaign-card-enter"
+            @click="handleCampaignClick"
+            @dragStart="handleDragStart(campaign, $event)"
+            @dragOver="handleDragOver"
+            @drop="handleDrop(campaign)"
+            @dragEnd="handleDragEnd"
+          />
+
+          <!-- Add Campaign Card (always last) -->
+          <button
+            @click="showNewModal = true"
+            class="group flex flex-col items-center justify-center min-h-[180px] border-2 border-dashed border-base-300 rounded-2xl hover:border-primary hover:bg-primary/5 transition-all duration-200"
+          >
+            <div class="flex items-center justify-center w-12 h-12 bg-base-200 group-hover:bg-primary/10 rounded-xl transition-colors mb-3">
+              <PlusIcon class="w-6 h-6 text-base-content/40 group-hover:text-primary transition-colors" />
+            </div>
+            <span class="text-sm text-base-content/50 group-hover:text-primary transition-colors">
+              Agregar
+            </span>
+          </button>
+        </div>
+
+        <!-- List View -->
+        <div v-else class="-mx-6 md:mx-0">
+          <CampaignListTable
+            :campaigns="store.campaigns"
+            @click="handleCampaignClick"
+          />
+        </div>
+      </template>
 
       <!-- Modal -->
       <NewCampaignModal

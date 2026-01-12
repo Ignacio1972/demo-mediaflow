@@ -83,17 +83,17 @@ function onDragEnd(event: DragEvent) {
     ></div>
 
     <!-- Content -->
-    <div class="relative p-6 flex flex-col items-center text-center">
+    <div class="relative p-8 flex flex-col items-center text-center">
       <!-- Icon Container -->
-      <div class="relative mb-4">
+      <div class="relative mb-5">
         <!-- Icon background -->
         <div
-          class="flex items-center justify-center w-16 h-16 bg-base-200 group-hover:bg-base-100 rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
+          class="flex items-center justify-center w-20 h-20 bg-base-200 group-hover:bg-base-100 rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
         >
           <DynamicIcon
             :name="campaign.icon"
             fallback="Folder"
-            class="w-8 h-8 text-4xl transition-transform duration-300 group-hover:scale-110"
+            class="w-10 h-10 transition-transform duration-300 group-hover:scale-110"
           />
         </div>
       </div>

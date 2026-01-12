@@ -1,32 +1,48 @@
 <template>
   <header class="sticky top-0 z-50 bg-base-200 shadow-lg">
     <div class="container mx-auto px-4 py-4 max-w-[1600px]">
-      <div class="flex items-center">
-        <!-- Left: Burger Menu + Logo -->
-        <div class="flex items-center gap-3">
-          <!-- Burger Menu Button -->
-          <button
-            @click="openSidebar"
-            class="btn btn-ghost btn-square"
-            aria-label="Abrir menú"
-          >
-            <Bars3Icon class="h-6 w-6" />
-          </button>
+      <div class="flex items-center justify-between gap-3">
+        <!-- Left: Burger Menu -->
+        <button
+          @click="openSidebar"
+          class="btn btn-ghost btn-square"
+          aria-label="Abrir menú"
+        >
+          <Bars3Icon class="h-6 w-6" />
+        </button>
 
-          <!-- Logo / Title -->
-          <router-link
-            to="/campaigns"
-            class="flex items-center hover:opacity-80 transition-opacity"
-          >
+        <!-- Logo / Title - Centered on mobile -->
+        <router-link
+          to="/campaigns"
+          class="flex items-center hover:opacity-80 transition-opacity"
+        >
+          <div class="flex flex-col items-center md:items-start">
             <img
-              src="/images/solo%20logo.png"
-              alt="MediaFlow"
-              class="h-10"
+              src="/images/Cencosud_logo.svg.png"
+              alt="Cencosud"
+              class="h-12 md:h-16 w-auto object-contain"
             />
-            <span class="ml-3 text-2xl font-bold tracking-tight hidden sm:inline">
-              <span class="text-primary">Media</span><span class="text-base-content">flow</span>
+            <span class="text-xs md:text-sm text-base-content/60 mt-1">
+              Powered by <span class="text-primary font-medium">Media</span><span class="text-base-content font-medium">flow</span>
             </span>
-          </router-link>
+          </div>
+        </router-link>
+
+        <!-- Spacer -->
+        <div class="flex-1"></div>
+
+        <!-- Right: Theme Buttons -->
+        <div class="flex items-center gap-1">
+          <button
+            v-for="theme in themes"
+            :key="theme.id"
+            @click="changeTheme(theme.id)"
+            class="btn btn-ghost btn-sm btn-square"
+            :class="{ 'btn-active': currentTheme === theme.id }"
+            :title="theme.name"
+          >
+            <component :is="theme.icon" class="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
@@ -50,15 +66,12 @@
     >
       <!-- Sidebar Header -->
       <div class="flex items-center justify-between p-4 border-b border-base-300">
-        <div class="flex items-center gap-2">
+        <div class="flex flex-col">
           <img
-            src="/images/solo%20logo.png"
-            alt="MediaFlow"
-            class="h-8"
+            src="/images/Cencosud_logo.svg.png"
+            alt="Cencosud"
+            class="h-12 w-auto object-contain"
           />
-          <span class="text-xl font-bold">
-            <span class="text-primary">Media</span><span class="text-base-content">flow</span>
-          </span>
         </div>
         <button
           @click="closeSidebar"
@@ -86,11 +99,6 @@
         </ul>
       </nav>
 
-      <!-- Footer: Theme Selector -->
-      <div class="border-t border-base-300 p-4">
-        <div class="text-sm text-base-content/70 mb-3">Tema</div>
-        <ThemeSelectorInline />
-      </div>
     </aside>
   </Teleport>
 </template>
@@ -107,13 +115,21 @@ import {
   CogIcon,
   MegaphoneIcon,
   RocketLaunchIcon,
-  DevicePhoneMobileIcon
+  DevicePhoneMobileIcon,
+  MusicalNoteIcon,
+  MoonIcon,
+  SunIcon
 } from '@heroicons/vue/24/outline'
-import ThemeSelectorInline from './ThemeSelectorInline.vue'
 
 interface MenuItem {
   path: string
   label: string
+  icon: Component
+}
+
+interface ThemeOption {
+  id: string
+  name: string
   icon: Component
 }
 
@@ -122,13 +138,28 @@ const route = useRoute()
 // Menu items
 const menuItems: MenuItem[] = [
   { path: '/campaigns', label: 'Campañas', icon: markRaw(HomeIcon) },
-  { path: '/dashboard', label: 'Anuncios', icon: markRaw(MegaphoneIcon) },
   { path: '/library', label: 'Biblioteca', icon: markRaw(BookOpenIcon) },
+  { path: '/dashboard', label: 'Crear', icon: markRaw(MegaphoneIcon) },
   { path: '/calendar', label: 'Calendario', icon: markRaw(CalendarIcon) },
+  { path: '/music', label: 'Música', icon: markRaw(MusicalNoteIcon) },
   { path: '/operations', label: 'Operaciones', icon: markRaw(RocketLaunchIcon) },
   { path: '/mobile', label: 'Mobile', icon: markRaw(DevicePhoneMobileIcon) },
   { path: '/settings', label: 'Configuración', icon: markRaw(CogIcon) },
 ]
+
+// Theme options
+const themes: ThemeOption[] = [
+  { id: 'nexus', name: 'Nexus', icon: markRaw(SunIcon) },
+  { id: 'mediaflow', name: 'Dark', icon: markRaw(MoonIcon) },
+]
+
+const currentTheme = ref('nexus')
+
+const changeTheme = (theme: string) => {
+  currentTheme.value = theme
+  document.documentElement.setAttribute('data-theme', theme)
+  localStorage.setItem('theme', theme)
+}
 
 // Sidebar state - two-phase for animation
 const isSidebarOpen = ref(false)
@@ -168,6 +199,9 @@ const handleEscape = (e: KeyboardEvent) => {
 
 onMounted(() => {
   document.addEventListener('keydown', handleEscape)
+  // Initialize theme from localStorage
+  const savedTheme = localStorage.getItem('theme') || 'nexus'
+  changeTheme(savedTheme)
 })
 
 onUnmounted(() => {

@@ -29,6 +29,25 @@ const offset = ref(0)
 // Currently playing (for exclusive playback)
 const currentlyPlaying = ref<number | null>(null)
 
+// Element refs for animations
+const audioRefs = ref<Map<number, HTMLElement>>(new Map())
+
+function setAudioRef(id: number, el: any) {
+  if (el) {
+    audioRefs.value.set(id, el as HTMLElement)
+  }
+}
+
+// Toast state
+const showToast = ref(false)
+
+function showSuccessToast() {
+  showToast.value = true
+  setTimeout(() => {
+    showToast.value = false
+  }, 3000)
+}
+
 // Load audios
 async function loadAudios() {
   isLoading.value = true
@@ -79,6 +98,44 @@ async function handleDelete(audio: CampaignAudio) {
   }
 }
 
+// Handle save to library
+async function handleSaveToLibrary(audio: CampaignAudio) {
+  const audioEl = audioRefs.value.get(audio.id)
+
+  try {
+    await apiClient.patch(`/api/v1/audio/${audio.id}/save-to-library`)
+
+    // Slide-out animation to the right
+    if (audioEl) {
+      audioEl.style.transition = 'transform 0.4s ease, opacity 0.4s ease'
+      audioEl.style.transform = 'translateX(100%)'
+      audioEl.style.opacity = '0'
+
+      // After animation, remove from list and show toast
+      setTimeout(() => {
+        audios.value = audios.value.filter(a => a.id !== audio.id)
+        total.value -= 1
+        audioRefs.value.delete(audio.id)
+        showSuccessToast()
+      }, 400)
+    } else {
+      // Fallback if no element ref
+      audios.value = audios.value.filter(a => a.id !== audio.id)
+      total.value -= 1
+      showSuccessToast()
+    }
+  } catch (err) {
+    console.error('Save to library error:', err)
+    // Reset styles on error
+    if (audioEl) {
+      audioEl.style.transition = ''
+      audioEl.style.transform = ''
+      audioEl.style.opacity = ''
+    }
+    alert('Error al guardar en biblioteca')
+  }
+}
+
 // Pagination
 const hasMore = computed(() => offset.value + limit < total.value)
 const hasPrev = computed(() => offset.value > 0)
@@ -99,7 +156,7 @@ function prevPage() {
 </script>
 
 <template>
-  <div class="card bg-base-200">
+  <div class="card bg-base-200 relative">
     <div class="card-body">
       <!-- Header -->
       <div class="flex items-center justify-between mb-4">
@@ -155,16 +212,73 @@ function prevPage() {
         v-else
         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       >
-        <CampaignAudioCard
+        <div
           v-for="audio in audios"
           :key="audio.id"
-          :audio="audio"
-          @play="handlePlay"
-          @delete="handleDelete"
-          @schedule="emit('schedule', $event)"
-          @broadcast="emit('broadcast', $event)"
-        />
+          :ref="el => setAudioRef(audio.id, el)"
+          class="audio-card-wrapper"
+        >
+          <CampaignAudioCard
+            :audio="audio"
+            @play="handlePlay"
+            @delete="handleDelete"
+            @save-to-library="handleSaveToLibrary"
+            @schedule="emit('schedule', $event)"
+            @broadcast="emit('broadcast', $event)"
+          />
+        </div>
       </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast toast-end toast-bottom z-50">
+      <Transition name="toast">
+        <div v-if="showToast" class="alert alert-success">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Guardado en biblioteca</span>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Card wrapper for animations */
+.audio-card-wrapper {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Toast animation */
+.toast-enter-active {
+  animation: toast-in 0.3s ease-out;
+}
+
+.toast-leave-active {
+  animation: toast-out 0.3s ease-in;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+</style>

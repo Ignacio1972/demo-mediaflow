@@ -183,6 +183,26 @@ async def generate_audio(
             adjusted_audio.export(file_path, format="mp3", bitrate="192k")
             file_size = os.path.getsize(file_path)
 
+        # Apply TTS silence padding if configured and NOT using jingle
+        if not (request.add_jingles and request.music_file):
+            tts_settings = voice.tts_settings or {}
+            intro_silence = tts_settings.get('intro_silence', 0)
+            outro_silence = tts_settings.get('outro_silence', 0)
+
+            if intro_silence > 0 or outro_silence > 0:
+                logger.info(
+                    f"🔇 Applying TTS padding: intro={intro_silence}s, outro={outro_silence}s"
+                )
+                audio = AudioSegment.from_file(file_path)
+                if intro_silence > 0:
+                    audio = AudioSegment.silent(duration=int(intro_silence * 1000)) + audio
+                if outro_silence > 0:
+                    audio = audio + AudioSegment.silent(duration=int(outro_silence * 1000))
+                audio.export(file_path, format="mp3", bitrate="192k")
+                duration = len(audio) / 1000.0
+                file_size = os.path.getsize(file_path)
+                logger.info(f"✅ TTS padding applied, new duration: {duration:.2f}s")
+
         # If jingle is requested and music file is provided, mix with music
         if request.add_jingles and request.music_file:
             logger.info(f"🎵 Creating jingle with music: {request.music_file}")

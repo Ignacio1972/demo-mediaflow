@@ -1,8 +1,5 @@
 <template>
   <div class="operations min-h-screen bg-base-100">
-    <!-- Navigation -->
-    <OperationsNav />
-
     <!-- Content -->
     <div class="container mx-auto p-6">
       <router-view />
@@ -11,5 +8,6 @@
 </template>
 
 <script setup lang="ts">
-import OperationsNav from './OperationsNav.vue'
+// Navigation removed - only one section currently (Vehicles)
+// When more sections are added, import and use OperationsNav
 </script>

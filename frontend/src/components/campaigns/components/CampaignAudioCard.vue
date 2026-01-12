@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue'
-import { PlayIcon, PauseIcon } from '@heroicons/vue/24/outline'
+import { PlayIcon, PauseIcon, CheckIcon, CalendarIcon, SignalIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import type { CampaignAudio } from '@/types/campaign'
 
 interface Props {
@@ -14,6 +14,7 @@ const emit = defineEmits<{
   delete: [audio: CampaignAudio]
   schedule: [audio: CampaignAudio]
   broadcast: [audio: CampaignAudio]
+  saveToLibrary: [audio: CampaignAudio]
 }>()
 
 // Playback state
@@ -77,25 +78,34 @@ onUnmounted(() => {
       <!-- Actions -->
       <div class="card-actions justify-end mt-3 gap-1">
         <button
-          class="btn btn-ghost btn-xs"
+          class="btn btn-ghost btn-xs btn-square"
+          :class="{ 'btn-disabled text-success': audio.is_favorite }"
+          :disabled="audio.is_favorite"
+          :title="audio.is_favorite ? 'Ya guardado en biblioteca' : 'Guardar en biblioteca'"
+          @click="emit('saveToLibrary', audio)"
+        >
+          <CheckIcon class="h-4 w-4" />
+        </button>
+        <button
+          class="btn btn-ghost btn-xs btn-square"
           title="Programar"
           @click="emit('schedule', audio)"
         >
-          📅
+          <CalendarIcon class="h-4 w-4" />
         </button>
         <button
-          class="btn btn-ghost btn-xs"
+          class="btn btn-ghost btn-xs btn-square"
           title="Enviar a radio"
           @click="emit('broadcast', audio)"
         >
-          📻
+          <SignalIcon class="h-4 w-4" />
         </button>
         <button
-          class="btn btn-ghost btn-xs text-error"
+          class="btn btn-ghost btn-xs btn-square text-error"
           title="Eliminar"
           @click="handleDelete"
         >
-          🗑️
+          <TrashIcon class="h-4 w-4" />
         </button>
       </div>
     </div>

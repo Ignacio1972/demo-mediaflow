@@ -193,11 +193,11 @@ export function useVehicleAnnouncement() {
       const response = await apiClient.get<Voice[]>('/api/v1/audio/voices')
       voices.value = response.filter(v => v.active)
 
-      // Set default voice: prefer Mario, then is_default, then first voice
+      // Set default voice: prefer Francisca, then is_default, then first voice
       if (voices.value.length > 0 && !voiceId.value) {
-        const marioVoice = voices.value.find((v: any) => v.id === 'mario')
+        const franciscaVoice = voices.value.find((v: any) => v.id === 'veronica')
         const defaultVoice = voices.value.find((v: any) => v.is_default)
-        voiceId.value = marioVoice?.id || defaultVoice?.id || voices.value[0].id
+        voiceId.value = franciscaVoice?.id || defaultVoice?.id || voices.value[0].id
       }
     } catch (e: any) {
       console.error('Error loading voices:', e)

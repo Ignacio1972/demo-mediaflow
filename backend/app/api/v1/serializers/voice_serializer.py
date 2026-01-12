@@ -33,6 +33,7 @@ def serialize_voice(voice: VoiceSettings) -> Dict[str, Any]:
         "speed": voice.speed,  # ElevenLabs 2025: 0.7-1.2
         "volume_adjustment": voice.volume_adjustment,
         "jingle_settings": voice.jingle_settings,
+        "tts_settings": voice.tts_settings,
         "created_at": voice.created_at.isoformat() if voice.created_at else None,
         "updated_at": voice.updated_at.isoformat() if voice.updated_at else None,
     }

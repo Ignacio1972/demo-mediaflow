@@ -35,7 +35,7 @@
         :key="cat.id"
         :value="cat.id"
       >
-        {{ cat.icon }} {{ cat.name }}
+        {{ cat.name }}
       </option>
     </select>
 

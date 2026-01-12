@@ -62,3 +62,5 @@ export interface CampaignAudiosResponse {
   limit: number
   offset: number
 }
+
+export type CampaignViewMode = 'grid' | 'list'

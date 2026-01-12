@@ -1,11 +1,6 @@
 <template>
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body p-4">
-      <h2 class="card-title text-lg mb-4">
-        Clientes IA
-        <span class="badge badge-ghost">{{ clients.length }}</span>
-      </h2>
-
       <!-- Loading -->
       <div v-if="isLoading" class="flex justify-center py-8">
         <span class="loading loading-spinner loading-lg text-primary"></span>
@@ -21,7 +16,7 @@
       </div>
 
       <!-- Client List -->
-      <div v-else class="space-y-2 max-h-[60vh] overflow-y-auto">
+      <div v-else class="space-y-2 max-h-[80vh] overflow-y-auto">
         <TransitionGroup name="list">
           <AIClientCard
             v-for="client in sortedClients"

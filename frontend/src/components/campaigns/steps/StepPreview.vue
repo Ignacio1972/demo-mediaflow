@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, inject } from 'vue'
+import { SignalIcon } from '@heroicons/vue/24/solid'
 import AudioPlayerBase from '@/components/shared/audio/AudioPlayerBase.vue'
+import BroadcastModal from '../modals/BroadcastModal.vue'
 import type { CampaignWorkflow } from '../composables/useCampaignWorkflow'
 
 // Inject workflow from CampaignDetail
@@ -12,6 +14,7 @@ const emit = defineEmits<{
 
 const isSaving = ref(false)
 const saveSuccess = ref(false)
+const showBroadcastModal = ref(false)
 
 async function handleSave() {
   isSaving.value = true
@@ -87,6 +90,14 @@ function formatDuration(seconds: number): string {
           <button
             class="btn btn-primary"
             :disabled="isSaving || saveSuccess"
+            @click="showBroadcastModal = true"
+          >
+            <SignalIcon class="h-4 w-4" />
+            Enviar a parlantes
+          </button>
+          <button
+            class="btn btn-primary"
+            :disabled="isSaving || saveSuccess"
             @click="handleSave"
           >
             <span v-if="isSaving" class="loading loading-spinner loading-sm"></span>
@@ -96,4 +107,11 @@ function formatDuration(seconds: number): string {
       </div>
     </div>
   </div>
+
+  <!-- Broadcast Modal -->
+  <BroadcastModal
+    :open="showBroadcastModal"
+    :audio-id="workflow.generatedAudio.value?.audio_id ?? null"
+    @update:open="showBroadcastModal = $event"
+  />
 </template>

@@ -31,13 +31,11 @@
 
           <!-- Enviar a los Parlantes -->
           <button
-            @click="sendToLocalPlayer"
+            @click="showBroadcastModal = true"
             class="btn btn-outline w-full sm:w-auto"
-            :disabled="sendingToLocal"
             title="Enviar a los parlantes"
           >
-            <span v-if="sendingToLocal" class="loading loading-spinner loading-xs"></span>
-            <span v-else>Enviar a los parlantes</span>
+            Enviar a los parlantes
           </button>
 
           <!-- COMENTADO: Botón de AzuraCast (preservado para futura implementación)
@@ -54,6 +52,13 @@
         </div>
       </div>
     </div>
+
+    <!-- Broadcast Modal -->
+    <BroadcastModal
+      v-model:open="showBroadcastModal"
+      :audio-id="audio?.audio_id ?? null"
+      @sent="onBroadcastSent"
+    />
   </div>
 </template>
 
@@ -61,6 +66,7 @@
 import { ref, watch, nextTick } from 'vue'
 import { useAudioStore } from '@/stores/audio'
 import type { AudioGenerateResponse } from '@/types/audio'
+import BroadcastModal from '@/components/campaigns/modals/BroadcastModal.vue'
 
 // Props
 const props = defineProps<{
@@ -74,9 +80,7 @@ const audioStore = useAudioStore()
 const audioPlayer = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const savingToLibrary = ref(false)
-const sendingToLocal = ref(false)
-// COMENTADO: Variable para AzuraCast (preservada para futura implementación)
-// const sendingToAzuracast = ref(false)
+const showBroadcastModal = ref(false)
 const isSaved = ref(false)
 
 // Reset isSaved when audio changes
@@ -129,23 +133,9 @@ const saveToLibrary = async () => {
   }
 }
 
-// Send to Local Player
-const sendToLocalPlayer = async () => {
-  if (!props.audio) return
-
-  sendingToLocal.value = true
-
-  try {
-    // TODO: Implement local player API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    console.log('Enviado a maquina local:', props.audio.filename)
-    alert('Audio enviado a Maquina Local')
-  } catch (e) {
-    console.error('Error al enviar a maquina local:', e)
-    alert('Error al enviar a Maquina Local')
-  } finally {
-    sendingToLocal.value = false
-  }
+// Handle broadcast sent
+const onBroadcastSent = (branchCount: number) => {
+  console.log(`Audio enviado a ${branchCount} sucursal(es)`)
 }
 
 // COMENTADO: Función para AzuraCast (preservada para futura implementación)

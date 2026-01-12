@@ -160,7 +160,7 @@ const changeTheme = (theme: string) => {
 
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme') || 'mediaflow'
-  currentTheme.value = savedTheme
+  changeTheme(savedTheme)
 })
 </script>
 
