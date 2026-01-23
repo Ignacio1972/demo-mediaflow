@@ -5,7 +5,7 @@
         <!-- Header -->
         <div class="mb-6">
           <h2 class="text-xl font-bold tracking-tight">Datos del Vehículo</h2>
-          <p class="text-sm text-base-content/50 mt-1">Ingresa la información para generar el anuncio</p>
+          <p class="text-sm text-base-content/50 mt-1 hidden md:block">Ingresa la información para generar el anuncio</p>
         </div>
 
         <!-- Marca -->
@@ -111,25 +111,8 @@
           </p>
         </div>
 
-        <!-- Plantilla -->
-        <div class="space-y-2 mb-5">
-          <label class="text-sm font-medium">Estilo del mensaje</label>
-          <select
-            v-model="template"
-            class="select bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 rounded-xl w-full transition-all duration-200"
-          >
-            <option
-              v-for="t in templates"
-              :key="t.id"
-              :value="t.id"
-            >
-              {{ t.name }} - {{ t.description }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Voz -->
-        <div class="space-y-2 mb-5">
+        <!-- Voz - hidden on mobile (uses default voice) -->
+        <div class="space-y-2 mb-5 hidden md:block">
           <label class="text-sm font-medium">Voz</label>
           <select
             v-model="voiceId"
@@ -143,28 +126,6 @@
               :value="voice.id"
             >
               {{ voice.name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Musica de fondo -->
-        <div class="space-y-2 mb-5">
-          <div class="flex items-center justify-between">
-            <label class="text-sm font-medium">Música de fondo</label>
-            <span class="text-xs text-base-content/40">Opcional</span>
-          </div>
-          <select
-            v-model="musicFile"
-            class="select bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 rounded-xl w-full transition-all duration-200"
-          >
-            <option :value="null">Sin música</option>
-            <option
-              v-for="track in musicTracks"
-              :key="track.id"
-              :value="track.filename"
-            >
-              {{ track.display_name }}
-              <template v-if="track.is_default"> (Por defecto)</template>
             </option>
           </select>
         </div>
@@ -227,9 +188,7 @@ import { SpeakerWaveIcon } from '@heroicons/vue/24/outline'
 import type {
   VehicleBrand,
   VehicleColor,
-  TemplateInfo,
   Voice,
-  MusicTrack,
   PlateInfo
 } from '../composables/useVehicleAnnouncement'
 
@@ -241,14 +200,10 @@ interface Props {
   platePart2: string
   platePart3: string
   voiceId: string
-  musicFile: string | null
-  template: string
   numberMode: 'words' | 'digits'
   brands: VehicleBrand[]
   colors: VehicleColor[]
-  templates: TemplateInfo[]
   voices: Voice[]
-  musicTracks: MusicTrack[]
   plateValidation: PlateInfo | null
   isFormValid: boolean
   loadingVoices: boolean
@@ -265,8 +220,6 @@ const emit = defineEmits<{
   (e: 'update:platePart2', value: string): void
   (e: 'update:platePart3', value: string): void
   (e: 'update:voiceId', value: string): void
-  (e: 'update:musicFile', value: string | null): void
-  (e: 'update:template', value: string): void
   (e: 'update:numberMode', value: 'words' | 'digits'): void
   (e: 'generate'): void
 }>()
@@ -300,16 +253,6 @@ const platePart3 = computed({
 const voiceId = computed({
   get: () => props.voiceId,
   set: (v) => emit('update:voiceId', v)
-})
-
-const musicFile = computed({
-  get: () => props.musicFile,
-  set: (v) => emit('update:musicFile', v)
-})
-
-const template = computed({
-  get: () => props.template,
-  set: (v) => emit('update:template', v)
 })
 
 const numberMode = computed({

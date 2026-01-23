@@ -162,6 +162,7 @@ class TemplateInfo(BaseModel):
     id: str
     name: str
     description: str
+    is_default: bool = False
 
 
 class TemplatesResponse(BaseModel):
@@ -192,3 +193,90 @@ class OperationsOptionsResponse(BaseModel):
     brands: List[VehicleBrand]
     colors: List[VehicleColor]
     templates: List[TemplateInfo]
+    default_template_id: Optional[str] = None
+
+
+# ============================================
+# Schedule Announcement Schemas
+# ============================================
+
+class ScheduleType(str, Enum):
+    """Type of schedule announcement."""
+    OPENING = "opening"    # Apertura
+    CLOSING = "closing"    # Cierre
+
+
+class ScheduleVariant(str, Enum):
+    """Variant of the announcement."""
+    NORMAL = "normal"           # Standard message
+    IN_MINUTES = "in_minutes"   # "Cerrará en X minutos"
+    IMMEDIATE = "immediate"     # "Ha cerrado" / "Está abierto"
+
+
+class ScheduleAnnouncementRequest(BaseModel):
+    """Request schema for generating a schedule announcement."""
+    schedule_type: ScheduleType = Field(
+        ...,
+        description="Type: opening or closing"
+    )
+    variant: ScheduleVariant = Field(
+        ScheduleVariant.NORMAL,
+        description="Message variant"
+    )
+    minutes: Optional[int] = Field(
+        None,
+        ge=5,
+        le=60,
+        description="Minutes until closing (only for in_minutes variant)"
+    )
+    voice_id: str = Field(
+        ...,
+        description="Voice ID for TTS generation"
+    )
+    music_file: Optional[str] = Field(
+        None,
+        description="Background music filename (optional)"
+    )
+
+
+class SchedulePreviewRequest(BaseModel):
+    """Request schema for previewing schedule announcement text."""
+    schedule_type: ScheduleType
+    variant: ScheduleVariant = ScheduleVariant.NORMAL
+    minutes: Optional[int] = Field(None, ge=5, le=60)
+
+
+class SchedulePreviewResponse(BaseModel):
+    """Response schema for schedule text preview."""
+    text: str = Field(..., description="The announcement text")
+    schedule_type: str
+    variant: str
+    minutes: Optional[int] = None
+
+
+class ScheduleAnnouncementResponse(BaseModel):
+    """Response schema for schedule announcement generation."""
+    success: bool
+    text: str = Field(..., description="The announcement text")
+    audio_url: str = Field(..., description="URL to the generated audio file")
+    audio_id: int = Field(..., description="Database ID of the audio message")
+    filename: str
+    duration: Optional[float] = None
+    voice_id: str
+    voice_name: str
+    schedule_type: str
+    variant: str
+    error: Optional[str] = None
+
+
+class MinutesOption(BaseModel):
+    """Minutes option for the form."""
+    value: int
+    label: str
+
+
+class ScheduleOptionsResponse(BaseModel):
+    """Response with options for the schedule form."""
+    types: List[dict]  # [{id, name}]
+    variants: List[dict]  # [{id, name, description}]
+    minutes_options: List[MinutesOption]

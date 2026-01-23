@@ -21,7 +21,7 @@ const operations: Operation[] = [
     description: 'Anuncios de apertura y cierre del local',
     icon: 'Clock',
     path: '/operations/schedules',
-    available: false,
+    available: true,
   },
   {
     id: 'employee-call',

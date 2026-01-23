@@ -161,7 +161,7 @@ function handleDragEnd() {
         <!-- Grid View -->
         <div
           v-if="store.viewMode === 'grid'"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
+          class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4"
         >
           <CampaignCardV2
             v-for="(campaign, index) in store.campaigns"
@@ -179,12 +179,12 @@ function handleDragEnd() {
           <!-- Add Campaign Card (always last) -->
           <button
             @click="showNewModal = true"
-            class="group flex flex-col items-center justify-center min-h-[180px] border-2 border-dashed border-base-300 rounded-2xl hover:border-primary hover:bg-primary/5 transition-all duration-200"
+            class="group flex flex-col items-center justify-center min-h-[100px] md:min-h-[180px] border-2 border-dashed border-base-300 rounded-xl md:rounded-2xl hover:border-primary hover:bg-primary/5 transition-all duration-200"
           >
-            <div class="flex items-center justify-center w-12 h-12 bg-base-200 group-hover:bg-primary/10 rounded-xl transition-colors mb-3">
-              <PlusIcon class="w-6 h-6 text-base-content/40 group-hover:text-primary transition-colors" />
+            <div class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-base-200 group-hover:bg-primary/10 rounded-lg md:rounded-xl transition-colors mb-2 md:mb-3">
+              <PlusIcon class="w-5 h-5 md:w-6 md:h-6 text-base-content/40 group-hover:text-primary transition-colors" />
             </div>
-            <span class="text-sm text-base-content/50 group-hover:text-primary transition-colors">
+            <span class="text-xs md:text-sm text-base-content/50 group-hover:text-primary transition-colors">
               Agregar
             </span>
           </button>

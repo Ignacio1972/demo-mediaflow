@@ -76,6 +76,15 @@ export interface Category {
   active: boolean
 }
 
+// Voice settings override for advanced users (Dashboard)
+export interface VoiceSettingsOverride {
+  style?: number           // 0-100
+  stability?: number       // 0-100
+  similarity_boost?: number // 0-100
+  speed?: number           // 0.7-1.2
+  volume_adjustment?: number // dB (-20 to +20)
+}
+
 // Request para generar audio (v2.1)
 export interface AudioGenerateRequest {
   text: string
@@ -84,6 +93,7 @@ export interface AudioGenerateRequest {
   music_file?: string
   priority?: number  // 1-5 (1=critical, 5=low)
   category_id?: string  // Campaign/category context (assigned on generation)
+  voice_settings?: VoiceSettingsOverride  // Optional override for this generation only
 }
 
 // Response de generación de audio
@@ -101,6 +111,7 @@ export interface AudioGenerateResponse {
     style: number
     stability: number
     similarity_boost: number
+    speed: number
     volume_adjustment: number
   }
   created_at: string

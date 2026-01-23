@@ -18,12 +18,6 @@ export interface VehicleColor {
   hex_color?: string
 }
 
-export interface TemplateInfo {
-  id: string
-  name: string
-  description: string
-}
-
 export interface PlateInfo {
   valid: boolean
   format?: string
@@ -68,18 +62,18 @@ export interface Voice {
   active: boolean
 }
 
-export interface MusicTrack {
-  id: number
-  filename: string
-  display_name: string
+export interface TemplateInfo {
+  id: string
+  name: string
+  description: string
   is_default: boolean
-  active: boolean
 }
 
 export interface OptionsResponse {
   brands: VehicleBrand[]
   colors: VehicleColor[]
   templates: TemplateInfo[]
+  default_template_id: string | null
 }
 
 // Composable
@@ -92,9 +86,8 @@ export function useVehicleAnnouncement() {
   const platePart2 = ref('')
   const platePart3 = ref('')
   const voiceId = ref('')
-  const musicFile = ref<string | null>(null)
-  const template = ref('default')
   const numberMode = ref<'words' | 'digits'>('digits')
+  const templateId = ref<string>('default') // Will be set from backend
 
   // Combined plate (computed from parts)
   // Format: XX,XXXX (comma after first 2 chars, then 4 chars together)
@@ -112,9 +105,7 @@ export function useVehicleAnnouncement() {
   // Options data
   const brands = ref<VehicleBrand[]>([])
   const colors = ref<VehicleColor[]>([])
-  const templates = ref<TemplateInfo[]>([])
   const voices = ref<Voice[]>([])
-  const musicTracks = ref<MusicTrack[]>([])
 
   // Preview state
   const previewText = ref<TextPreviewResponse | null>(null)
@@ -128,7 +119,6 @@ export function useVehicleAnnouncement() {
   const loadingPreview = ref(false)
   const loadingGenerate = ref(false)
   const loadingVoices = ref(false)
-  const loadingMusic = ref(false)
 
   // Error state
   const error = ref<string | null>(null)
@@ -166,14 +156,9 @@ export function useVehicleAnnouncement() {
       )
       brands.value = response.brands
       colors.value = response.colors
-      templates.value = response.templates
-
-      // Set default template if available and current template not in list
-      if (templates.value.length > 0) {
-        const currentExists = templates.value.some(t => t.id === template.value)
-        if (!currentExists) {
-          template.value = templates.value[0].id
-        }
+      // Set the default template from admin settings
+      if (response.default_template_id) {
+        templateId.value = response.default_template_id
       }
     } catch (e: any) {
       console.error('Error loading options:', e)
@@ -203,25 +188,6 @@ export function useVehicleAnnouncement() {
       console.error('Error loading voices:', e)
     } finally {
       loadingVoices.value = false
-    }
-  }
-
-  /**
-   * Load available music tracks
-   */
-  async function loadMusicTracks() {
-    loadingMusic.value = true
-
-    try {
-      const response = await apiClient.get<MusicTrack[]>('/api/v1/settings/music')
-      musicTracks.value = response.filter(m => m.active)
-
-      // Default: no music (sin música)
-      // musicFile stays null by default
-    } catch (e: any) {
-      console.error('Error loading music:', e)
-    } finally {
-      loadingMusic.value = false
     }
   }
 
@@ -265,7 +231,7 @@ export function useVehicleAnnouncement() {
           marca: marca.value,
           color: color.value,
           patente: patente.value,
-          template: template.value,
+          template: templateId.value,
           number_mode: numberMode.value
         }
       )
@@ -299,8 +265,8 @@ export function useVehicleAnnouncement() {
           color: color.value,
           patente: patente.value,
           voice_id: voiceId.value,
-          music_file: musicFile.value,
-          template: template.value,
+          music_file: null,
+          template: templateId.value,
           number_mode: numberMode.value
         }
       )
@@ -327,7 +293,6 @@ export function useVehicleAnnouncement() {
     platePart1.value = ''
     platePart2.value = ''
     platePart3.value = ''
-    template.value = 'default'
     numberMode.value = 'digits'
     previewText.value = null
     plateValidation.value = null
@@ -341,8 +306,7 @@ export function useVehicleAnnouncement() {
   async function initialize() {
     await Promise.all([
       loadOptions(),
-      loadVoices(),
-      loadMusicTracks()
+      loadVoices()
     ])
   }
 
@@ -360,7 +324,7 @@ export function useVehicleAnnouncement() {
   // Watch form fields to update preview
   let previewTimeout: ReturnType<typeof setTimeout> | null = null
   watch(
-    [marca, color, patente, template, numberMode],
+    [marca, color, patente, numberMode],
     () => {
       if (previewTimeout) {
         clearTimeout(previewTimeout)
@@ -383,16 +347,12 @@ export function useVehicleAnnouncement() {
     platePart3,
     patente, // Combined (computed, read-only)
     voiceId,
-    musicFile,
-    template,
     numberMode,
 
     // Options
     brands,
     colors,
-    templates,
     voices,
-    musicTracks,
 
     // Preview
     previewText,
@@ -406,7 +366,6 @@ export function useVehicleAnnouncement() {
     loadingPreview,
     loadingGenerate,
     loadingVoices,
-    loadingMusic,
 
     // Error
     error,
@@ -419,7 +378,6 @@ export function useVehicleAnnouncement() {
     initialize,
     loadOptions,
     loadVoices,
-    loadMusicTracks,
     validatePlate,
     previewNormalizedText,
     generateAnnouncement,

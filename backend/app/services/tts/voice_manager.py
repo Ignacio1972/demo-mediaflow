@@ -134,7 +134,8 @@ class VoiceManager:
         voice_id: str,
         db: AsyncSession,
         model_id: Optional[str] = None,
-    ) -> tuple[bytes, VoiceSettings]:
+        settings_override: Optional[Dict] = None,
+    ) -> tuple[bytes, VoiceSettings, Dict]:
         """
         Generate TTS with automatic voice settings application
 
@@ -143,9 +144,12 @@ class VoiceManager:
             voice_id: Voice identifier
             db: Database session
             model_id: Optional ElevenLabs model override
+            settings_override: Optional dict with settings to override for this generation
+                               (style, stability, similarity_boost, speed - all in 0-100 range except speed)
 
         Returns:
-            tuple: (audio_bytes, voice_settings_used)
+            tuple: (audio_bytes, voice_settings_used, effective_settings)
+                   effective_settings contains the actual values used (with overrides applied)
 
         Raises:
             ValueError: If voice not found or inactive
@@ -159,8 +163,49 @@ class VoiceManager:
         if not voice.active:
             raise ValueError(f"Voice '{voice_id}' is inactive")
 
-        # Get settings for ElevenLabs
+        # Get base settings for ElevenLabs
         voice_settings = self.get_elevenlabs_settings(voice)
+
+        # Track effective settings (in original scale for response)
+        effective_settings = {
+            "style": voice.style,
+            "stability": voice.stability,
+            "similarity_boost": voice.similarity_boost,
+            "speed": voice.speed,
+            "volume_adjustment": voice.volume_adjustment,
+        }
+
+        # Apply overrides if provided
+        if settings_override:
+            logger.info(f"🎛️ Applying settings override for voice '{voice.name}'")
+
+            if settings_override.get("style") is not None:
+                override_val = settings_override["style"]
+                voice_settings["style"] = override_val / 100.0
+                effective_settings["style"] = override_val
+                logger.debug(f"  → style: {override_val}")
+
+            if settings_override.get("stability") is not None:
+                override_val = settings_override["stability"]
+                voice_settings["stability"] = override_val / 100.0
+                effective_settings["stability"] = override_val
+                logger.debug(f"  → stability: {override_val}")
+
+            if settings_override.get("similarity_boost") is not None:
+                override_val = settings_override["similarity_boost"]
+                voice_settings["similarity_boost"] = override_val / 100.0
+                effective_settings["similarity_boost"] = override_val
+                logger.debug(f"  → similarity_boost: {override_val}")
+
+            if settings_override.get("speed") is not None:
+                override_val = settings_override["speed"]
+                voice_settings["speed"] = override_val
+                effective_settings["speed"] = override_val
+                logger.debug(f"  → speed: {override_val}")
+
+            if settings_override.get("volume_adjustment") is not None:
+                effective_settings["volume_adjustment"] = settings_override["volume_adjustment"]
+                logger.debug(f"  → volume_adjustment: {settings_override['volume_adjustment']}")
 
         logger.info(
             f"🎙️ Generating TTS with voice '{voice.name}' "
@@ -180,7 +225,7 @@ class VoiceManager:
             f"size={len(audio_bytes)} bytes"
         )
 
-        return audio_bytes, voice
+        return audio_bytes, voice, effective_settings
 
     def get_voice_settings_snapshot(self, voice: VoiceSettings) -> str:
         """

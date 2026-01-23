@@ -409,6 +409,12 @@ async def get_modules(
                 "icon": "🚗",
                 "variables": ["marca", "color", "patente"],
             },
+            "schedules": {
+                "id": "schedules",
+                "name": "Horarios Apertura/Cierre",
+                "icon": "🕐",
+                "variables": ["minutes"],
+            },
             "lost_child": {
                 "id": "lost_child",
                 "name": "Nino Perdido",

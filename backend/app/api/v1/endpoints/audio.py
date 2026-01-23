@@ -149,10 +149,31 @@ async def generate_audio(
                 detail=f"Voice '{request.voice_id}' is inactive",
             )
 
-        # Generate audio with automatic settings
+        # Prepare settings override if provided
+        settings_override = None
+        if request.voice_settings:
+            settings_override = {}
+            if request.voice_settings.style is not None:
+                settings_override["style"] = request.voice_settings.style
+            if request.voice_settings.stability is not None:
+                settings_override["stability"] = request.voice_settings.stability
+            if request.voice_settings.similarity_boost is not None:
+                settings_override["similarity_boost"] = request.voice_settings.similarity_boost
+            if request.voice_settings.speed is not None:
+                settings_override["speed"] = request.voice_settings.speed
+            if request.voice_settings.volume_adjustment is not None:
+                settings_override["volume_adjustment"] = request.voice_settings.volume_adjustment
+
+            if settings_override:
+                logger.info(f"🎛️ Voice settings override provided: {settings_override}")
+
+        # Generate audio with automatic settings (and optional override)
         logger.info(f"🎛️ Using voice settings: {voice.name}")
-        audio_bytes, voice_used = await voice_manager.generate_with_voice(
-            text=request.text, voice_id=request.voice_id, db=db
+        audio_bytes, voice_used, effective_settings = await voice_manager.generate_with_voice(
+            text=request.text,
+            voice_id=request.voice_id,
+            db=db,
+            settings_override=settings_override,
         )
 
         # Generate filename
@@ -174,12 +195,13 @@ async def generate_audio(
         duration = len(audio) / 1000.0  # milliseconds to seconds
         file_size = os.path.getsize(file_path)
 
-        # Apply volume adjustment if configured
-        if voice.volume_adjustment != 0:
+        # Apply volume adjustment if configured (use override if provided)
+        volume_adj = effective_settings.get("volume_adjustment", voice.volume_adjustment)
+        if volume_adj != 0:
             logger.info(
-                f"🔊 Applying volume adjustment: {voice.volume_adjustment} dB"
+                f"🔊 Applying volume adjustment: {volume_adj} dB"
             )
-            adjusted_audio = audio + voice.volume_adjustment
+            adjusted_audio = audio + volume_adj
             adjusted_audio.export(file_path, format="mp3", bitrate="192k")
             file_size = os.path.getsize(file_path)
 
@@ -245,7 +267,7 @@ async def generate_audio(
         # Get settings snapshot for storage
         settings_snapshot = voice_manager.get_voice_settings_snapshot(voice)
 
-        # Save to database
+        # Save to database (use effective settings for volume_adjustment)
         audio_message = AudioMessage(
             filename=filename,
             display_name=display_name,
@@ -256,7 +278,7 @@ async def generate_audio(
             original_text=request.text,
             voice_id=voice.id,
             voice_settings_snapshot=settings_snapshot,
-            volume_adjustment=voice.volume_adjustment,
+            volume_adjustment=effective_settings.get("volume_adjustment", voice.volume_adjustment),
             has_jingle=request.add_jingles,
             music_file=request.music_file,
             status="ready",
@@ -278,7 +300,7 @@ async def generate_audio(
         # Build audio URL (relative for frontend proxy)
         audio_url = f"/storage/audio/{filename}"
 
-        # Build response
+        # Build response (use effective_settings which includes any overrides)
         response = AudioGenerateResponse(
             audio_id=audio_message.id,
             filename=filename,
@@ -290,10 +312,11 @@ async def generate_audio(
             voice_id=voice.id,
             voice_name=voice.name,
             settings_applied={
-                "style": voice.style,
-                "stability": voice.stability,
-                "similarity_boost": voice.similarity_boost,
-                "volume_adjustment": voice.volume_adjustment,
+                "style": effective_settings.get("style", voice.style),
+                "stability": effective_settings.get("stability", voice.stability),
+                "similarity_boost": effective_settings.get("similarity_boost", voice.similarity_boost),
+                "speed": effective_settings.get("speed", voice.speed),
+                "volume_adjustment": effective_settings.get("volume_adjustment", voice.volume_adjustment),
             },
             created_at=audio_message.created_at,
         )

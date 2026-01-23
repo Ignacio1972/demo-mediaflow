@@ -12,7 +12,6 @@ from sqlalchemy.orm import selectinload
 from app.db.session import get_db
 from app.models.shortcut import Shortcut
 from app.models.audio import AudioMessage
-from app.core.config import settings
 from app.schemas.shortcut import (
     ShortcutCreate,
     ShortcutUpdate,
@@ -46,7 +45,7 @@ def serialize_shortcut(shortcut: Shortcut, include_audio: bool = True) -> dict:
             "filename": audio.filename,
             "display_name": audio.display_name,
             "duration": audio.duration,
-            "audio_url": f"{settings.API_URL}/api/v1/library/{audio.id}/stream",
+            "audio_url": f"/storage/audio/{audio.filename}",
         }
 
     return data

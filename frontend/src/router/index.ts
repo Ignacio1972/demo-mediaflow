@@ -8,6 +8,11 @@ const routes: RouteRecordRaw[] = [
     redirect: '/campaigns',
   },
   {
+    path: '/landing',
+    name: 'landing',
+    component: () => import('@/components/landing/LandingPage.vue'),
+  },
+  {
     path: '/dashboard',
     name: 'dashboard',
     component: () => import('@/components/dashboard/Dashboard.vue'),

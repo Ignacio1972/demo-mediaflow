@@ -1,5 +1,5 @@
 <template>
-  <div class="vehicle-announcement">
+  <div class="schedule-announcement">
     <!-- Header - hidden on mobile -->
     <div class="mb-10 hidden md:block">
       <!-- Back button -->
@@ -13,14 +13,14 @@
 
       <div class="flex items-center gap-3 mb-2">
         <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
-          <TruckIcon class="w-5 h-5 text-primary" />
+          <ClockIcon class="w-5 h-5 text-primary" />
         </div>
         <h1 class="text-3xl font-bold tracking-tight">
-          Vehículos Mal Estacionados
+          Horarios de Apertura y Cierre
         </h1>
       </div>
       <p class="text-base-content/50 ml-13">
-        Genera anuncios de audio con pronunciación correcta de patentes
+        Genera anuncios de audio para apertura y cierre del local
       </p>
     </div>
 
@@ -36,18 +36,17 @@
     <!-- Main content -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Left column: Form -->
-      <VehicleForm
-        v-model:marca="marca"
-        v-model:color="color"
-        v-model:platePart1="platePart1"
-        v-model:platePart2="platePart2"
-        v-model:platePart3="platePart3"
-        v-model:voiceId="voiceId"
-        v-model:numberMode="numberMode"
-        :brands="brands"
-        :colors="colors"
+      <ScheduleForm
+        v-model:schedule-type="scheduleType"
+        v-model:variant="variant"
+        v-model:minutes="minutes"
+        v-model:voice-id="voiceId"
+        :types="types"
+        :variants="variants"
+        :available-variants="availableVariants"
+        :minutes-options="minutesOptions"
         :voices="voices"
-        :plate-validation="plateValidation"
+        :show-minutes="showMinutes"
         :is-form-valid="isFormValid"
         :loading-voices="loadingVoices"
         :loading-generate="loadingGenerate"
@@ -75,30 +74,32 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { TruckIcon, ExclamationCircleIcon, ArrowLeftIcon } from '@heroicons/vue/24/outline'
-import VehicleForm from './components/VehicleForm.vue'
+import { ClockIcon, ExclamationCircleIcon, ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import ScheduleForm from './components/ScheduleForm.vue'
 import PreviewText from './components/PreviewText.vue'
 import AudioResult from './components/AudioResult.vue'
-import { useVehicleAnnouncement } from './composables/useVehicleAnnouncement'
+import { useScheduleAnnouncement } from './composables/useScheduleAnnouncement'
 
 const {
   // Form state
-  marca,
-  color,
-  platePart1,
-  platePart2,
-  platePart3,
+  scheduleType,
+  variant,
+  minutes,
   voiceId,
-  numberMode,
 
   // Options
-  brands,
-  colors,
+  types,
+  variants,
+  availableVariants,
+  minutesOptions,
   voices,
+
+  // Computed
+  showMinutes,
+  isFormValid,
 
   // Preview
   previewText,
-  plateValidation,
 
   // Generated audio
   generatedAudio,
@@ -111,17 +112,20 @@ const {
   // Error
   error,
 
-  // Computed
-  isFormValid,
-
   // Actions
   initialize,
   generateAnnouncement,
   resetForm
-} = useVehicleAnnouncement()
+} = useScheduleAnnouncement()
 
 // Initialize on mount
 onMounted(() => {
   initialize()
 })
 </script>
+
+<style scoped>
+.ml-13 {
+  margin-left: 3.25rem;
+}
+</style>

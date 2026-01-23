@@ -102,6 +102,147 @@
           </div>
         </div>
 
+        <!-- Advanced Options Toggle -->
+        <div class="flex items-center gap-3 mt-4">
+          <span class="text-lg">⚙️</span>
+          <span class="text-sm">Opciones avanzadas</span>
+          <input
+            type="checkbox"
+            v-model="showAdvancedOptions"
+            class="toggle toggle-sm toggle-primary"
+            :disabled="isLoading"
+          />
+        </div>
+
+        <!-- Collapsible Advanced Options -->
+        <div
+          class="overflow-hidden transition-all duration-300 ease-in-out"
+          :class="showAdvancedOptions ? 'max-h-[400px] opacity-100 mt-3' : 'max-h-0 opacity-0'"
+        >
+          <div class="bg-base-300/50 rounded-lg p-4 space-y-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs text-base-content/60">
+                Estos ajustes solo aplican a esta generación
+              </span>
+              <button
+                @click="resetToVoiceDefaults"
+                class="btn btn-xs btn-ghost gap-1"
+                :disabled="isLoading"
+              >
+                <ArrowPathIcon class="h-3 w-3" />
+                Restaurar
+              </button>
+            </div>
+
+            <!-- Style Slider -->
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Estilo</span>
+                <span class="label-text-alt">{{ advancedSettings.style.toFixed(0) }}%</span>
+              </label>
+              <input
+                type="range"
+                v-model.number="advancedSettings.style"
+                min="0"
+                max="100"
+                step="1"
+                class="range range-xs range-primary"
+                :disabled="isLoading"
+              />
+              <div class="flex justify-between text-xs text-base-content/50 px-1">
+                <span>Neutro</span>
+                <span>Expresivo</span>
+              </div>
+            </div>
+
+            <!-- Stability Slider -->
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Estabilidad</span>
+                <span class="label-text-alt">{{ advancedSettings.stability.toFixed(0) }}%</span>
+              </label>
+              <input
+                type="range"
+                v-model.number="advancedSettings.stability"
+                min="0"
+                max="100"
+                step="1"
+                class="range range-xs range-primary"
+                :disabled="isLoading"
+              />
+              <div class="flex justify-between text-xs text-base-content/50 px-1">
+                <span>Variable</span>
+                <span>Estable</span>
+              </div>
+            </div>
+
+            <!-- Similarity Boost Slider -->
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Similitud</span>
+                <span class="label-text-alt">{{ advancedSettings.similarity_boost.toFixed(0) }}%</span>
+              </label>
+              <input
+                type="range"
+                v-model.number="advancedSettings.similarity_boost"
+                min="0"
+                max="100"
+                step="1"
+                class="range range-xs range-primary"
+                :disabled="isLoading"
+              />
+              <div class="flex justify-between text-xs text-base-content/50 px-1">
+                <span>Menos</span>
+                <span>Más</span>
+              </div>
+            </div>
+
+            <!-- Speed Slider -->
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Velocidad</span>
+                <span class="label-text-alt">{{ advancedSettings.speed.toFixed(2) }}x</span>
+              </label>
+              <input
+                type="range"
+                v-model.number="advancedSettings.speed"
+                min="0.7"
+                max="1.2"
+                step="0.01"
+                class="range range-xs range-primary"
+                :disabled="isLoading"
+              />
+              <div class="flex justify-between text-xs text-base-content/50 px-1">
+                <span>0.7x</span>
+                <span>1.0x</span>
+                <span>1.2x</span>
+              </div>
+            </div>
+
+            <!-- Volume Adjustment Slider -->
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Volumen</span>
+                <span class="label-text-alt">{{ advancedSettings.volume_adjustment > 0 ? '+' : '' }}{{ advancedSettings.volume_adjustment.toFixed(0) }} dB</span>
+              </label>
+              <input
+                type="range"
+                v-model.number="advancedSettings.volume_adjustment"
+                min="-20"
+                max="20"
+                step="1"
+                class="range range-xs range-primary"
+                :disabled="isLoading"
+              />
+              <div class="flex justify-between text-xs text-base-content/50 px-1">
+                <span>-20 dB</span>
+                <span>0 dB</span>
+                <span>+20 dB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Error Display -->
         <div v-if="error" class="alert alert-error mt-4">
           <div class="flex items-center gap-2">
@@ -129,7 +270,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAudioStore } from '@/stores/audio'
 import { storeToRefs } from 'pinia'
-import { MicrophoneIcon, XCircleIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { MicrophoneIcon, XCircleIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 import { voicePhotos } from '@/assets/Characters'
 import type { Voice } from '@/types/audio'
 
@@ -153,6 +294,16 @@ const maxLength = 500
 const voiceIndex = ref(0)
 const musicIndex = ref(0)
 const addMusic = ref(false)
+
+// Advanced options state
+const showAdvancedOptions = ref(false)
+const advancedSettings = ref({
+  style: 0,
+  stability: 50,
+  similarity_boost: 75,
+  speed: 1.0,
+  volume_adjustment: 0,
+})
 
 // Computed
 const textLength = computed(() => messageText.value.length)
@@ -198,19 +349,49 @@ const clearError = () => {
   audioStore.clearError()
 }
 
+// Reset advanced settings to voice defaults
+const resetToVoiceDefaults = () => {
+  const voice = voices.value[voiceIndex.value]
+  if (voice) {
+    advancedSettings.value = {
+      style: voice.style ?? 0,
+      stability: voice.stability ?? 50,
+      similarity_boost: voice.similarity_boost ?? 75,
+      speed: voice.speed ?? 1.0,
+      volume_adjustment: voice.volume_adjustment ?? 0,
+    }
+    console.log('🔄 Advanced settings reset to voice defaults')
+  }
+}
+
 const handleGenerate = async () => {
   if (!canGenerate.value) return
 
   try {
     const hasMusic = selectedMusic.value !== ''
 
-    const response = await audioStore.generateAudio({
+    // Build request with optional voice settings override
+    const request: import('@/types/audio').AudioGenerateRequest = {
       text: messageText.value.trim(),
       voice_id: selectedVoiceId.value,
       add_jingles: hasMusic,
       music_file: hasMusic ? selectedMusic.value : undefined,
       priority: priority.value,
-    })
+    }
+
+    // Include voice settings if advanced options are enabled
+    if (showAdvancedOptions.value) {
+      request.voice_settings = {
+        style: advancedSettings.value.style,
+        stability: advancedSettings.value.stability,
+        similarity_boost: advancedSettings.value.similarity_boost,
+        speed: advancedSettings.value.speed,
+        volume_adjustment: advancedSettings.value.volume_adjustment,
+      }
+      console.log('🎛️ Using custom voice settings:', request.voice_settings)
+    }
+
+    const response = await audioStore.generateAudio(request)
 
     // Emit event
     emit('audioGenerated', response)
@@ -241,12 +422,22 @@ onMounted(async () => {
   }
 })
 
-// Sync voice index with selectedVoiceId
+// Sync voice index with selectedVoiceId and update advanced settings
 watch(voiceIndex, (index) => {
   const voice = voices.value[index]
   if (voice) {
     selectedVoiceId.value = voice.id
     audioStore.setSelectedVoice(voice)
+
+    // Update advanced settings to match the new voice's defaults (with fallbacks)
+    advancedSettings.value = {
+      style: voice.style ?? 0,
+      stability: voice.stability ?? 50,
+      similarity_boost: voice.similarity_boost ?? 75,
+      speed: voice.speed ?? 1.0,
+      volume_adjustment: voice.volume_adjustment ?? 0,
+    }
+    console.log('🎛️ Advanced settings synced with voice:', voice.name)
   }
 })
 
@@ -276,6 +467,16 @@ watch(voices, (newVoices) => {
     voiceIndex.value = defaultIndex >= 0 ? defaultIndex : 0
     selectedVoiceId.value = defaultVoice.id
     audioStore.setSelectedVoice(defaultVoice)
+
+    // Initialize advanced settings with default voice's values (with fallbacks)
+    advancedSettings.value = {
+      style: defaultVoice.style ?? 0,
+      stability: defaultVoice.stability ?? 50,
+      similarity_boost: defaultVoice.similarity_boost ?? 75,
+      speed: defaultVoice.speed ?? 1.0,
+      volume_adjustment: defaultVoice.volume_adjustment ?? 0,
+    }
+    console.log('🎛️ Advanced settings initialized from default voice')
   }
 }, { immediate: true })
 

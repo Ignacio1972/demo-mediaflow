@@ -61,7 +61,7 @@ function onDragEnd(event: DragEvent) {
 
 <template>
   <div
-    class="group relative bg-base-100 border-2 rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden"
+    class="group relative bg-base-100 border-2 rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden"
     :class="[
       isDragging
         ? 'opacity-50 scale-95 border-primary'
@@ -83,28 +83,28 @@ function onDragEnd(event: DragEvent) {
     ></div>
 
     <!-- Content -->
-    <div class="relative p-8 flex flex-col items-center text-center">
+    <div class="relative p-4 md:p-8 flex flex-col items-center text-center">
       <!-- Icon Container -->
-      <div class="relative mb-5">
+      <div class="relative mb-2 md:mb-5">
         <!-- Icon background -->
         <div
-          class="flex items-center justify-center w-20 h-20 bg-base-200 group-hover:bg-base-100 rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
+          class="flex items-center justify-center w-12 h-12 md:w-20 md:h-20 bg-base-200 group-hover:bg-base-100 rounded-xl md:rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
         >
           <DynamicIcon
             :name="campaign.icon"
             fallback="Folder"
-            class="w-10 h-10 transition-transform duration-300 group-hover:scale-110"
+            class="w-6 h-6 md:w-10 md:h-10 transition-transform duration-300 group-hover:scale-110"
           />
         </div>
       </div>
 
       <!-- Name -->
-      <h3 class="font-semibold text-base leading-tight mb-1 line-clamp-2">
+      <h3 class="font-semibold text-xs md:text-base leading-tight mb-0.5 md:mb-1 line-clamp-2">
         {{ campaign.name }}
       </h3>
 
       <!-- Subtitle / Meta -->
-      <p class="text-xs text-base-content/50">
+      <p class="text-[10px] md:text-xs text-base-content/50">
         {{ campaign.audio_count === 0 ? 'Sin audios' : `${campaign.audio_count} audio${campaign.audio_count !== 1 ? 's' : ''}` }}
       </p>
     </div>

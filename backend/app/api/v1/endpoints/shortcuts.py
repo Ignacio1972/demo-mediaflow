@@ -11,7 +11,6 @@ from sqlalchemy.orm import selectinload
 from app.db.session import get_db
 from app.models.shortcut import Shortcut
 from app.models.audio import AudioMessage
-from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ def serialize_shortcut_public(shortcut: Shortcut) -> dict:
         "custom_icon": shortcut.custom_icon,
         "custom_color": shortcut.custom_color,
         "position": shortcut.position,
-        "audio_url": f"{settings.API_URL}/api/v1/library/{audio.id}/stream" if audio else None,
+        "audio_url": f"/storage/audio/{audio.filename}" if audio else None,
         "duration": audio.duration if audio else None,
     }
 

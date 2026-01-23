@@ -2,8 +2,17 @@
   <header class="sticky top-0 z-50 bg-base-200 shadow-lg">
     <div class="container mx-auto px-4 py-4 max-w-[1600px]">
       <div class="flex items-center justify-between gap-3">
-        <!-- Left: Burger Menu -->
+        <!-- Left: Home (mobile) or Burger Menu (desktop) -->
         <button
+          v-if="isMobile"
+          @click="goToLanding"
+          class="btn btn-ghost btn-square"
+          aria-label="Ir a inicio"
+        >
+          <HomeIcon class="h-6 w-6" />
+        </button>
+        <button
+          v-else
           @click="openSidebar"
           class="btn btn-ghost btn-square"
           aria-label="Abrir menú"
@@ -94,7 +103,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, markRaw, type Component } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   Bars3Icon,
   XMarkIcon,
@@ -124,9 +133,21 @@ interface ThemeOption {
 }
 
 const route = useRoute()
+const router = useRouter()
+
+// Mobile detection
+const isMobile = ref(false)
+const checkMobile = () => {
+  isMobile.value = window.matchMedia('(max-width: 768px)').matches
+}
+
+const goToLanding = () => {
+  router.push('/landing')
+}
 
 // Menu items
 const menuItems: MenuItem[] = [
+  { path: '/landing', label: 'Landing', icon: markRaw(DevicePhoneMobileIcon) },
   { path: '/campaigns', label: 'Campañas', icon: markRaw(HomeIcon) },
   { path: '/library', label: 'Biblioteca', icon: markRaw(BookOpenIcon) },
   { path: '/dashboard', label: 'Crear', icon: markRaw(MegaphoneIcon) },
@@ -193,10 +214,14 @@ onMounted(() => {
   // Initialize theme from localStorage
   const savedTheme = localStorage.getItem('theme') || 'nexus'
   changeTheme(savedTheme)
+  // Mobile detection
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscape)
+  window.removeEventListener('resize', checkMobile)
   document.body.style.overflow = ''
 })
 

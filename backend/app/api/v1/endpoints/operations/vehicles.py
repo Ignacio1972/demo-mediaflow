@@ -109,23 +109,35 @@ async def get_options(db: AsyncSession = Depends(get_db)):
     )
     db_templates = result.scalars().all()
 
-    # Convert to TemplateInfo format
+    # Convert to TemplateInfo format and find default
     templates = []
+    default_template_id = None
     for t in db_templates:
         templates.append({
             "id": t.id,
             "name": t.name,
-            "description": t.description or ""
+            "description": t.description or "",
+            "is_default": t.is_default
         })
+        if t.is_default:
+            default_template_id = t.id
 
     # Fallback to hardcoded templates if no database templates exist
     if not templates:
-        templates = text_normalizer.get_available_templates()
+        hardcoded = text_normalizer.get_available_templates()
+        for t in hardcoded:
+            t["is_default"] = t["id"] == "default"
+        templates = hardcoded
+        default_template_id = "default"
+    elif not default_template_id and templates:
+        # If no default set, use the first template
+        default_template_id = templates[0]["id"]
 
     return OperationsOptionsResponse(
         brands=[VehicleBrand(**b) for b in COMMON_BRANDS],
         colors=[VehicleColor(**c) for c in COMMON_COLORS],
-        templates=[TemplateInfo(**t) for t in templates]
+        templates=[TemplateInfo(**t) for t in templates],
+        default_template_id=default_template_id
     )
 
 
@@ -294,7 +306,7 @@ async def generate_vehicle_announcement(
         logger.info(f"Normalized text: {normalized_text[:100]}...")
 
         # Generate TTS audio with the normalized text
-        audio_bytes, voice_used = await voice_manager.generate_with_voice(
+        audio_bytes, voice_used, _ = await voice_manager.generate_with_voice(
             text=normalized_text,
             voice_id=request.voice_id,
             db=db,

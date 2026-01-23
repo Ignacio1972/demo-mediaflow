@@ -7,6 +7,41 @@ from typing import Optional, Dict
 from datetime import datetime
 
 
+class VoiceSettingsOverride(BaseModel):
+    """Optional voice settings override for advanced users (Dashboard)"""
+
+    style: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="Style setting (0-100). If not provided, uses voice default.",
+    )
+    stability: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="Stability setting (0-100). If not provided, uses voice default.",
+    )
+    similarity_boost: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="Similarity boost (0-100). If not provided, uses voice default.",
+    )
+    speed: Optional[float] = Field(
+        default=None,
+        ge=0.7,
+        le=1.2,
+        description="Speed (0.7-1.2). If not provided, uses voice default.",
+    )
+    volume_adjustment: Optional[float] = Field(
+        default=None,
+        ge=-20,
+        le=20,
+        description="Volume adjustment in dB (-20 to +20). If not provided, uses voice default.",
+    )
+
+
 class AudioGenerateRequest(BaseModel):
     """Request schema for audio generation - v2.1 (simplified)"""
 
@@ -48,6 +83,14 @@ class AudioGenerateRequest(BaseModel):
     category_id: Optional[str] = Field(
         default=None,
         description="Category/Campaign ID to assign on generation",
+    )
+
+    # Optional voice settings override (for advanced users in Dashboard)
+    # These are ephemeral - only used for this generation, not saved
+    voice_settings: Optional[VoiceSettingsOverride] = Field(
+        default=None,
+        description="Optional voice settings override. If provided, these values "
+                    "override the voice defaults for THIS generation only.",
     )
 
     @field_validator("text")
@@ -136,6 +179,7 @@ class VoiceResponse(BaseModel):
     stability: float = Field(..., description="Stability setting (0-100)")
     similarity_boost: float = Field(..., description="Similarity boost (0-100)")
     use_speaker_boost: bool = Field(..., description="Use speaker boost")
+    speed: float = Field(..., description="Speed setting (0.7-1.2)")
 
     # Volume adjustment
     volume_adjustment: float = Field(..., description="Volume adjustment in dB")
