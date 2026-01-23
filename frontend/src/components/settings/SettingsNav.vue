@@ -61,6 +61,16 @@
           <DocumentTextIcon class="h-5 w-5" />
           <span class="hidden sm:inline">Plantillas</span>
         </router-link>
+
+        <!-- Shortcuts -->
+        <router-link
+          to="/settings/shortcuts"
+          class="settings-nav-link"
+          :class="{ 'active': isActive('/settings/shortcuts') }"
+        >
+          <BoltIcon class="h-5 w-5" />
+          <span class="hidden sm:inline">Shortcuts</span>
+        </router-link>
       </div>
     </div>
   </nav>
@@ -75,6 +85,7 @@ import {
   FolderIcon,
   BoltIcon,
   DocumentTextIcon,
+  BoltIcon as ShortcutIcon,
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()

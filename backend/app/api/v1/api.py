@@ -3,7 +3,7 @@ API v1 Router
 Aggregates all API v1 endpoints
 """
 from fastapi import APIRouter
-from app.api.v1.endpoints import audio, ai, library, categories, schedules, campaigns
+from app.api.v1.endpoints import audio, ai, library, categories, schedules, campaigns, shortcuts
 from app.api.v1.endpoints.settings import router as settings_router
 from app.api.v1.endpoints.operations import router as operations_router
 
@@ -63,6 +63,13 @@ api_router.include_router(
     campaigns.router,
     prefix="/campaigns",
     tags=["campaigns"]
+)
+
+# Include shortcuts public endpoints (mobile page)
+api_router.include_router(
+    shortcuts.router,
+    prefix="/shortcuts",
+    tags=["shortcuts"]
 )
 
 # Future routers will be added here:

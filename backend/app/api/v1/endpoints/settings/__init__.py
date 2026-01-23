@@ -11,6 +11,7 @@ from app.api.v1.endpoints.settings.automatic import router as automatic_router
 from app.api.v1.endpoints.settings.playroom import router as playroom_router
 from app.api.v1.endpoints.settings.ai_clients import router as ai_clients_router
 from app.api.v1.endpoints.settings.templates import router as templates_router
+from app.api.v1.endpoints.settings.shortcuts import router as shortcuts_router
 
 router = APIRouter()
 
@@ -22,3 +23,4 @@ router.include_router(automatic_router)
 router.include_router(playroom_router)
 router.include_router(ai_clients_router)
 router.include_router(templates_router)
+router.include_router(shortcuts_router)

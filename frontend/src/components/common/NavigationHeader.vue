@@ -16,16 +16,9 @@
           to="/campaigns"
           class="flex items-center hover:opacity-80 transition-opacity"
         >
-          <div class="flex flex-col items-center md:items-start">
-            <img
-              src="/images/Cencosud_logo.svg.png"
-              alt="Cencosud"
-              class="h-12 md:h-16 w-auto object-contain"
-            />
-            <span class="text-xs md:text-sm text-base-content/60 mt-1">
-              Powered by <span class="text-primary font-medium">Media</span><span class="text-base-content font-medium">flow</span>
-            </span>
-          </div>
+          <span class="text-xl md:text-2xl font-semibold tracking-tight">
+            <span style="color: #00adef">Media</span><span class="text-base-content">Flow</span>
+          </span>
         </router-link>
 
         <!-- Spacer -->
@@ -66,13 +59,9 @@
     >
       <!-- Sidebar Header -->
       <div class="flex items-center justify-between p-4 border-b border-base-300">
-        <div class="flex flex-col">
-          <img
-            src="/images/Cencosud_logo.svg.png"
-            alt="Cencosud"
-            class="h-12 w-auto object-contain"
-          />
-        </div>
+        <span class="text-xl font-semibold tracking-tight">
+          <span style="color: #00adef">Media</span><span class="text-base-content">Flow</span>
+        </span>
         <button
           @click="closeSidebar"
           class="btn btn-ghost btn-sm btn-square"
@@ -117,6 +106,7 @@ import {
   RocketLaunchIcon,
   DevicePhoneMobileIcon,
   MusicalNoteIcon,
+  BoltIcon,
   MoonIcon,
   SunIcon
 } from '@heroicons/vue/24/outline'
@@ -143,6 +133,7 @@ const menuItems: MenuItem[] = [
   { path: '/calendar', label: 'Calendario', icon: markRaw(CalendarIcon) },
   { path: '/music', label: 'Música', icon: markRaw(MusicalNoteIcon) },
   { path: '/operations', label: 'Operaciones', icon: markRaw(RocketLaunchIcon) },
+  { path: '/shortcuts', label: 'Shortcuts', icon: markRaw(BoltIcon) },
   { path: '/mobile', label: 'Mobile', icon: markRaw(DevicePhoneMobileIcon) },
   { path: '/settings', label: 'Configuración', icon: markRaw(CogIcon) },
 ]

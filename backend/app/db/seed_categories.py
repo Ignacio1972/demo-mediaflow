@@ -86,6 +86,14 @@ DEFAULT_CATEGORIES = [
         "order": 7,
         "active": True,
     },
+    {
+        "id": "shortcuts",
+        "name": "Accesos Directos",
+        "icon": "⚡",
+        "color": "#10B981",  # Emerald
+        "order": 99,
+        "active": True,
+    },
 ]
 
 

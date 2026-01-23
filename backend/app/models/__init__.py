@@ -12,6 +12,7 @@ from app.models.client_config import ClientConfig
 from app.models.music_track import MusicTrack
 from app.models.ai_client import AIClient
 from app.models.message_template import MessageTemplate
+from app.models.shortcut import Shortcut
 
 __all__ = [
     "Base",
@@ -25,4 +26,5 @@ __all__ = [
     "MusicTrack",
     "AIClient",
     "MessageTemplate",
+    "Shortcut",
 ]

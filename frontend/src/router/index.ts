@@ -48,9 +48,19 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/components/operations/vehicles/VehicleAnnouncement.vue'),
   },
   {
+    path: '/operations/schedules',
+    name: 'operations-schedules',
+    component: () => import('@/components/operations/schedules/ScheduleAnnouncement.vue'),
+  },
+  {
     path: '/mobile',
     name: 'mobile',
     component: () => import('@/components/mobile/MobilePage.vue'),
+  },
+  {
+    path: '/shortcuts',
+    name: 'shortcuts',
+    component: () => import('@/components/shortcuts/ShortcutsPage.vue'),
   },
   {
     path: '/settings',
@@ -86,6 +96,11 @@ const routes: RouteRecordRaw[] = [
         path: 'templates',
         name: 'settings-templates',
         component: () => import('@/components/settings/templates/TemplateManager.vue'),
+      },
+      {
+        path: 'shortcuts',
+        name: 'settings-shortcuts',
+        component: () => import('@/components/settings/shortcuts/ShortcutManager.vue'),
       },
     ],
   },
