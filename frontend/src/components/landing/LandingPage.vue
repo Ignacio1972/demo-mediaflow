@@ -101,9 +101,9 @@ const defaultItems: MenuItem[] = [
     color: '#3B82F6'
   },
   {
-    id: 'ia',
-    path: '/mobile',
-    label: 'IA',
+    id: 'playroom',
+    path: '/playroom',
+    label: 'Playroom',
     icon: SparklesIcon,
     color: '#3B82F6'
   },

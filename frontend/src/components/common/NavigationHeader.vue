@@ -9,7 +9,7 @@
           class="btn btn-ghost btn-square"
           aria-label="Ir a inicio"
         >
-          <HomeIcon class="h-6 w-6" />
+          <HomeIcon class="h-8 w-8" />
         </button>
         <button
           v-else
@@ -20,9 +20,9 @@
           <Bars3Icon class="h-6 w-6" />
         </button>
 
-        <!-- Logo / Title - Centered on mobile -->
+        <!-- Logo / Title -->
         <router-link
-          to="/campaigns"
+          :to="isMobile ? '/landing' : '/campaigns'"
           class="flex items-center hover:opacity-80 transition-opacity"
         >
           <span class="text-xl md:text-2xl font-semibold tracking-tight">
@@ -104,6 +104,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, markRaw, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { isMobileDevice } from '@/composables/useMobileDevice'
 import {
   Bars3Icon,
   XMarkIcon,
@@ -135,11 +136,8 @@ interface ThemeOption {
 const route = useRoute()
 const router = useRouter()
 
-// Mobile detection
-const isMobile = ref(false)
-const checkMobile = () => {
-  isMobile.value = window.matchMedia('(max-width: 768px)').matches
-}
+// Mobile detection (User-Agent based, not viewport)
+const isMobile = isMobileDevice()
 
 const goToLanding = () => {
   router.push('/landing')
@@ -155,7 +153,7 @@ const menuItems: MenuItem[] = [
   { path: '/music', label: 'Música', icon: markRaw(MusicalNoteIcon) },
   { path: '/operations', label: 'Operaciones', icon: markRaw(RocketLaunchIcon) },
   { path: '/shortcuts', label: 'Shortcuts', icon: markRaw(BoltIcon) },
-  { path: '/mobile', label: 'Mobile', icon: markRaw(DevicePhoneMobileIcon) },
+  { path: '/playroom', label: 'Playroom', icon: markRaw(DevicePhoneMobileIcon) },
   { path: '/settings', label: 'Configuración', icon: markRaw(CogIcon) },
 ]
 
@@ -214,14 +212,10 @@ onMounted(() => {
   // Initialize theme from localStorage
   const savedTheme = localStorage.getItem('theme') || 'nexus'
   changeTheme(savedTheme)
-  // Mobile detection
-  checkMobile()
-  window.addEventListener('resize', checkMobile)
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscape)
-  window.removeEventListener('resize', checkMobile)
   document.body.style.overflow = ''
 })
 
