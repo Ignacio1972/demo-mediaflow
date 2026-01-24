@@ -10,8 +10,8 @@
       @error="handleAudioError"
     />
 
-    <!-- Header -->
-    <div class="bg-base-200 border-b border-base-300">
+    <!-- Header (hidden on mobile) -->
+    <div class="hidden md:block bg-base-200 border-b border-base-300">
       <div class="container mx-auto px-4 py-6 max-w-lg md:max-w-xl">
         <h1 class="text-2xl font-bold text-base-content">Música</h1>
         <p class="text-base-content/60 mt-1">Control de radio MediaFlow</p>

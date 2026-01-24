@@ -2,10 +2,10 @@
   <div class="vehicle-form">
     <div class="card bg-base-100 border-2 border-base-300 rounded-2xl shadow-sm">
       <div class="card-body p-6">
-        <!-- Header -->
-        <div class="mb-6">
+        <!-- Header (hidden on mobile) -->
+        <div class="hidden md:block mb-6">
           <h2 class="text-xl font-bold tracking-tight">Datos del Vehículo</h2>
-          <p class="text-sm text-base-content/50 mt-1 hidden md:block">Ingresa la información para generar el anuncio</p>
+          <p class="text-sm text-base-content/50 mt-1">Ingresa la información para generar el anuncio</p>
         </div>
 
         <!-- Marca -->
