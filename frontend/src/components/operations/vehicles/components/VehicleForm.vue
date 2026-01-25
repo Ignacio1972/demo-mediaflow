@@ -47,7 +47,6 @@
         <div class="space-y-2 mb-5">
           <div class="flex items-center justify-between">
             <label class="text-sm font-medium">Patente</label>
-            <span class="text-xs text-base-content/40">Formato: XX.XX.XX</span>
           </div>
           <div class="flex items-center gap-3">
             <!-- Part 1 -->
@@ -97,18 +96,6 @@
               maxlength="2"
             />
           </div>
-          <!-- Plate validation feedback -->
-          <div v-if="plateValidation" class="pt-1">
-            <p v-if="plateValidation.valid" class="text-xs text-success">
-              {{ plateValidation.pronunciation }}
-            </p>
-            <p v-else class="text-xs text-error">
-              {{ plateValidation.error }}
-            </p>
-          </div>
-          <p v-if="plateValidation?.warning" class="text-xs text-warning">
-            {{ plateValidation.warning }}
-          </p>
         </div>
 
         <!-- Voz - hidden on mobile (uses default voice) -->

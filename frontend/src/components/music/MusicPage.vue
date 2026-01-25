@@ -79,8 +79,14 @@
               <PlayIcon v-else class="w-6 h-6" />
             </button>
             <!-- Skip/Forward Button -->
-            <button class="btn btn-circle btn-lg btn-outline" disabled title="No disponible en stream">
-              <ForwardIcon class="w-6 h-6" />
+            <button
+              @click="skipSong"
+              class="btn btn-circle btn-lg btn-outline"
+              :disabled="isSkipping"
+              title="Saltar canción"
+            >
+              <span v-if="isSkipping" class="loading loading-spinner"></span>
+              <ForwardIcon v-else class="w-6 h-6" />
             </button>
           </div>
 
@@ -190,6 +196,7 @@ import {
   BoltIcon,
   FireIcon
 } from '@heroicons/vue/24/outline'
+import apiClient from '@/api/client'
 
 // Constants
 const STREAM_URL = 'https://radio.mediaflow.cl/listen/mediaflow/radio.mp3'
@@ -201,6 +208,7 @@ const audioRef = ref<HTMLAudioElement | null>(null)
 // Player state
 const isPlaying = ref(false)
 const isLoading = ref(false)
+const isSkipping = ref(false)
 const volume = ref(70)
 const isMuted = ref(false)
 const currentRating = ref<'up' | 'down' | null>(null)
@@ -245,6 +253,20 @@ const togglePlay = async () => {
     } finally {
       isLoading.value = false
     }
+  }
+}
+
+// Skip song
+const skipSong = async () => {
+  isSkipping.value = true
+  try {
+    await apiClient.post('/api/v1/radio/skip')
+    // Fetch new now playing info after skip
+    setTimeout(fetchNowPlaying, 1000)
+  } catch (error) {
+    console.error('Error skipping song:', error)
+  } finally {
+    isSkipping.value = false
   }
 }
 

@@ -295,6 +295,44 @@ class AzuraCastClient:
             logger.error(f"Error getting now playing: {e}")
             return None
 
+    async def skip_song(self) -> dict:
+        """
+        Skip the currently playing song.
+
+        Calls the Azuracast backend action API to skip to the next track.
+
+        Returns:
+            Dict with success status and message
+        """
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    f"{self.base_url}/api/station/{self.station_id}/backend/skip",
+                    headers=self.headers,
+                )
+
+                if response.status_code == 200:
+                    logger.info("Skip command sent successfully")
+                    return {
+                        "success": True,
+                        "message": "Song skipped successfully"
+                    }
+                else:
+                    error_msg = f"Skip failed: HTTP {response.status_code}"
+                    logger.error(f"{error_msg} - {response.text}")
+                    return {
+                        "success": False,
+                        "message": error_msg,
+                        "error": response.text
+                    }
+        except Exception as e:
+            error_msg = f"Skip error: {str(e)}"
+            logger.error(error_msg, exc_info=True)
+            return {
+                "success": False,
+                "message": error_msg
+            }
+
 
 # Singleton instance
 azuracast_client = AzuraCastClient()
