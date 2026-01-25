@@ -148,6 +148,23 @@
               </span>
             </label>
           </div>
+
+          <!-- Announcement Sound Toggle -->
+          <div class="form-control">
+            <label class="label cursor-pointer justify-start gap-4">
+              <input
+                type="checkbox"
+                v-model="localTemplate.use_announcement_sound"
+                class="toggle toggle-warning"
+              />
+              <div>
+                <span class="label-text">Sonido de anuncio</span>
+                <p class="text-xs text-base-content/50 mt-0.5">
+                  Agrega sonido de intro y outro al mensaje (sin musica de fondo)
+                </p>
+              </div>
+            </label>
+          </div>
         </div>
 
         <!-- Actions -->
@@ -270,6 +287,7 @@ const handleSave = () => {
     module: localTemplate.value.module,
     active: localTemplate.value.active,
     is_default: localTemplate.value.is_default,
+    use_announcement_sound: localTemplate.value.use_announcement_sound,
   }
 
   emit('save', updates)

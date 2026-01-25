@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     STORAGE_PATH: str = "/app/storage"
     AUDIO_PATH: str = "/app/storage/audio"
     MUSIC_PATH: str = "/app/storage/music"
+    SOUNDS_PATH: str = "/app/storage/sounds"
     TEMP_PATH: str = "/app/storage/temp"
     MAX_UPLOAD_SIZE: int = 52428800  # 50MB
 

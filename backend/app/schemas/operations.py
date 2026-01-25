@@ -53,6 +53,10 @@ class VehicleAnnouncementRequest(BaseModel):
         NumberMode.WORDS,
         description="How to pronounce plate numbers"
     )
+    use_announcement_sound: Optional[bool] = Field(
+        None,
+        description="Override template's announcement sound setting. If None, uses template default."
+    )
 
 
 class PlateInfo(BaseModel):
@@ -127,6 +131,10 @@ class TextPreviewResponse(BaseModel):
     )
     plate_info: PlateInfo
     components: AnnouncementComponents
+    use_announcement_sound: bool = Field(
+        False,
+        description="Whether this template uses intro/outro announcement sounds"
+    )
 
 
 # ============================================
@@ -237,6 +245,10 @@ class ScheduleAnnouncementRequest(BaseModel):
         None,
         description="Background music filename (optional)"
     )
+    use_announcement_sound: Optional[bool] = Field(
+        None,
+        description="Override template's announcement sound setting. If None, uses template default."
+    )
 
 
 class SchedulePreviewRequest(BaseModel):
@@ -252,6 +264,10 @@ class SchedulePreviewResponse(BaseModel):
     schedule_type: str
     variant: str
     minutes: Optional[int] = None
+    use_announcement_sound: bool = Field(
+        False,
+        description="Whether this template uses intro/outro announcement sounds"
+    )
 
 
 class ScheduleAnnouncementResponse(BaseModel):

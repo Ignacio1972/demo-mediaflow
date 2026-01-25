@@ -36,6 +36,7 @@ export interface PreviewResponse {
   schedule_type: string
   variant: string
   minutes: number | null
+  use_announcement_sound: boolean
 }
 
 export interface GenerateResponse {
@@ -60,11 +61,12 @@ export interface Voice {
 
 // Composable
 export function useScheduleAnnouncement() {
-  // Form state
+  // Form state - Always closing, default to "in_minutes" variant
   const scheduleType = ref<ScheduleType>('closing')
-  const variant = ref<ScheduleVariant>('normal')
+  const variant = ref<ScheduleVariant>('in_minutes')
   const minutes = ref<number>(15)
   const voiceId = ref('')
+  const useAnnouncementSound = ref(false) // Will sync with template default
 
   // Options data
   const types = ref<ScheduleTypeOption[]>([])
@@ -102,15 +104,11 @@ export function useScheduleAnnouncement() {
 
   // Check if minutes selector should be shown
   const showMinutes = computed(() => {
-    return scheduleType.value === 'closing' && variant.value === 'in_minutes'
+    return variant.value === 'in_minutes'
   })
 
-  // Get available variants based on schedule type
+  // Get available variants (only closing variants)
   const availableVariants = computed(() => {
-    if (scheduleType.value === 'opening') {
-      // Opening doesn't support "in_minutes"
-      return variants.value.filter(v => v.id !== 'in_minutes')
-    }
     return variants.value
   })
 
@@ -183,6 +181,10 @@ export function useScheduleAnnouncement() {
         payload
       )
       previewText.value = response
+      // Sync announcement sound toggle with template default (only on first load)
+      if (previewText.value && !generatedAudio.value) {
+        useAnnouncementSound.value = response.use_announcement_sound
+      }
     } catch (e: any) {
       console.error('Error generating preview:', e)
       error.value = 'Error generando vista previa'
@@ -210,6 +212,7 @@ export function useScheduleAnnouncement() {
         variant: variant.value,
         voice_id: voiceId.value,
         music_file: null,
+        use_announcement_sound: useAnnouncementSound.value,
       }
 
       if (showMinutes.value) {
@@ -239,8 +242,9 @@ export function useScheduleAnnouncement() {
    */
   function resetForm() {
     scheduleType.value = 'closing'
-    variant.value = 'normal'
+    variant.value = 'in_minutes'
     minutes.value = 15
+    useAnnouncementSound.value = false
     previewText.value = null
     generatedAudio.value = null
     error.value = null
@@ -261,7 +265,7 @@ export function useScheduleAnnouncement() {
   // Watch form fields to update preview
   let previewTimeout: ReturnType<typeof setTimeout> | null = null
   watch(
-    [scheduleType, variant, minutes],
+    [variant, minutes],
     () => {
       if (previewTimeout) {
         clearTimeout(previewTimeout)
@@ -272,19 +276,13 @@ export function useScheduleAnnouncement() {
     }
   )
 
-  // Reset variant if it becomes invalid for new schedule type
-  watch(scheduleType, (newType) => {
-    if (newType === 'opening' && variant.value === 'in_minutes') {
-      variant.value = 'normal'
-    }
-  })
-
   return {
     // Form state
     scheduleType,
     variant,
     minutes,
     voiceId,
+    useAnnouncementSound,
 
     // Options
     types,

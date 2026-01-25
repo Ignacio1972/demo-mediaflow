@@ -71,6 +71,13 @@
                     Default
                   </span>
                   <span
+                    v-if="template.use_announcement_sound"
+                    class="badge badge-warning badge-xs"
+                    title="Sonido de anuncio activado"
+                  >
+                    Anuncio
+                  </span>
+                  <span
                     v-if="!template.active"
                     class="badge badge-ghost badge-xs"
                   >

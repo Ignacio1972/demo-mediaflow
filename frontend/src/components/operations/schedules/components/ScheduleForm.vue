@@ -2,9 +2,7 @@
 import { computed } from 'vue'
 import { ClockIcon } from '@heroicons/vue/24/outline'
 import type {
-  ScheduleType,
   ScheduleVariant,
-  ScheduleTypeOption,
   ScheduleVariantOption,
   MinutesOption,
   Voice
@@ -12,12 +10,10 @@ import type {
 
 // Props
 const props = defineProps<{
-  scheduleType: ScheduleType
   variant: ScheduleVariant
   minutes: number
   voiceId: string
-  types: ScheduleTypeOption[]
-  variants: ScheduleVariantOption[]
+  useAnnouncementSound: boolean
   availableVariants: ScheduleVariantOption[]
   minutesOptions: MinutesOption[]
   voices: Voice[]
@@ -29,19 +25,14 @@ const props = defineProps<{
 
 // Emits
 const emit = defineEmits<{
-  'update:scheduleType': [value: ScheduleType]
   'update:variant': [value: ScheduleVariant]
   'update:minutes': [value: number]
   'update:voiceId': [value: string]
+  'update:useAnnouncementSound': [value: boolean]
   'generate': []
 }>()
 
 // v-model computed properties
-const scheduleTypeModel = computed({
-  get: () => props.scheduleType,
-  set: (value) => emit('update:scheduleType', value)
-})
-
 const variantModel = computed({
   get: () => props.variant,
   set: (value) => emit('update:variant', value)
@@ -55,6 +46,11 @@ const minutesModel = computed({
 const voiceModel = computed({
   get: () => props.voiceId,
   set: (value) => emit('update:voiceId', value)
+})
+
+const useAnnouncementSoundModel = computed({
+  get: () => props.useAnnouncementSound,
+  set: (value) => emit('update:useAnnouncementSound', value)
 })
 
 function handleGenerate() {
@@ -71,32 +67,8 @@ function handleGenerate() {
           <ClockIcon class="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h2 class="text-lg font-semibold">Configuración</h2>
-          <p class="text-sm text-base-content/50">Selecciona el tipo de anuncio</p>
-        </div>
-      </div>
-
-      <!-- Schedule Type -->
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text font-medium">Tipo de Anuncio</span>
-        </label>
-        <div class="grid grid-cols-2 gap-3">
-          <button
-            v-for="type in types"
-            :key="type.id"
-            type="button"
-            class="btn h-auto py-4 flex flex-col gap-1"
-            :class="[
-              scheduleTypeModel === type.id
-                ? 'btn-primary'
-                : 'btn-ghost bg-base-100 border-2 border-base-300 hover:border-primary/50'
-            ]"
-            @click="scheduleTypeModel = type.id"
-          >
-            <span class="text-2xl">{{ type.id === 'opening' ? '🌅' : '🌙' }}</span>
-            <span class="font-medium">{{ type.name }}</span>
-          </button>
+          <h2 class="text-lg font-semibold">Anuncio de Cierre</h2>
+          <p class="text-sm text-base-content/50">Selecciona la variante del mensaje</p>
         </div>
       </div>
 
@@ -161,6 +133,23 @@ function handleGenerate() {
         </select>
       </div>
 
+      <!-- Announcement Sound Toggle (Desktop) -->
+      <div class="form-control hidden md:block">
+        <label class="label cursor-pointer justify-start gap-4 py-3 px-4 bg-base-100 rounded-xl border border-base-300 hover:border-warning/30 transition-all">
+          <input
+            type="checkbox"
+            v-model="useAnnouncementSoundModel"
+            class="toggle toggle-warning"
+          />
+          <div>
+            <span class="label-text font-medium">Sonido de anuncio</span>
+            <p class="text-xs text-base-content/50 mt-0.5">
+              Agrega sonido de intro y outro al mensaje
+            </p>
+          </div>
+        </label>
+      </div>
+
       <!-- Generate Button -->
       <button
         type="button"
@@ -177,6 +166,21 @@ function handleGenerate() {
           Generar Audio
         </template>
       </button>
+
+      <!-- Announcement Sound Toggle (Mobile) -->
+      <label class="label cursor-pointer justify-start gap-4 py-3 px-4 mt-4 bg-base-100 rounded-xl border border-base-300 md:hidden">
+        <input
+          type="checkbox"
+          v-model="useAnnouncementSoundModel"
+          class="toggle toggle-warning"
+        />
+        <div>
+          <span class="label-text font-medium">Sonido de anuncio</span>
+          <p class="text-xs text-base-content/50 mt-0.5">
+            Agrega sonido de intro y outro
+          </p>
+        </div>
+      </label>
     </div>
   </div>
 </template>

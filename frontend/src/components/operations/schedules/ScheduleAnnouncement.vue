@@ -16,11 +16,11 @@
           <ClockIcon class="w-5 h-5 text-primary" />
         </div>
         <h1 class="text-3xl font-bold tracking-tight">
-          Horarios de Apertura y Cierre
+          Anuncio de Cierre
         </h1>
       </div>
       <p class="text-base-content/50 ml-13">
-        Genera anuncios de audio para apertura y cierre del local
+        Genera anuncios de audio para el cierre del local
       </p>
     </div>
 
@@ -37,12 +37,10 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Left column: Form -->
       <ScheduleForm
-        v-model:schedule-type="scheduleType"
         v-model:variant="variant"
         v-model:minutes="minutes"
         v-model:voice-id="voiceId"
-        :types="types"
-        :variants="variants"
+        v-model:use-announcement-sound="useAnnouncementSound"
         :available-variants="availableVariants"
         :minutes-options="minutesOptions"
         :voices="voices"
@@ -82,14 +80,12 @@ import { useScheduleAnnouncement } from './composables/useScheduleAnnouncement'
 
 const {
   // Form state
-  scheduleType,
   variant,
   minutes,
   voiceId,
+  useAnnouncementSound,
 
   // Options
-  types,
-  variants,
   availableVariants,
   minutesOptions,
   voices,

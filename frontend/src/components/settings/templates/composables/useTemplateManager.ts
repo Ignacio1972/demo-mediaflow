@@ -16,6 +16,7 @@ export interface MessageTemplate {
   order: number
   active: boolean
   is_default: boolean
+  use_announcement_sound: boolean
   created_at?: string
   updated_at?: string
 }
@@ -29,6 +30,7 @@ export interface TemplateCreate {
   module: string
   active?: boolean
   is_default?: boolean
+  use_announcement_sound?: boolean
 }
 
 export interface TemplateUpdate {
@@ -39,6 +41,7 @@ export interface TemplateUpdate {
   module?: string
   active?: boolean
   is_default?: boolean
+  use_announcement_sound?: boolean
   order?: number
 }
 

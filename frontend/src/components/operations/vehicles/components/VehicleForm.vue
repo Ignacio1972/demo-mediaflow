@@ -158,6 +158,23 @@
         </div>
         -->
 
+        <!-- Announcement Sound Toggle (Desktop) -->
+        <div class="form-control mb-5 hidden md:block">
+          <label class="label cursor-pointer justify-start gap-4 py-3 px-4 bg-base-200/50 rounded-xl border-2 border-base-300/50 hover:border-warning/30 transition-all">
+            <input
+              type="checkbox"
+              v-model="useAnnouncementSound"
+              class="toggle toggle-warning"
+            />
+            <div>
+              <span class="label-text font-medium">Sonido de anuncio</span>
+              <p class="text-xs text-base-content/50 mt-0.5">
+                Agrega sonido de intro y outro al mensaje
+              </p>
+            </div>
+          </label>
+        </div>
+
         <!-- Generate button -->
         <div class="pt-4 mt-2 border-t border-base-200">
           <button
@@ -176,6 +193,21 @@
               <span>Generar Audio</span>
             </template>
           </button>
+
+          <!-- Announcement Sound Toggle (Mobile) -->
+          <label class="label cursor-pointer justify-start gap-4 py-3 px-4 mt-4 bg-base-200/50 rounded-xl border-2 border-base-300/50 md:hidden">
+            <input
+              type="checkbox"
+              v-model="useAnnouncementSound"
+              class="toggle toggle-warning"
+            />
+            <div>
+              <span class="label-text font-medium">Sonido de anuncio</span>
+              <p class="text-xs text-base-content/50 mt-0.5">
+                Agrega sonido de intro y outro
+              </p>
+            </div>
+          </label>
         </div>
       </div>
     </div>
@@ -201,6 +233,7 @@ interface Props {
   platePart3: string
   voiceId: string
   numberMode: 'words' | 'digits'
+  useAnnouncementSound: boolean
   brands: VehicleBrand[]
   colors: VehicleColor[]
   voices: Voice[]
@@ -221,6 +254,7 @@ const emit = defineEmits<{
   (e: 'update:platePart3', value: string): void
   (e: 'update:voiceId', value: string): void
   (e: 'update:numberMode', value: 'words' | 'digits'): void
+  (e: 'update:useAnnouncementSound', value: boolean): void
   (e: 'generate'): void
 }>()
 
@@ -258,6 +292,11 @@ const voiceId = computed({
 const numberMode = computed({
   get: () => props.numberMode,
   set: (v) => emit('update:numberMode', v)
+})
+
+const useAnnouncementSound = computed({
+  get: () => props.useAnnouncementSound,
+  set: (v) => emit('update:useAnnouncementSound', v)
 })
 
 // Selected color hex for preview

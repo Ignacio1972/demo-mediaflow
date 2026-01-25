@@ -37,24 +37,16 @@ router = APIRouter(prefix="/schedules", tags=["operations-schedules"])
 # ============================================
 
 # Template ID mapping: (type, variant) -> template_id
+# Only closing variants are supported
 TEMPLATE_ID_MAP = {
-    (ScheduleType.OPENING, ScheduleVariant.NORMAL): "schedules_apertura_normal",
-    (ScheduleType.OPENING, ScheduleVariant.IMMEDIATE): "schedules_apertura_inmediato",
     (ScheduleType.CLOSING, ScheduleVariant.NORMAL): "schedules_cierre_normal",
     (ScheduleType.CLOSING, ScheduleVariant.IN_MINUTES): "schedules_cierre_minutos",
     (ScheduleType.CLOSING, ScheduleVariant.IMMEDIATE): "schedules_cierre_inmediato",
 }
 
 # Hardcoded fallback templates (used if not in database)
+# Only closing templates
 SCHEDULE_TEMPLATES = {
-    "schedules_apertura_normal": (
-        "Estimados clientes, les informamos que el establecimiento "
-        "se encuentra abierto. Bienvenidos."
-    ),
-    "schedules_apertura_inmediato": (
-        "Estimados clientes, el establecimiento ya se encuentra abierto. "
-        "Los invitamos a pasar. Bienvenidos."
-    ),
     "schedules_cierre_normal": (
         "Estimados clientes, les informamos que el establecimiento "
         "cerrará pronto. Por favor diríjanse a las cajas para realizar sus compras."
@@ -69,9 +61,8 @@ SCHEDULE_TEMPLATES = {
     ),
 }
 
-# Form options
+# Form options (only closing)
 SCHEDULE_TYPES = [
-    {"id": "opening", "name": "Apertura"},
     {"id": "closing", "name": "Cierre"},
 ]
 
@@ -107,13 +98,9 @@ def get_template_id(
     variant: ScheduleVariant
 ) -> str:
     """Get template ID based on type and variant."""
-    # Special case: opening + in_minutes doesn't make sense, use normal
-    if schedule_type == ScheduleType.OPENING and variant == ScheduleVariant.IN_MINUTES:
-        variant = ScheduleVariant.NORMAL
-
     return TEMPLATE_ID_MAP.get(
         (schedule_type, variant),
-        TEMPLATE_ID_MAP[(schedule_type, ScheduleVariant.NORMAL)]
+        TEMPLATE_ID_MAP[(ScheduleType.CLOSING, ScheduleVariant.NORMAL)]
     )
 
 
@@ -122,13 +109,14 @@ async def get_announcement_text(
     variant: ScheduleVariant,
     minutes: int | None,
     db: AsyncSession
-) -> tuple[str, str]:
+) -> tuple[str, str, bool]:
     """
     Get the announcement text based on type and variant.
-    Returns tuple of (text, template_id_used).
+    Returns tuple of (text, template_id_used, use_announcement_sound).
     First tries database, then falls back to hardcoded.
     """
     template_id = get_template_id(schedule_type, variant)
+    use_announcement_sound = False
 
     # Try to load from database
     result = await db.execute(
@@ -141,7 +129,8 @@ async def get_announcement_text(
 
     if db_template:
         template_text = db_template.template_text
-        logger.info(f"Using database template: {template_id}")
+        use_announcement_sound = db_template.use_announcement_sound
+        logger.info(f"Using database template: {template_id} (announcement_sound={use_announcement_sound})")
     else:
         # Fallback to hardcoded
         template_text = SCHEDULE_TEMPLATES.get(template_id)
@@ -162,7 +151,7 @@ async def get_announcement_text(
         else:
             template_text = template_text.replace("{minutes}", "15")  # Default
 
-    return template_text, template_id
+    return template_text, template_id, use_announcement_sound
 
 
 # ============================================
@@ -200,7 +189,7 @@ async def preview_text(
         f"variant={request.variant} minutes={request.minutes}"
     )
 
-    text, _ = await get_announcement_text(
+    text, _, use_announcement_sound = await get_announcement_text(
         schedule_type=request.schedule_type,
         variant=request.variant,
         minutes=request.minutes,
@@ -211,7 +200,8 @@ async def preview_text(
         text=text,
         schedule_type=request.schedule_type.value,
         variant=request.variant.value,
-        minutes=request.minutes
+        minutes=request.minutes,
+        use_announcement_sound=use_announcement_sound
     )
 
 
@@ -263,14 +253,19 @@ async def generate_schedule_announcement(
             )
 
         # Get announcement text
-        text, template_id_used = await get_announcement_text(
+        text, template_id_used, use_announcement_sound = await get_announcement_text(
             schedule_type=request.schedule_type,
             variant=request.variant,
             minutes=request.minutes,
             db=db
         )
 
-        logger.info(f"Announcement text: {text[:100]}... (template: {template_id_used})")
+        # Allow request to override template's announcement sound setting
+        if request.use_announcement_sound is not None:
+            use_announcement_sound = request.use_announcement_sound
+            logger.info(f"Request override: use_announcement_sound={use_announcement_sound}")
+
+        logger.info(f"Announcement text: {text[:100]}... (template: {template_id_used}, announcement={use_announcement_sound})")
 
         # Generate TTS audio
         audio_bytes, voice_used, _ = await voice_manager.generate_with_voice(
@@ -306,9 +301,33 @@ async def generate_schedule_announcement(
             adjusted_audio.export(file_path, format="mp3", bitrate="192k")
             file_size = os.path.getsize(file_path)
 
-        # Mix with background music if requested
+        # Add announcement sounds if template has it enabled
         has_jingle = False
-        if request.music_file:
+        has_announcement = False
+        if use_announcement_sound:
+            logger.info("Adding announcement sounds (intro + outro)")
+
+            announcement_filename = f"schedule_ann_{type_short}_{timestamp}_{voice.id}.mp3"
+            announcement_path = os.path.join(settings.AUDIO_PATH, announcement_filename)
+
+            announcement_result = await jingle_service.add_announcement_sounds(
+                voice_audio_path=file_path,
+                output_path=announcement_path,
+            )
+
+            if announcement_result["success"]:
+                os.remove(file_path)
+                filename = announcement_filename
+                file_path = announcement_path
+                duration = announcement_result["duration"]
+                file_size = os.path.getsize(file_path)
+                has_announcement = True
+                logger.info(f"Announcement audio created: {filename}")
+            else:
+                logger.warning(f"Announcement sounds failed: {announcement_result.get('error')}")
+
+        # Mix with background music if requested (only if no announcement sounds)
+        elif request.music_file:
             logger.info(f"Creating jingle with music: {request.music_file}")
 
             jingle_filename = f"schedule_jingle_{type_short}_{timestamp}_{voice.id}.mp3"

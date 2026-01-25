@@ -24,6 +24,7 @@ class MessageTemplate(Base, TimestampMixin):
     order = Column(Integer, default=0, nullable=False)
     active = Column(Boolean, default=True, nullable=False)
     is_default = Column(Boolean, default=False, nullable=False)  # Default for this module
+    use_announcement_sound = Column(Boolean, default=False, nullable=False)  # Add intro/outro sounds
 
     def __repr__(self):
         return f"<MessageTemplate {self.name} ({self.id})>"

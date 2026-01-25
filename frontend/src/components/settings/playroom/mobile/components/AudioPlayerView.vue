@@ -146,7 +146,7 @@
           ref="textareaRef"
           :value="editedText"
           @input="$emit('update:editedText', ($event.target as HTMLTextAreaElement).value)"
-          class="textarea textarea-bordered w-full min-h-[180px] text-sm"
+          class="textarea textarea-bordered w-full min-h-[180px] text-xl"
           placeholder="Edita el texto aquí..."
         ></textarea>
 

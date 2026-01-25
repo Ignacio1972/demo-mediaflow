@@ -44,6 +44,7 @@
         v-model:platePart3="platePart3"
         v-model:voiceId="voiceId"
         v-model:numberMode="numberMode"
+        v-model:useAnnouncementSound="useAnnouncementSound"
         :brands="brands"
         :colors="colors"
         :voices="voices"
@@ -90,6 +91,7 @@ const {
   platePart3,
   voiceId,
   numberMode,
+  useAnnouncementSound,
 
   // Options
   brands,

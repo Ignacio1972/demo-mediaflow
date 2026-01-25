@@ -37,6 +37,7 @@ def serialize_template(template: MessageTemplate) -> dict:
         "order": template.order,
         "active": template.active,
         "is_default": template.is_default,
+        "use_announcement_sound": template.use_announcement_sound,
         "created_at": template.created_at,
         "updated_at": template.updated_at,
     }
@@ -176,6 +177,7 @@ async def create_template(
             order=order,
             active=template_data.active,
             is_default=template_data.is_default,
+            use_announcement_sound=template_data.use_announcement_sound,
         )
 
         db.add(template)
@@ -411,7 +413,7 @@ async def get_modules(
             },
             "schedules": {
                 "id": "schedules",
-                "name": "Horarios Apertura/Cierre",
+                "name": "Anuncios de Cierre",
                 "icon": "🕐",
                 "variables": ["minutes"],
             },

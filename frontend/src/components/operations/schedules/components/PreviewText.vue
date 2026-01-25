@@ -34,6 +34,17 @@
 
         <!-- Preview content -->
         <div v-else>
+          <!-- Announcement sound indicator -->
+          <div
+            v-if="preview.use_announcement_sound"
+            class="flex items-center gap-2 mb-4 p-3 bg-warning/10 border border-warning/20 rounded-xl"
+          >
+            <SpeakerWaveIcon class="w-5 h-5 text-warning shrink-0" />
+            <span class="text-sm text-warning">
+              Este mensaje incluirá sonido de anuncio (intro + outro)
+            </span>
+          </div>
+
           <div class="bg-base-200/50 border-2 border-base-300 rounded-xl p-5">
             <p class="leading-relaxed text-base-content">{{ preview.text }}</p>
           </div>
@@ -44,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { DocumentTextIcon } from '@heroicons/vue/24/outline'
+import { DocumentTextIcon, SpeakerWaveIcon } from '@heroicons/vue/24/outline'
 import type { PreviewResponse } from '../composables/useScheduleAnnouncement'
 
 defineProps<{

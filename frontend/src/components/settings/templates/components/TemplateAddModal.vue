@@ -116,6 +116,23 @@
             <span class="label-text">Establecer como plantilla por defecto para este modulo</span>
           </label>
         </div>
+
+        <!-- Announcement Sound -->
+        <div class="form-control">
+          <label class="label cursor-pointer justify-start gap-4">
+            <input
+              type="checkbox"
+              v-model="formData.use_announcement_sound"
+              class="toggle toggle-warning"
+            />
+            <div>
+              <span class="label-text">Sonido de anuncio</span>
+              <p class="text-xs text-base-content/50 mt-0.5">
+                Agrega sonido de intro y outro al mensaje (sin musica de fondo)
+              </p>
+            </div>
+          </label>
+        </div>
       </div>
 
       <div class="modal-action">
@@ -161,6 +178,7 @@ const formData = ref({
   template_text: '',
   module: 'vehicles',
   is_default: false,
+  use_announcement_sound: false,
 })
 
 // ID already typed manually
@@ -231,6 +249,7 @@ const handleCreate = () => {
     variables: detectedVariables.value,
     module: formData.value.module,
     is_default: formData.value.is_default,
+    use_announcement_sound: formData.value.use_announcement_sound,
     active: true,
   })
 }

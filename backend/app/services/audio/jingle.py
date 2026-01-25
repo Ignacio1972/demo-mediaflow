@@ -290,5 +290,120 @@ class JingleService:
             }
 
 
+    async def add_announcement_sounds(
+        self,
+        voice_audio_path: str,
+        output_path: str,
+        intro_sound: str = "intro_announcement.mp3",
+        outro_sound: str = "outro_announcement.mp3"
+    ) -> Dict[str, Any]:
+        """
+        Add intro and outro announcement sounds to a voice audio file.
+
+        Concatenates: intro_sound + voice_audio + outro_sound
+
+        Uses FFmpeg filter_complex with concat filter to handle mixed formats
+        (e.g., .m4a intro/outro with .mp3 voice).
+
+        Args:
+            voice_audio_path: Path to the TTS audio file
+            output_path: Path for the output file
+            intro_sound: Filename of intro sound in SOUNDS_PATH
+            outro_sound: Filename of outro sound in SOUNDS_PATH
+
+        Returns:
+            Dict with success status, duration, and any error message
+        """
+        logger.info(f"Adding announcement sounds to: {voice_audio_path}")
+
+        try:
+            # Find sound files - must use absolute paths for FFmpeg
+            intro_path = os.path.abspath(os.path.join(settings.SOUNDS_PATH, intro_sound))
+            outro_path = os.path.abspath(os.path.join(settings.SOUNDS_PATH, outro_sound))
+            voice_abs_path = os.path.abspath(voice_audio_path)
+            output_abs_path = os.path.abspath(output_path)
+
+            if not os.path.exists(intro_path):
+                logger.warning(f"Intro sound not found: {intro_path}")
+                return {
+                    'success': False,
+                    'error': f'Intro sound not found: {intro_sound}'
+                }
+
+            if not os.path.exists(outro_path):
+                logger.warning(f"Outro sound not found: {outro_path}")
+                return {
+                    'success': False,
+                    'error': f'Outro sound not found: {outro_sound}'
+                }
+
+            if not os.path.exists(voice_abs_path):
+                logger.warning(f"Voice file not found: {voice_abs_path}")
+                return {
+                    'success': False,
+                    'error': f'Voice file not found: {voice_audio_path}'
+                }
+
+            # Use filter_complex with concat filter - handles mixed formats automatically
+            # This approach decodes all inputs and re-encodes, so format differences don't matter
+            filter_complex = "[0:a][1:a][2:a]concat=n=3:v=0:a=1[out]"
+
+            cmd = [
+                'ffmpeg', '-y',
+                '-i', intro_path,
+                '-i', voice_abs_path,
+                '-i', outro_path,
+                '-filter_complex', filter_complex,
+                '-map', '[out]',
+                '-ac', '2',
+                '-ar', '44100',
+                '-codec:a', 'libmp3lame',
+                '-b:a', '192k',
+                output_abs_path
+            ]
+
+            logger.info(f"Running FFmpeg filter_complex concat...")
+            logger.debug(f"FFmpeg cmd: {' '.join(cmd)}")
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+
+            if result.returncode != 0:
+                logger.error(f"FFmpeg error: {result.stderr}")
+                return {
+                    'success': False,
+                    'error': f'FFmpeg concat failed: {result.stderr[:500]}'
+                }
+
+            # Get output duration
+            output_duration = self._get_audio_duration(output_abs_path)
+
+            logger.info(f"Announcement audio created successfully: {output_duration:.2f}s")
+
+            return {
+                'success': True,
+                'duration': output_duration,
+                'intro_sound': intro_sound,
+                'outro_sound': outro_sound
+            }
+
+        except subprocess.TimeoutExpired:
+            logger.error("FFmpeg process timed out")
+            return {
+                'success': False,
+                'error': 'Audio processing timed out'
+            }
+        except Exception as e:
+            logger.error(f"Error adding announcement sounds: {str(e)}", exc_info=True)
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
+
 # Singleton instance
 jingle_service = JingleService()

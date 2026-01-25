@@ -208,12 +208,14 @@ async def preview_text(
 
     # Try to load template from database
     custom_template_text = None
+    use_announcement_sound = False
     result_db = await db.execute(
         select(MessageTemplate).filter(MessageTemplate.id == request.template)
     )
     db_template = result_db.scalar_one_or_none()
     if db_template:
         custom_template_text = db_template.template_text
+        use_announcement_sound = db_template.use_announcement_sound
 
     result = text_normalizer.normalize_vehicle_announcement(
         marca=request.marca,
@@ -228,7 +230,8 @@ async def preview_text(
         original=result["original"],
         normalized=result["normalized"],
         plate_info=PlateInfo(**result["plate_info"]),
-        components=AnnouncementComponents(**result["components"])
+        components=AnnouncementComponents(**result["components"]),
+        use_announcement_sound=use_announcement_sound
     )
 
 
@@ -281,13 +284,20 @@ async def generate_vehicle_announcement(
 
         # Try to load template from database
         custom_template_text = None
+        use_announcement_sound = False
         result_template = await db.execute(
             select(MessageTemplate).filter(MessageTemplate.id == request.template)
         )
         db_template = result_template.scalar_one_or_none()
         if db_template:
             custom_template_text = db_template.template_text
-            logger.info(f"Using database template: {db_template.id}")
+            use_announcement_sound = db_template.use_announcement_sound
+            logger.info(f"Using database template: {db_template.id} (announcement_sound={use_announcement_sound})")
+
+        # Allow request to override template's announcement sound setting
+        if request.use_announcement_sound is not None:
+            use_announcement_sound = request.use_announcement_sound
+            logger.info(f"Request override: use_announcement_sound={use_announcement_sound}")
 
         # Normalize text
         normalized_result = text_normalizer.normalize_vehicle_announcement(
@@ -339,9 +349,33 @@ async def generate_vehicle_announcement(
             adjusted_audio.export(file_path, format="mp3", bitrate="192k")
             file_size = os.path.getsize(file_path)
 
-        # Mix with background music if requested
+        # Add announcement sounds if template has it enabled
         has_jingle = False
-        if request.music_file:
+        has_announcement = False
+        if use_announcement_sound:
+            logger.info("Adding announcement sounds (intro + outro)")
+
+            announcement_filename = f"vehicle_ann_{timestamp}_{plate_clean}_{voice.id}.mp3"
+            announcement_path = os.path.join(settings.AUDIO_PATH, announcement_filename)
+
+            announcement_result = await jingle_service.add_announcement_sounds(
+                voice_audio_path=file_path,
+                output_path=announcement_path,
+            )
+
+            if announcement_result["success"]:
+                os.remove(file_path)
+                filename = announcement_filename
+                file_path = announcement_path
+                duration = announcement_result["duration"]
+                file_size = os.path.getsize(file_path)
+                has_announcement = True
+                logger.info(f"Announcement audio created: {filename}")
+            else:
+                logger.warning(f"Announcement sounds failed: {announcement_result.get('error')}")
+
+        # Mix with background music if requested (only if no announcement sounds)
+        elif request.music_file:
             logger.info(f"Creating jingle with music: {request.music_file}")
 
             jingle_filename = f"vehicle_jingle_{timestamp}_{plate_clean}_{voice.id}.mp3"

@@ -39,6 +39,7 @@ export interface TextPreviewResponse {
     patente_original: string
     patente_normalized: string
   }
+  use_announcement_sound: boolean
 }
 
 export interface VehicleAnnouncementResponse {
@@ -88,6 +89,7 @@ export function useVehicleAnnouncement() {
   const voiceId = ref('')
   const numberMode = ref<'words' | 'digits'>('digits')
   const templateId = ref<string>('default') // Will be set from backend
+  const useAnnouncementSound = ref(false) // Will sync with template default
 
   // Combined plate (computed from parts)
   // Format: XX,XXXX (comma after first 2 chars, then 4 chars together)
@@ -236,6 +238,10 @@ export function useVehicleAnnouncement() {
         }
       )
       previewText.value = response
+      // Sync announcement sound toggle with template default (only on first load)
+      if (previewText.value && !generatedAudio.value) {
+        useAnnouncementSound.value = response.use_announcement_sound
+      }
     } catch (e: any) {
       console.error('Error generating preview:', e)
       error.value = 'Error generando vista previa'
@@ -267,7 +273,8 @@ export function useVehicleAnnouncement() {
           voice_id: voiceId.value,
           music_file: null,
           template: templateId.value,
-          number_mode: numberMode.value
+          number_mode: numberMode.value,
+          use_announcement_sound: useAnnouncementSound.value
         }
       )
 
@@ -294,6 +301,7 @@ export function useVehicleAnnouncement() {
     platePart2.value = ''
     platePart3.value = ''
     numberMode.value = 'digits'
+    useAnnouncementSound.value = false
     previewText.value = null
     plateValidation.value = null
     generatedAudio.value = null
@@ -348,6 +356,7 @@ export function useVehicleAnnouncement() {
     patente, // Combined (computed, read-only)
     voiceId,
     numberMode,
+    useAnnouncementSound,
 
     // Options
     brands,
