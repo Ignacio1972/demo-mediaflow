@@ -80,6 +80,9 @@
         <PreviewText
           :preview="previewText"
           :loading="loadingPreview"
+          :regenerating="loadingGenerate"
+          :has-audio="hasAudio"
+          @regenerate="handleRegenerate"
         />
       </div>
     </div>
@@ -130,6 +133,7 @@ const {
 
   // Computed
   isFormValid,
+  hasAudio,
 
   // Actions
   initialize,
@@ -141,6 +145,11 @@ const {
 onMounted(() => {
   initialize()
 })
+
+// Handle regenerate with custom text
+async function handleRegenerate(customText: string) {
+  await generateAnnouncement(customText)
+}
 
 // Auto-scroll when generation starts
 watch(loadingGenerate, (isLoading) => {

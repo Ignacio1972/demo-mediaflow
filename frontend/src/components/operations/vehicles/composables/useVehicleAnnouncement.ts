@@ -112,6 +112,7 @@ export function useVehicleAnnouncement() {
   // Preview state
   const previewText = ref<TextPreviewResponse | null>(null)
   const plateValidation = ref<PlateInfo | null>(null)
+  const editedText = ref<string | null>(null)  // For regeneration with custom text
 
   // Generation state
   const generatedAudio = ref<VehicleAnnouncementResponse | null>(null)
@@ -252,8 +253,9 @@ export function useVehicleAnnouncement() {
 
   /**
    * Generate vehicle announcement audio
+   * @param customText Optional custom text to use instead of template
    */
-  async function generateAnnouncement() {
+  async function generateAnnouncement(customText?: string) {
     if (!isFormValid.value) {
       error.value = 'Por favor complete todos los campos requeridos'
       return
@@ -274,12 +276,15 @@ export function useVehicleAnnouncement() {
           music_file: null,
           template: templateId.value,
           number_mode: numberMode.value,
-          use_announcement_sound: useAnnouncementSound.value
+          use_announcement_sound: useAnnouncementSound.value,
+          custom_text: customText || null
         }
       )
 
       if (response.success) {
         generatedAudio.value = response
+        // Clear edited text after successful generation
+        editedText.value = null
       } else {
         error.value = response.error || 'Error generando audio'
       }
@@ -366,6 +371,7 @@ export function useVehicleAnnouncement() {
     // Preview
     previewText,
     plateValidation,
+    editedText,
 
     // Generated audio
     generatedAudio,

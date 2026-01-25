@@ -299,21 +299,56 @@ async def generate_vehicle_announcement(
             use_announcement_sound = request.use_announcement_sound
             logger.info(f"Request override: use_announcement_sound={use_announcement_sound}")
 
-        # Normalize text
-        normalized_result = text_normalizer.normalize_vehicle_announcement(
-            marca=request.marca,
-            color=request.color,
-            patente=request.patente,
-            template=request.template,
-            number_mode=request.number_mode.value,
-            custom_template_text=custom_template_text
-        )
+        # Check if custom text was provided (for regeneration with edited text)
+        if request.custom_text:
+            # Use custom text but normalize the plate for TTS
+            original_text = request.custom_text
+            plate_info = text_normalizer.validate_plate_format(request.patente)
 
-        original_text = normalized_result["original"]
-        normalized_text = normalized_result["normalized"]
-        plate_info = normalized_result["plate_info"]
+            # Normalize the plate for TTS pronunciation
+            patente_normalized = text_normalizer.normalize_plate(
+                request.patente,
+                number_mode=request.number_mode.value
+            )
 
-        logger.info(f"Normalized text: {normalized_text[:100]}...")
+            # Build possible plate formats to search for in the text
+            # The user sees the plate in readable format, we need to replace it
+            clean_plate = request.patente.upper().replace(" ", "").replace("-", "").replace(",", "")
+            plate_variants = [
+                request.patente.upper(),  # As provided: "JK,KJ32"
+                clean_plate,  # No separators: "JKKJ32"
+                f"{clean_plate[:2]}.{clean_plate[2:4]}.{clean_plate[4:]}",  # Dotted: "JK.KJ.32"
+                f"{clean_plate[:2]}-{clean_plate[2:4]}-{clean_plate[4:]}",  # Dashed: "JK-KJ-32"
+                f"{clean_plate[:2]} {clean_plate[2:4]} {clean_plate[4:]}",  # Spaced: "JK KJ 32"
+                f"{clean_plate[:4]}-{clean_plate[4:]}",  # Standard new format: "JKKJ-32"
+                f"{clean_plate[:4]} {clean_plate[4:]}",  # Standard with space: "JKKJ 32"
+            ]
+
+            # Replace the plate in the text with the normalized version
+            normalized_text = original_text
+            for variant in plate_variants:
+                if variant in normalized_text:
+                    normalized_text = normalized_text.replace(variant, patente_normalized)
+                    logger.info(f"Replaced plate '{variant}' with normalized version")
+                    break
+
+            logger.info(f"Using custom text with normalized plate: {normalized_text[:100]}...")
+        else:
+            # Normalize text from template
+            normalized_result = text_normalizer.normalize_vehicle_announcement(
+                marca=request.marca,
+                color=request.color,
+                patente=request.patente,
+                template=request.template,
+                number_mode=request.number_mode.value,
+                custom_template_text=custom_template_text
+            )
+
+            original_text = normalized_result["original"]
+            normalized_text = normalized_result["normalized"]
+            plate_info = normalized_result["plate_info"]
+
+            logger.info(f"Normalized text: {normalized_text[:100]}...")
 
         # Generate TTS audio with the normalized text
         audio_bytes, voice_used, _ = await voice_manager.generate_with_voice(

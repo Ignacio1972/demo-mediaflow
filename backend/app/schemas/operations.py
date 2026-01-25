@@ -57,6 +57,10 @@ class VehicleAnnouncementRequest(BaseModel):
         None,
         description="Override template's announcement sound setting. If None, uses template default."
     )
+    custom_text: Optional[str] = Field(
+        None,
+        description="Custom text to use instead of generating from template. Used for regeneration with edited text."
+    )
 
 
 class PlateInfo(BaseModel):

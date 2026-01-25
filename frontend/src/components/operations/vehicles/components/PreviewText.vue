@@ -5,7 +5,7 @@
         <!-- Header -->
         <div class="mb-6">
           <h2 class="text-xl font-bold tracking-tight">Vista Previa</h2>
-          <p class="text-sm text-base-content/50 mt-1">Texto que se convertirá a audio</p>
+          <p class="text-sm text-base-content/50 mt-1">Edita el texto si deseas y regenera el audio</p>
         </div>
 
         <!-- Loading state -->
@@ -32,11 +32,26 @@
           </p>
         </div>
 
-        <!-- Preview content -->
-        <div v-else>
-          <div class="bg-base-200/50 border-2 border-base-300 rounded-xl p-5">
-            <p class="leading-relaxed text-base-content">{{ preview.original }}</p>
-          </div>
+        <!-- Preview content - editable -->
+        <div v-else class="space-y-4">
+          <textarea
+            v-model="localText"
+            rows="4"
+            class="textarea bg-base-200/50 border-2 border-base-300 focus:border-primary focus:bg-base-100 rounded-xl w-full leading-relaxed transition-all duration-200"
+          ></textarea>
+
+          <!-- Regenerate button -->
+          <button
+            @click="handleRegenerate"
+            class="btn btn-outline btn-primary w-full h-12 rounded-xl font-semibold transition-all duration-200"
+            :disabled="regenerating || !canRegenerate"
+          >
+            <span v-if="regenerating" class="loading loading-spinner loading-sm"></span>
+            <template v-else>
+              <ArrowPathIcon class="w-5 h-5" />
+              <span>Regenerar Audio</span>
+            </template>
+          </button>
         </div>
       </div>
     </div>
@@ -44,11 +59,46 @@
 </template>
 
 <script setup lang="ts">
-import { DocumentTextIcon } from '@heroicons/vue/24/outline'
+import { ref, watch, computed } from 'vue'
+import { DocumentTextIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 import type { TextPreviewResponse } from '../composables/useVehicleAnnouncement'
 
-defineProps<{
+const props = defineProps<{
   preview: TextPreviewResponse | null
   loading: boolean
+  regenerating: boolean
+  hasAudio: boolean
 }>()
+
+const emit = defineEmits<{
+  (e: 'regenerate', text: string): void
+}>()
+
+// Local editable text
+const localText = ref('')
+
+// Track if text has been modified
+const hasChanges = computed(() => {
+  return props.preview && localText.value !== props.preview.original
+})
+
+// Allow regeneration when text changed OR when there's already an audio (to regenerate with different voice, etc)
+const canRegenerate = computed(() => {
+  return hasChanges.value || props.hasAudio
+})
+
+// Sync local text when preview changes
+watch(
+  () => props.preview,
+  (newPreview) => {
+    if (newPreview) {
+      localText.value = newPreview.original
+    }
+  },
+  { immediate: true }
+)
+
+function handleRegenerate() {
+  emit('regenerate', localText.value)
+}
 </script>
