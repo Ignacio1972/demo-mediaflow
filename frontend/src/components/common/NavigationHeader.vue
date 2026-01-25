@@ -25,9 +25,11 @@
           :to="isMobile ? '/landing' : '/campaigns'"
           class="flex items-center hover:opacity-80 transition-opacity"
         >
-          <span class="text-xl md:text-2xl font-semibold tracking-tight">
-            <span style="color: #00adef">Media</span><span class="text-base-content">Flow</span>
-          </span>
+          <img
+            src="/images/Mallplaza_2016_vertical.svg.png"
+            alt="Mallplaza"
+            class="h-10 md:h-12 w-auto object-contain"
+          />
         </router-link>
 
         <!-- Spacer -->
@@ -68,9 +70,11 @@
     >
       <!-- Sidebar Header -->
       <div class="flex items-center justify-between p-4 border-b border-base-300">
-        <span class="text-xl font-semibold tracking-tight">
-          <span style="color: #00adef">Media</span><span class="text-base-content">Flow</span>
-        </span>
+        <img
+          src="/images/Mallplaza_2016_vertical.svg.png"
+          alt="Mallplaza"
+          class="h-10 w-auto object-contain ml-4"
+        />
         <button
           @click="closeSidebar"
           class="btn btn-ghost btn-sm btn-square"
@@ -96,7 +100,6 @@
           </li>
         </ul>
       </nav>
-
     </aside>
   </Teleport>
 </template>

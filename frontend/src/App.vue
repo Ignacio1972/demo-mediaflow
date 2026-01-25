@@ -1,8 +1,14 @@
 <template>
   <PasswordGate />
-  <div class="min-h-screen bg-base-100">
+  <div class="min-h-screen bg-base-100 flex flex-col">
     <NavigationHeader v-if="!isLandingPage" />
-    <router-view />
+    <router-view class="flex-1" />
+    <!-- Global Footer -->
+    <footer class="mt-auto py-4 text-center">
+      <span class="text-xs text-base-content/50">
+        Powered by <a href="https://mediaflow.cl/" target="_blank" class="hover:underline"><span style="color: #00adef">Media</span><span class="text-base-content/70">Flow</span></a>. Copyright 2026.
+      </span>
+    </footer>
   </div>
 </template>
 

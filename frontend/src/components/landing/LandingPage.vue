@@ -1,10 +1,12 @@
 <template>
   <div class="landing-page min-h-screen bg-base-100 flex flex-col">
     <!-- Logo Header -->
-    <div class="py-8 text-center">
-      <span class="text-3xl font-semibold tracking-tight">
-        <span style="color: #00adef">Media</span><span class="text-base-content">Flow</span>
-      </span>
+    <div class="py-6 flex flex-col items-center">
+      <img
+        src="/images/Mallplaza_2016_vertical.svg.png"
+        alt="Mallplaza"
+        class="h-16 w-auto object-contain"
+      />
     </div>
 
     <!-- Buttons Grid -->
