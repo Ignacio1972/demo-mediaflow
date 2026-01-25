@@ -132,11 +132,10 @@ const defaultItems: MenuItem[] = [
   },
   {
     id: 'client-call',
-    path: '',
-    label: 'Llamado al Cliente',
+    path: '/operations/employee-call',
+    label: 'Llamado a Empleado',
     icon: PhoneIcon,
-    color: '#3B82F6',
-    disabled: true
+    color: '#3B82F6'
   },
 ]
 

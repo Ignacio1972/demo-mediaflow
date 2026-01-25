@@ -29,7 +29,7 @@ const operations: Operation[] = [
     description: 'Solicitar presencia de un trabajador o cliente',
     icon: 'Phone',
     path: '/operations/employee-call',
-    available: false,
+    available: true,
   },
 ]
 

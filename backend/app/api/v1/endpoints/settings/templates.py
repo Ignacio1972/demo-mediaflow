@@ -417,6 +417,12 @@ async def get_modules(
                 "icon": "🕐",
                 "variables": ["minutes"],
             },
+            "employee_call": {
+                "id": "employee_call",
+                "name": "Llamado a Empleado o Cliente",
+                "icon": "📞",
+                "variables": ["nombre", "ubicacion"],
+            },
             "lost_child": {
                 "id": "lost_child",
                 "name": "Nino Perdido",

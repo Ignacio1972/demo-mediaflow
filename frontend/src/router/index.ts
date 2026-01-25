@@ -58,6 +58,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/components/operations/schedules/ScheduleAnnouncement.vue'),
   },
   {
+    path: '/operations/employee-call',
+    name: 'operations-employee-call',
+    component: () => import('@/components/operations/employee-call/EmployeeCallAnnouncement.vue'),
+  },
+  {
     path: '/playroom',
     name: 'playroom',
     component: () => import('@/components/mobile/MobilePage.vue'),

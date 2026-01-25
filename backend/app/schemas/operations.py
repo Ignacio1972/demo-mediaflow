@@ -300,3 +300,97 @@ class ScheduleOptionsResponse(BaseModel):
     types: List[dict]  # [{id, name}]
     variants: List[dict]  # [{id, name, description}]
     minutes_options: List[MinutesOption]
+
+
+# ============================================
+# Employee/Client Call Schemas
+# ============================================
+
+class CallType(str, Enum):
+    """Type of person being called."""
+    EMPLEADO = "empleado"
+    CLIENTE = "cliente"
+
+
+class LocationOption(BaseModel):
+    """Predefined location option."""
+    id: str
+    name: str
+
+
+class EmployeeCallRequest(BaseModel):
+    """Request schema for generating an employee/client call announcement."""
+    call_type: CallType = Field(
+        ...,
+        description="Type of call: employee or client"
+    )
+    nombre: str = Field(
+        ...,
+        min_length=2,
+        max_length=100,
+        description="Name of the person being called"
+    )
+    ubicacion: str = Field(
+        ...,
+        min_length=2,
+        max_length=100,
+        description="Location where they should go"
+    )
+    voice_id: str = Field(
+        ...,
+        description="Voice ID for TTS generation"
+    )
+    template: str = Field(
+        "employee_call_default",
+        description="Template ID to use"
+    )
+    use_announcement_sound: Optional[bool] = Field(
+        None,
+        description="Override template's announcement sound setting"
+    )
+    custom_text: Optional[str] = Field(
+        None,
+        description="Custom text for regeneration"
+    )
+
+
+class EmployeeCallPreviewRequest(BaseModel):
+    """Request schema for previewing employee call text."""
+    call_type: CallType
+    nombre: str = Field(..., min_length=2, max_length=100)
+    ubicacion: str = Field(..., min_length=2, max_length=100)
+    template: str = Field("employee_call_default")
+
+
+class EmployeeCallPreviewResponse(BaseModel):
+    """Response schema for employee call text preview."""
+    original: str = Field(..., description="The announcement text")
+    call_type: str
+    nombre: str
+    ubicacion: str
+    use_announcement_sound: bool = Field(
+        False,
+        description="Whether this template uses intro/outro announcement sounds"
+    )
+
+
+class EmployeeCallResponse(BaseModel):
+    """Response schema for employee call announcement generation."""
+    success: bool
+    text: str = Field(..., description="The announcement text")
+    audio_url: str = Field(..., description="URL to the generated audio file")
+    audio_id: int = Field(..., description="Database ID of the audio message")
+    filename: str
+    duration: Optional[float] = None
+    voice_id: str
+    voice_name: str
+    call_type: str
+    error: Optional[str] = None
+
+
+class EmployeeCallOptionsResponse(BaseModel):
+    """Response with options for the employee call form."""
+    call_types: List[dict]  # [{id, name}]
+    locations: List[LocationOption]
+    templates: List[TemplateInfo]
+    default_template_id: Optional[str] = None

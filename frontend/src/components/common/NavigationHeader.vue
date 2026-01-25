@@ -12,7 +12,7 @@
           <img
             src="/images/Mallplaza_2016_vertical.svg.png"
             alt="Inicio"
-            class="h-10 w-auto object-contain"
+            class="h-14 w-auto object-contain"
           />
         </button>
         <button
