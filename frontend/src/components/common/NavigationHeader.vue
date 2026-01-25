@@ -9,7 +9,11 @@
           class="btn btn-ghost btn-square"
           aria-label="Ir a inicio"
         >
-          <HomeIcon class="h-8 w-8" />
+          <img
+            src="/images/Mallplaza_2016_vertical.svg.png"
+            alt="Inicio"
+            class="h-10 w-auto object-contain"
+          />
         </button>
         <button
           v-else
@@ -20,15 +24,16 @@
           <Bars3Icon class="h-6 w-6" />
         </button>
 
-        <!-- Logo / Title -->
+        <!-- Logo / Title (hidden on mobile since home button has logo) -->
         <router-link
-          :to="isMobile ? '/landing' : '/campaigns'"
+          v-if="!isMobile"
+          to="/campaigns"
           class="flex items-center hover:opacity-80 transition-opacity"
         >
           <img
             src="/images/Mallplaza_2016_vertical.svg.png"
             alt="Mallplaza"
-            class="h-10 md:h-12 w-auto object-contain"
+            class="h-12 w-auto object-contain"
           />
         </router-link>
 
