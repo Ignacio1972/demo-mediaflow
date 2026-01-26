@@ -645,6 +645,39 @@ sshpass -p 'Raul Labbe 14050h' ssh root@64.176.20.15 "sudo -u postgres psql medi
 # Password DB: MF_mbi_2025_secure (en .env del servidor)
 ```
 
+#### Azuracast (Radio Streaming)
+
+**Instalado**: 2026-01-26
+
+| Servicio | URL/Puerto |
+|----------|------------|
+| Panel Web | http://64.176.20.15:8080 |
+| HTTPS Panel | https://64.176.20.15:8443 |
+| Radio Stream | http://64.176.20.15:8000 |
+
+**Comandos Azuracast:**
+```bash
+# Ver estado
+sshpass -p 'Raul Labbe 14050h' ssh root@64.176.20.15 "cd /var/azuracast && docker compose ps"
+
+# Ver logs
+sshpass -p 'Raul Labbe 14050h' ssh root@64.176.20.15 "cd /var/azuracast && docker compose logs -f"
+
+# Reiniciar
+sshpass -p 'Raul Labbe 14050h' ssh root@64.176.20.15 "cd /var/azuracast && docker compose restart"
+
+# Actualizar
+sshpass -p 'Raul Labbe 14050h' ssh root@64.176.20.15 "cd /var/azuracast && ./docker.sh update"
+```
+
+**Configuracion puertos** (`/var/azuracast/.env`):
+```env
+AZURACAST_HTTP_PORT=8080
+AZURACAST_HTTPS_PORT=8443
+```
+
+**Nota**: Puerto 80 no disponible porque nginx lo usa para MediaFlow.
+
 ---
 
 **Version**: 2.1

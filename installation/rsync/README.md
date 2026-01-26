@@ -395,12 +395,115 @@ journalctl -u mediaflow -f
 
 ---
 
+## FASE 7: Instalar Azuracast (Opcional)
+
+Si el cliente necesita streaming de radio, instalar Azuracast.
+
+### 7.1 Instalar Docker
+
+```bash
+curl -fsSL https://get.docker.com | sh
+docker --version
+```
+
+### 7.2 Instalar Azuracast
+
+```bash
+mkdir -p /var/azuracast
+cd /var/azuracast
+curl -fsSL https://raw.githubusercontent.com/AzuraCast/AzuraCast/main/docker.sh > docker.sh
+chmod +x docker.sh
+./docker.sh install
+```
+
+### 7.3 Configurar Puertos (IMPORTANTE)
+
+Azuracast intenta usar puerto 80, pero nginx ya lo usa. Cambiar puertos:
+
+```bash
+cd /var/azuracast
+docker compose down
+
+# Editar .env
+nano .env
+```
+
+Descomentar y cambiar estas lineas:
+```env
+AZURACAST_HTTP_PORT=8080
+AZURACAST_HTTPS_PORT=8443
+```
+
+Iniciar con nuevos puertos:
+```bash
+docker compose up -d
+```
+
+### 7.4 Abrir puertos en firewall
+
+```bash
+ufw allow 8080/tcp
+ufw allow 8443/tcp
+ufw allow 8000/tcp
+```
+
+### 7.5 Verificar
+
+```bash
+docker ps
+```
+
+Acceder al panel: `http://IP_DEL_VPS:8080`
+
+### Puertos Azuracast
+
+| Puerto | Servicio |
+|--------|----------|
+| 8080 | Panel web Azuracast |
+| 8443 | Azuracast HTTPS |
+| 8000 | Stream de radio principal |
+| 8005+ | Streams adicionales |
+
+### Comandos utiles Azuracast
+
+```bash
+cd /var/azuracast
+
+# Ver estado
+docker compose ps
+
+# Reiniciar
+docker compose restart
+
+# Ver logs
+docker compose logs -f
+
+# Actualizar
+./docker.sh update
+```
+
+---
+
+## Resumen de Puertos Final
+
+| Puerto | Servicio |
+|--------|----------|
+| 80 | Nginx (HTTP → HTTPS redirect) |
+| 443 | Nginx (MediaFlow HTTPS) |
+| 3001 | MediaFlow Backend (interno) |
+| 8080 | Azuracast Panel Web |
+| 8443 | Azuracast HTTPS |
+| 8000 | Azuracast Radio Stream |
+
+---
+
 ## Tips
 
-1. **Siempre usar puerto 3001** - El 8000 es para Azuracast
+1. **MediaFlow en puerto 3001** - El 8000 es para Azuracast stream
 2. **PATH debe incluir /usr/bin** - Para que ffprobe funcione
 3. **Modelo Claude** - Usar `claude-sonnet-4-20250514`
 4. **Logo del cliente** - Colocar en `/frontend/public/tenants/{tenant_id}/logo.png`
+5. **Azuracast puertos** - Cambiar HTTP a 8080 porque nginx usa 80
 
 ---
 
