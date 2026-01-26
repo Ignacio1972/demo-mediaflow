@@ -3,8 +3,8 @@
     <!-- Logo Header -->
     <div class="py-6 flex flex-col items-center">
       <img
-        src="/images/Mallplaza_2016_vertical.svg.png"
-        alt="Mallplaza"
+        src="/tenants/mallbarrio/logo.png"
+        alt="Mall Barrio Independencia"
         class="h-16 w-auto object-contain"
       />
     </div>

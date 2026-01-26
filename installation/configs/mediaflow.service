@@ -1,0 +1,48 @@
+[Unit]
+Description=MediaFlow v2.1 Backend API
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=mediaflow
+Group=mediaflow
+WorkingDirectory=/var/www/mediaflow/backend
+
+# IMPORTANTE: Incluir /usr/bin para que ffprobe y ffmpeg funcionen
+Environment="PATH=/var/www/mediaflow/backend/venv/bin:/usr/bin:/usr/local/bin"
+EnvironmentFile=/var/www/mediaflow/backend/.env
+
+# Puerto 3001 para compatibilidad con Azuracast (que usa 8000)
+ExecStart=/var/www/mediaflow/backend/venv/bin/uvicorn app.main:app \
+    --host 0.0.0.0 \
+    --port 3001 \
+    --workers 4 \
+    --loop uvloop \
+    --http httptools
+
+# Restart policy
+Restart=always
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/mediaflow/storage
+ReadWritePaths=/var/www/mediaflow/backend
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mediaflow
+
+[Install]
+WantedBy=multi-user.target
