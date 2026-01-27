@@ -28,6 +28,14 @@
           </div>
         </div>
 
+        <!-- Success/Error Messages -->
+        <div v-if="showSuccess" class="alert alert-success mb-4">
+          <span>Audio enviado a los parlantes</span>
+        </div>
+        <div v-if="errorMessage" class="alert alert-error mb-4">
+          <span>{{ errorMessage }}</span>
+        </div>
+
         <!-- Actions -->
         <div class="space-y-3">
           <!-- Send to Speakers -->
@@ -66,6 +74,7 @@
 import { ref, watch, nextTick } from 'vue'
 import { CheckCircleIcon, SpeakerWaveIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 import type { GenerateResponse } from '../composables/useScheduleAnnouncement'
+import { libraryApi } from '@/components/library/services/libraryApi'
 
 const props = defineProps<{
   audio: GenerateResponse
@@ -79,6 +88,8 @@ defineEmits<{
 const audioPlayer = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const sendingToSpeakers = ref(false)
+const showSuccess = ref(false)
+const errorMessage = ref('')
 
 // Auto-play when audio changes
 watch(
@@ -101,17 +112,28 @@ watch(
   { immediate: true }
 )
 
-// Send to Speakers (Local Player)
+// Send to Speakers (AzuraCast Radio)
 async function sendToSpeakers() {
   sendingToSpeakers.value = true
+  errorMessage.value = ''
 
   try {
-    // TODO: Implement local player API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    alert('Audio enviado a los parlantes')
-  } catch (e) {
+    const result = await libraryApi.sendToRadio(props.audio.audio_id, true)
+
+    if (result.success) {
+      showSuccess.value = true
+      setTimeout(() => {
+        showSuccess.value = false
+      }, 3000)
+    } else {
+      throw new Error(result.message || 'Error al enviar')
+    }
+  } catch (e: any) {
     console.error('Error sending to speakers:', e)
-    alert('Error al enviar a los parlantes')
+    errorMessage.value = e.response?.data?.detail || e.message || 'Error al enviar a los parlantes'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 5000)
   } finally {
     sendingToSpeakers.value = false
   }

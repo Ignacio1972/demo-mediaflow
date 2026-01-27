@@ -20,6 +20,7 @@ from app.schemas.audio import (
 )
 from app.models.audio import AudioMessage
 from app.models.voice_settings import VoiceSettings
+from app.models.shortcut import Shortcut
 from app.services.tts import voice_manager, elevenlabs_service
 from app.services.audio import jingle_service
 from app.core.config import settings
@@ -59,10 +60,16 @@ async def cleanup_old_temporary_messages(db: AsyncSession) -> int:
             f"deleting {to_delete_count} oldest"
         )
 
-        # Get oldest temporary messages to delete
+        # Get IDs of messages used by shortcuts (cannot delete these)
+        shortcut_query = select(Shortcut.audio_message_id).where(Shortcut.audio_message_id.isnot(None))
+        shortcut_result = await db.execute(shortcut_query)
+        shortcut_audio_ids = {row[0] for row in shortcut_result.fetchall()}
+
+        # Get oldest temporary messages to delete (excluding those used by shortcuts)
         query = (
             select(AudioMessage)
             .where(AudioMessage.is_favorite == False)
+            .where(AudioMessage.id.notin_(shortcut_audio_ids) if shortcut_audio_ids else True)
             .order_by(AudioMessage.created_at.asc())
             .limit(to_delete_count)
         )

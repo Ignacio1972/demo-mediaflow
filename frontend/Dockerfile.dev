@@ -1,0 +1,20 @@
+# MediaFlow Frontend - Dockerfile (Development)
+# Con hot-reload para desarrollo
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# El código se monta como volumen en docker-compose
+
+# Puerto de Vite dev server
+EXPOSE 5173
+
+# Comando de desarrollo con hot-reload
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

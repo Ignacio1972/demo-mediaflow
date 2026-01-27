@@ -33,7 +33,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('id')
     )
 
-    # Insert default clients
+    # Insert default clients (PostgreSQL compatible)
     op.execute("""
         INSERT INTO ai_clients (id, name, context, category, active, is_default, "order", created_at, updated_at)
         VALUES (
@@ -41,11 +41,11 @@ def upgrade() -> None:
             'Cliente Generico',
             'Eres un experto en crear anuncios comerciales efectivos y atractivos para negocios locales. Genera anuncios cortos, claros y atractivos en espanol chileno. Evita usar emojis o caracteres especiales.',
             'general',
-            1,
-            1,
+            true,
+            true,
             0,
-            datetime('now'),
-            datetime('now')
+            NOW(),
+            NOW()
         )
     """)
 
@@ -56,13 +56,13 @@ def upgrade() -> None:
             'Supermercado Ejemplo',
             'Eres un experto creando anuncios para supermercados y tiendas de retail. Target: Familias chilenas, especialmente duenas de casa. Propuesta de valor: Precios bajos y ofertas imperdibles. Tono: Cercano, confiable, ahorrativo, familiar. Genera anuncios cortos y efectivos en espanol chileno.',
             'supermercado',
-            1,
-            0,
+            true,
+            false,
             1,
             '{"default_tone": "entusiasta", "language": "es-CL"}',
             '{"ofertas": "Enfocate en el ahorro y los precios bajos. Menciona descuentos especificos.", "informacion": "Usa Estimados clientes para mensajes operacionales."}',
-            datetime('now'),
-            datetime('now')
+            NOW(),
+            NOW()
         )
     """)
 
@@ -73,13 +73,13 @@ def upgrade() -> None:
             'Centro Comercial Ejemplo',
             'Eres un experto creando anuncios para centros comerciales y malls. Target: Familias, jovenes y compradores frecuentes. Propuesta de valor: Variedad de tiendas, entretenimiento y experiencias unicas. Tono: Moderno, dinamico, acogedor. Genera anuncios cortos y atractivos en espanol chileno.',
             'mall',
-            1,
-            0,
+            true,
+            false,
             2,
             '{"default_tone": "amigable", "language": "es-CL"}',
             '{"eventos": "Destaca la experiencia unica y la diversion. Menciona fecha y hora.", "horarios": "Comunica claramente los horarios de atencion."}',
-            datetime('now'),
-            datetime('now')
+            NOW(),
+            NOW()
         )
     """)
 

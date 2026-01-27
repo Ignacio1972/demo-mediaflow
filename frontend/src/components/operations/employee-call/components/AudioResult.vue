@@ -19,6 +19,25 @@
       </div>
     </Transition>
 
+    <!-- Error Toast -->
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
+    >
+      <div
+        v-if="errorMessage"
+        class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none pb-32"
+      >
+        <div class="bg-error/80 text-error-content px-10 py-3 rounded-xl shadow-lg">
+          <span class="font-semibold">{{ errorMessage }}</span>
+        </div>
+      </div>
+    </Transition>
+
     <div class="card bg-base-100 border-2 border-success/30 rounded-2xl shadow-sm">
       <div class="card-body p-6">
         <!-- Header -->
@@ -73,6 +92,7 @@
 import { ref, watch, nextTick } from 'vue'
 import { CheckCircleIcon, SpeakerWaveIcon } from '@heroicons/vue/24/outline'
 import type { EmployeeCallResponse } from '../composables/useEmployeeCallAnnouncement'
+import { libraryApi } from '@/components/library/services/libraryApi'
 
 const props = defineProps<{
   audio: EmployeeCallResponse
@@ -83,6 +103,7 @@ const audioPlayer = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const sendingToSpeakers = ref(false)
 const showSuccessToast = ref(false)
+const errorMessage = ref('')
 
 // Auto-play when audio changes
 watch(
@@ -105,21 +126,29 @@ watch(
   { immediate: true }
 )
 
-// Send to Speakers (Local Player)
+// Send to Speakers (AzuraCast Radio)
 async function sendToSpeakers() {
   sendingToSpeakers.value = true
+  errorMessage.value = ''
 
   try {
-    // TODO: Implement local player API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const result = await libraryApi.sendToRadio(props.audio.audio_id, true)
 
-    // Show success toast
-    showSuccessToast.value = true
-    setTimeout(() => {
-      showSuccessToast.value = false
-    }, 3000)
-  } catch (e) {
+    if (result.success) {
+      // Show success toast
+      showSuccessToast.value = true
+      setTimeout(() => {
+        showSuccessToast.value = false
+      }, 3000)
+    } else {
+      throw new Error(result.message || 'Error al enviar')
+    }
+  } catch (e: any) {
     console.error('Error sending to speakers:', e)
+    errorMessage.value = e.response?.data?.detail || e.message || 'Error al enviar a los parlantes'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 5000)
   } finally {
     sendingToSpeakers.value = false
   }

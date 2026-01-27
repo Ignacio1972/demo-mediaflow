@@ -18,13 +18,18 @@ import { useRoute, useRouter } from 'vue-router'
 import NavigationHeader from '@/components/common/NavigationHeader.vue'
 import PasswordGate from '@/components/PasswordGate.vue'
 import { isMobileDevice } from '@/composables/useMobileDevice'
+import { useTenantStore } from '@/stores/tenant'
 
 const route = useRoute()
 const router = useRouter()
+const tenantStore = useTenantStore()
 const isLandingPage = computed(() => route.path === '/landing')
 
-onMounted(() => {
-  console.log('🚀 MediaFlowDemo v2.1 Frontend Started')
+onMounted(async () => {
+  // Load tenant configuration first
+  await tenantStore.loadConfig()
+
+  console.log(`MediaFlow v${tenantStore.appVersion} - ${tenantStore.tenantName}`)
 
   // Redirect mobile devices to landing page
   if (isMobileDevice() && route.path === '/') {

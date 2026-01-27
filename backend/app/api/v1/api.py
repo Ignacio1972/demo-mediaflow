@@ -3,7 +3,7 @@ API v1 Router
 Aggregates all API v1 endpoints
 """
 from fastapi import APIRouter
-from app.api.v1.endpoints import audio, ai, library, categories, schedules, campaigns, shortcuts, radio
+from app.api.v1.endpoints import audio, ai, library, categories, schedules, campaigns, shortcuts, radio, config
 from app.api.v1.endpoints.settings import router as settings_router
 from app.api.v1.endpoints.operations import router as operations_router
 
@@ -77,4 +77,11 @@ api_router.include_router(
     radio.router,
     prefix="/radio",
     tags=["radio"]
+)
+
+# Include config endpoints (tenant configuration)
+api_router.include_router(
+    config.router,
+    prefix="/config",
+    tags=["config"]
 )

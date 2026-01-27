@@ -73,6 +73,7 @@
 import { ref, watch, nextTick } from 'vue'
 import { CheckCircleIcon, SpeakerWaveIcon } from '@heroicons/vue/24/outline'
 import type { VehicleAnnouncementResponse } from '../composables/useVehicleAnnouncement'
+import { libraryApi } from '@/components/library/services/libraryApi'
 
 const props = defineProps<{
   audio: VehicleAnnouncementResponse
@@ -83,6 +84,7 @@ const audioPlayer = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const sendingToSpeakers = ref(false)
 const showSuccessToast = ref(false)
+const errorMessage = ref('')
 
 // Auto-play when audio changes
 watch(
@@ -105,21 +107,29 @@ watch(
   { immediate: true }
 )
 
-// Send to Speakers (Local Player)
+// Send to Speakers (AzuraCast Radio)
 async function sendToSpeakers() {
   sendingToSpeakers.value = true
+  errorMessage.value = ''
 
   try {
-    // TODO: Implement local player API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const result = await libraryApi.sendToRadio(props.audio.audio_id, true)
 
-    // Show success toast
-    showSuccessToast.value = true
-    setTimeout(() => {
-      showSuccessToast.value = false
-    }, 3000)
-  } catch (e) {
+    if (result.success) {
+      // Show success toast
+      showSuccessToast.value = true
+      setTimeout(() => {
+        showSuccessToast.value = false
+      }, 3000)
+    } else {
+      throw new Error(result.message || 'Error al enviar')
+    }
+  } catch (e: any) {
     console.error('Error sending to speakers:', e)
+    errorMessage.value = e.response?.data?.detail || e.message || 'Error al enviar a los parlantes'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 5000)
   } finally {
     sendingToSpeakers.value = false
   }

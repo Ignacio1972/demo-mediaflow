@@ -36,21 +36,14 @@ class VoiceManager:
         Returns:
             VoiceSettings object or None if not found
         """
-        # Check cache first
-        if voice_id in self._cache:
-            logger.debug(f"✅ Voice '{voice_id}' loaded from cache")
-            return self._cache[voice_id]
-
-        # Query database with async
+        # Always query database - don't cache ORM objects across sessions
         result = await db.execute(
             select(VoiceSettings).filter(VoiceSettings.id == voice_id)
         )
         voice = result.scalar_one_or_none()
 
         if voice:
-            # Update cache
-            self._cache[voice_id] = voice
-            logger.info(f"✅ Voice '{voice_id}' loaded from database")
+            logger.debug(f"✅ Voice '{voice_id}' loaded from database")
             return voice
 
         logger.warning(f"⚠️ Voice '{voice_id}' not found")

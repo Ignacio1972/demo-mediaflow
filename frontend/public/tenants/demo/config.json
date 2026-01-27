@@ -1,0 +1,9 @@
+{
+  "tenant_id": "demo",
+  "tenant_name": "MediaFlow Demo",
+  "description": "Demo instance for MediaFlow presentations",
+  "primary_color": "#4F46E5",
+  "secondary_color": "#7C3AED",
+  "logo": "/tenants/demo/logo.png",
+  "favicon": "/tenants/demo/favicon.ico"
+}

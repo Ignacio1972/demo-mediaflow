@@ -1,0 +1,131 @@
+# MediaFlow v2.1 - Docker Compose
+#
+# Uso:
+#   docker-compose up -d        # Iniciar
+#   docker-compose down         # Detener
+#   docker-compose logs -f      # Ver logs
+#   docker-compose exec backend alembic upgrade head  # Migraciones
+#
+# Prerequisitos:
+#   1. Copiar .env.example a .env y configurar
+#   2. Crear red externa si es necesario: docker network create mediaflow-network
+
+version: '3.8'
+
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  db:
+    image: postgres:15-alpine
+    container_name: mediaflow-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-mediaflow}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      POSTGRES_DB: ${DB_NAME:-mediaflow}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-mediaflow}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - mediaflow-internal
+
+  # ============================================
+  # Redis (Cache/Sessions)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: mediaflow-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - mediaflow-internal
+
+  # ============================================
+  # Backend (FastAPI)
+  # ============================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mediaflow-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      # Override DATABASE_URL for Docker network
+      DATABASE_URL: postgresql+asyncpg://${DB_USER:-mediaflow}:${DB_PASSWORD}@db:5432/${DB_NAME:-mediaflow}
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./storage:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/config/tenant"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - mediaflow-internal
+
+  # ============================================
+  # Frontend (Nginx + Vue)
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mediaflow-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # SSL certificates (optional, for production)
+      - ./ssl:/etc/nginx/ssl:ro
+      # Custom nginx config (optional)
+      # - ./deploy/nginx/docker.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - mediaflow-internal
+      - mediaflow-external
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  mediaflow-internal:
+    driver: bridge
+  mediaflow-external:
+    driver: bridge

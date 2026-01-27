@@ -74,6 +74,15 @@ class Settings(BaseSettings):
     AZURACAST_STATION_NAME: str = "mediaflow"
     AZURACAST_MEDIA_FOLDER: str = "Grabaciones"
 
+    # Tenant Configuration (Multi-tenant support)
+    TENANT_ID: str = "demo"
+    TENANT_NAME: str = "MediaFlow Demo"
+    TENANT_LOGO: str = "/images/mediaflow-logo.png"
+    TENANT_PRIMARY_COLOR: str = "#4F46E5"
+    TENANT_SECONDARY_COLOR: str = "#7C3AED"
+    TENANT_DOMAIN: str = "localhost"
+    TENANT_FAVICON: str = "/favicon.ico"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

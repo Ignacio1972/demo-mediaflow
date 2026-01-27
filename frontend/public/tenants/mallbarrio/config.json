@@ -1,0 +1,9 @@
+{
+  "tenant_id": "mallbarrio",
+  "tenant_name": "Mall Barrio Independencia",
+  "description": "MediaFlow instance for Mall Barrio Independencia",
+  "primary_color": "#E91E63",
+  "secondary_color": "#9C27B0",
+  "logo": "/tenants/mallbarrio/logo.png",
+  "favicon": "/tenants/mallbarrio/favicon.ico"
+}

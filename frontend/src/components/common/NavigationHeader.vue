@@ -10,8 +10,8 @@
           aria-label="Ir a inicio"
         >
           <img
-            src="/images/Mallplaza_2016_vertical.svg.png"
-            alt="Inicio"
+            :src="tenantLogo"
+            :alt="tenantName"
             class="h-14 w-auto object-contain"
           />
         </button>
@@ -31,8 +31,8 @@
           class="flex items-center hover:opacity-80 transition-opacity"
         >
           <img
-            src="/images/Mallplaza_2016_vertical.svg.png"
-            alt="Mallplaza"
+            :src="tenantLogo"
+            :alt="tenantName"
             class="h-12 w-auto object-contain"
           />
         </router-link>
@@ -76,8 +76,8 @@
       <!-- Sidebar Header -->
       <div class="flex items-center justify-between p-4 border-b border-base-300">
         <img
-          src="/images/Mallplaza_2016_vertical.svg.png"
-          alt="Mallplaza"
+          :src="tenantLogo"
+          :alt="tenantName"
           class="h-10 w-auto object-contain ml-4"
         />
         <button
@@ -110,9 +110,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, markRaw, type Component } from 'vue'
+import { ref, watch, onMounted, onUnmounted, markRaw, computed, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isMobileDevice } from '@/composables/useMobileDevice'
+import { useTenantStore } from '@/stores/tenant'
 import {
   Bars3Icon,
   XMarkIcon,
@@ -128,6 +129,11 @@ import {
   MoonIcon,
   SunIcon
 } from '@heroicons/vue/24/outline'
+
+// Tenant store for dynamic branding
+const tenantStore = useTenantStore()
+const tenantLogo = computed(() => tenantStore.tenantLogo)
+const tenantName = computed(() => tenantStore.tenantName)
 
 interface MenuItem {
   path: string

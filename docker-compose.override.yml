@@ -1,0 +1,47 @@
+# MediaFlow - Docker Compose Override (Development)
+#
+# Este archivo se aplica automáticamente junto con docker-compose.yml
+# Solo para desarrollo local
+#
+# Para producción, usar:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      args:
+        APP_ENV: development
+    volumes:
+      # Hot reload en desarrollo
+      - ./backend:/app
+    environment:
+      DEBUG: "true"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  frontend:
+    # En desarrollo, usar vite dev server en lugar de nginx
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: ["npm", "run", "dev", "--", "--host"]
+
+  # PgAdmin para desarrollo (opcional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: mediaflow-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mediaflow.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - mediaflow-internal
