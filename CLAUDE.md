@@ -1,6 +1,6 @@
 # MediaFlow v2.1 - Project Context
 
-**Last Updated**: 2025-12-22
+**Last Updated**: 2026-01-27
 **Purpose**: Context documentation for Claude AI assistants
 
 ---
@@ -525,6 +525,54 @@ components/shared/
 
 - Plan completo: `docs/CAMPAIGN_MASTER_PLAN.md`
 - Fases: `docs/phases/PHASE_*.md`
+
+---
+
+## Servidor de Desarrollo (Demo)
+
+**Dominio**: demo.mediaflow.cl
+**IP**: 148.113.205.115
+**Ubicación**: /var/www/mediaflow-v2
+
+### URLs
+
+| Servicio | URL |
+|----------|-----|
+| **Frontend** | https://demo.mediaflow.cl |
+| **API** | https://demo.mediaflow.cl/api/v1/ |
+| **API Docs** | https://demo.mediaflow.cl/api/docs |
+
+### Azuracast (Radio Streaming Local)
+
+| Servicio | URL |
+|----------|-----|
+| **Panel Azuracast** | http://radio.mediaflow.cl |
+| **Stream Radio** | http://148.113.205.115:8000 |
+
+**Configuración Azuracast** (`/var/azuracast/.env`):
+```env
+AZURACAST_HTTP_PORT=10080
+AZURACAST_HTTPS_PORT=10443
+```
+
+**Nota**: El panel está accesible via nginx proxy en `radio.mediaflow.cl` (puerto 80 → 10080 interno).
+
+**Comandos Azuracast:**
+```bash
+# Ver estado
+cd /var/azuracast && docker compose ps
+
+# Ver logs
+cd /var/azuracast && docker compose logs -f
+
+# Reiniciar
+cd /var/azuracast && docker compose restart
+```
+
+**Ajuste de volumen via Liquidsoap:**
+- Ir a: Panel Azuracast → Station → Utilities → Edit Liquidsoap Configuration
+- Agregar `radio = amplify(0.7, radio)` para bajar volumen al 70%
+- O usar dB: `radio = amplify(lin_of_dB(-3.), radio)` para bajar 3dB
 
 ---
 
