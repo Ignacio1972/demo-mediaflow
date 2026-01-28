@@ -8,6 +8,7 @@ Checklist rapido para nuevas instalaciones.
 
 - [ ] VPS Ubuntu 22.04 LTS listo
 - [ ] Dominio apuntando al VPS (DNS A record)
+- [ ] Subdominio `radio.` apuntando al VPS (si usa Azuracast)
 - [ ] API Key ElevenLabs
 - [ ] API Key Anthropic
 - [ ] Logo del cliente (PNG)
@@ -41,6 +42,7 @@ Checklist rapido para nuevas instalaciones.
 - [ ] Backend sincronizado
 - [ ] Frontend sincronizado
 - [ ] Musica sincronizada
+- [ ] **Sounds sincronizados** (intro_announcement.mp3, outro_announcement.mp3)
 - [ ] Permisos ajustados
 
 ---
@@ -77,9 +79,10 @@ cp /var/www/mediaflow/frontend/public/tenants/TENANT_ID/logo.png \
    /var/www/mediaflow/frontend/dist/tenants/TENANT_ID/logo.png
 ```
 
-- [ ] Musica cargada en DB
-- [ ] Voces configuradas
-- [ ] Categorias creadas
+- [ ] Musica cargada en DB (7 tracks)
+- [ ] Voces configuradas (3 voces)
+- [ ] Categorias creadas (5 categorias)
+- [ ] **Templates cargados** (7: vehiculos, horarios, empleados)
 - [ ] Logo subido
 
 ---
@@ -107,9 +110,9 @@ curl -I https://TU_DOMINIO/
 
 ---
 
-## Fase 5: Azuracast (Opcional)
+## Fase 5: Azuracast (Requerido para Radio)
 
-Si el cliente necesita radio streaming:
+Si el cliente necesita radio streaming con interrupcion TTS:
 
 ```bash
 # Instalar Docker
@@ -137,6 +140,53 @@ ufw allow 8000/tcp
 - [ ] Puertos cambiados (8080/8443)
 - [ ] Panel accesible: http://IP:8080
 - [ ] Usuario admin creado
+- [ ] **Estacion creada** (anotar el Short Name)
+- [ ] **Carpeta `Grabaciones` creada** en Music Files
+
+---
+
+## Fase 6: Integracion MediaFlow ↔ Azuracast (CRITICO)
+
+- [ ] **API Key creada** en Azuracast (Administration → API Keys)
+- [ ] **.env actualizado** con variables de Azuracast:
+  ```
+  AZURACAST_URL=http://localhost:8080
+  AZURACAST_API_KEY=<key>
+  AZURACAST_STATION_ID=1
+  AZURACAST_STATION_NAME=<short_name>
+  AZURACAST_MEDIA_FOLDER=Grabaciones
+  ```
+- [ ] **MediaFlow reiniciado** (`systemctl restart mediaflow`)
+- [ ] **Nginx proxy** para radio.dominio (opcional)
+- [ ] **SSL** para radio.dominio (opcional)
+
+---
+
+## Fase 7: Verificacion del Sistema de Interrupcion TTS
+
+```bash
+# 1. Archivos de sonido
+ls -la /var/www/mediaflow/storage/sounds/
+# DEBE mostrar intro_announcement.mp3 y outro_announcement.mp3
+
+# 2. Conexion Azuracast
+curl http://localhost:3001/api/v1/radio/status
+# DEBE responder: {"success":true,"status":"online",...}
+
+# 3. Socket Liquidsoap
+docker exec azuracast ls /var/azuracast/stations/STATION_NAME/config/liquidsoap.sock
+# DEBE existir (si no, docker compose restart y esperar 30s)
+
+# 4. Prueba de interrupcion real
+curl -X POST "http://localhost:3001/api/v1/library/1/send-to-radio?interrupt=true"
+# DEBE responder: {"success":true,...,"interrupt":{"success":true,"request_id":"..."}}
+```
+
+- [ ] **intro_announcement.mp3 existe** en storage/sounds/
+- [ ] **outro_announcement.mp3 existe** en storage/sounds/
+- [ ] **Radio status: online** (`/api/v1/radio/status`)
+- [ ] **Socket Liquidsoap existe** (dentro del contenedor)
+- [ ] **Interrupcion funciona** (enviar audio de prueba a la radio)
 
 ---
 
@@ -168,8 +218,11 @@ cd /var/azuracast && docker compose logs -f
 
 # Reiniciar Azuracast
 cd /var/azuracast && docker compose restart
+
+# Verificar socket Liquidsoap
+docker exec azuracast ls -la /var/azuracast/stations/STATION_NAME/config/liquidsoap.sock
 ```
 
 ---
 
-*Tiempo total estimado: 20-25 minutos (con Azuracast)*
+*Basado en instalacion MBI (mbi.mediaflow.cl) - 2026-01-26, actualizado 2026-01-28*

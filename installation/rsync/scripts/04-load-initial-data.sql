@@ -48,10 +48,73 @@ SELECT * FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM categories LIMIT 1);
 
 -- =============================================
+-- MESSAGE TEMPLATES (Templates de operaciones)
+-- =============================================
+-- Templates para vehiculos mal estacionados, horarios de cierre y llamado a empleados
+
+INSERT INTO message_templates (id, name, description, template_text, variables, module, "order", active, is_default, use_announcement_sound, created_at, updated_at)
+SELECT * FROM (VALUES
+    -- Vehiculos mal estacionados
+    ('vehiculos_estandar',
+     'Vehiculos - Estandar',
+     'Solicita acercarse a informaciones',
+     'Atención clientes: Se solicita al dueño del vehiculo marca {marca} color {color}. Patente {patente} porfavor acérquese al mesón de servicio al cliente. Repito, {marca} color {color}, Patente {patente}, por favor acérquese a informaciones ubicada en el mesón central.',
+     '["marca", "color", "patente"]'::json,
+     'vehicles', 0, true, true, true, NOW(), NOW()),
+
+    -- Horarios de cierre
+    ('schedules_cierre_normal',
+     'Cierre - Normal',
+     'Mensaje estándar de cierre próximo',
+     'Estimados clientes, les informamos que el establecimiento cerrará pronto. Por favor diríjanse a las cajas para realizar sus compras.',
+     '[]'::json,
+     'schedules', 2, true, false, false, NOW(), NOW()),
+
+    ('schedules_cierre_minutos',
+     'Cierre - En X minutos',
+     'Aviso de cierre con tiempo específico. Usa {minutes} para los minutos.',
+     'Estimados clientes, les recordamos que el establecimiento cerrará en {minutes} minutos. Les agradecemos su visita. Los esperamos mañana. Muchas gracias.',
+     '["minutes"]'::json,
+     'schedules', 3, true, true, true, NOW(), NOW()),
+
+    ('schedules_cierre_inmediato',
+     'Cierre - Inmediato',
+     'Anuncio de que el local ya cerró',
+     'Estimados clientes, el establecimiento ha cerrado. Gracias por su visita, los esperamos pronto.',
+     '[]'::json,
+     'schedules', 4, true, false, false, NOW(), NOW()),
+
+    -- Llamado a empleados
+    ('employee_call_default',
+     'Llamado estándar',
+     'Llamado formal con repetición',
+     'Atención: Se solicita la presencia de {nombre} en {ubicacion}. {nombre}, por favor acérquese a {ubicacion}. Gracias.',
+     '["nombre", "ubicacion"]'::json,
+     'employee_call', 0, true, true, true, NOW(), NOW()),
+
+    ('employee_call_cliente',
+     'Llamado a cliente',
+     'Mensaje amable para clientes',
+     'Estimado cliente {nombre}, por favor diríjase a {ubicacion} donde le están esperando. Gracias.',
+     '["nombre", "ubicacion"]'::json,
+     'employee_call', 1, true, false, true, NOW(), NOW()),
+
+    ('employee_call_corto',
+     'Llamado corto',
+     'Mensaje breve y directo',
+     '{nombre} a {ubicacion}, por favor.',
+     '["nombre", "ubicacion"]'::json,
+     'employee_call', 2, true, false, false, NOW(), NOW())
+) AS v(id, name, description, template_text, variables, module, "order", active, is_default, use_announcement_sound, created_at, updated_at)
+WHERE NOT EXISTS (SELECT 1 FROM message_templates LIMIT 1);
+
+-- =============================================
 -- Verificacion
 -- =============================================
 SELECT 'Music tracks:' as tabla, COUNT(*) as registros FROM music_tracks
 UNION ALL
 SELECT 'Voice settings:', COUNT(*) FROM voice_settings
 UNION ALL
-SELECT 'Categories:', COUNT(*) FROM categories;
+SELECT 'Categories:', COUNT(*) FROM categories
+UNION ALL
+SELECT 'Templates:', COUNT(*) FROM message_templates;

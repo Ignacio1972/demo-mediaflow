@@ -122,11 +122,19 @@ sshpass -p "$DESTINO_PASS" rsync -avz --progress \
     /var/www/mediaflow-v2/backend/storage/music/ \
     $DESTINO_USER@$DESTINO_IP:/var/www/mediaflow/storage/music/
 
-# rsync de sounds (si existen)
+# rsync de sounds (OBLIGATORIO para announcements)
 sshpass -p "$DESTINO_PASS" rsync -avz --progress \
     /var/www/mediaflow-v2/backend/storage/sounds/ \
-    $DESTINO_USER@$DESTINO_IP:/var/www/mediaflow/storage/sounds/ 2>/dev/null || true
+    $DESTINO_USER@$DESTINO_IP:/var/www/mediaflow/storage/sounds/
+
+# Verificar que sounds se copiaron
+sshpass -p "$DESTINO_PASS" ssh $DESTINO_USER@$DESTINO_IP \
+    "ls -la /var/www/mediaflow/storage/sounds/*.mp3" || echo "⚠️ ERROR: Sounds no copiados!"
 ```
+
+**Archivos de sounds requeridos:**
+- `intro_announcement.mp3` - Sonido antes del anuncio de vehículos
+- `outro_announcement.mp3` - Sonido después del anuncio
 
 ---
 
@@ -202,6 +210,13 @@ TENANT_PRIMARY_COLOR=#4F46E5
 TENANT_SECONDARY_COLOR=#7C3AED
 TENANT_DOMAIN=TU_DOMINIO
 TENANT_FAVICON=/favicon.ico
+
+# AzuraCast Integration (configurar despues de instalar Azuracast)
+AZURACAST_URL=http://localhost:8080
+AZURACAST_API_KEY=
+AZURACAST_STATION_ID=1
+AZURACAST_STATION_NAME=TU_STATION_NAME
+AZURACAST_MEDIA_FOLDER=Grabaciones
 EOF
 
 chown mediaflow:mediaflow /var/www/mediaflow/backend/.env
@@ -346,18 +361,21 @@ certbot --nginx -d TU_DOMINIO --non-interactive --agree-tos --email TU_EMAIL --r
 
 ### FASE 5: Cargar Datos Iniciales
 
+El script carga musica, voces, categorias y **templates de operaciones** (vehiculos, horarios, empleados):
+
 ```bash
-# Insertar tracks de musica en la DB
-sudo -u postgres psql mediaflow << 'EOF'
-INSERT INTO music_tracks (filename, display_name, file_path, file_size, duration, bitrate, is_default, active, "order", genre, mood, created_at, updated_at) VALUES
-('Cool.mp3', 'Cool', '/var/www/mediaflow/storage/music/Cool.mp3', 11106725, 273.45, '324kbps', false, true, 0, 'Electronic', 'energetic', NOW(), NOW()),
-('Kids.mp3', 'Kids', '/var/www/mediaflow/storage/music/Kids.mp3', 9324163, 227.97, '327kbps', false, true, 1, 'Pop', 'happy', NOW(), NOW()),
-('Pop.mp3', 'Pop', '/var/www/mediaflow/storage/music/Pop.mp3', 9219710, 225.63, '326kbps', false, true, 2, 'Pop', 'upbeat', NOW(), NOW()),
-('Slow.mp3', 'Slow', '/var/www/mediaflow/storage/music/Slow.mp3', 8508264, 208.87, '325kbps', false, true, 3, 'Ambient', 'calm', NOW(), NOW()),
-('Smooth.mp3', 'Smooth', '/var/www/mediaflow/storage/music/Smooth.mp3', 6438454, 154.28, '333kbps', false, true, 4, 'Jazz', 'relaxed', NOW(), NOW()),
-('Uplift.mp3', 'Uplift', '/var/www/mediaflow/storage/music/Uplift.mp3', 10020659, 248.41, '322kbps', true, true, 5, 'Electronic', 'inspiring', NOW(), NOW()),
-('_Independencia.mp3', 'Independencia', '/var/www/mediaflow/storage/music/_Independencia.mp3', 2464462, 19.72, '999kbps', false, true, 6, 'Latin', 'festive', NOW(), NOW());
-EOF
+sudo -u postgres psql mediaflow < /var/www/mediaflow/installation/rsync/scripts/04-load-initial-data.sql
+```
+
+Verificar que se cargaron todos los datos:
+```bash
+sudo -u postgres psql mediaflow -c "
+  SELECT 'Music tracks' as tabla, COUNT(*) FROM music_tracks
+  UNION ALL SELECT 'Voice settings', COUNT(*) FROM voice_settings
+  UNION ALL SELECT 'Categories', COUNT(*) FROM categories
+  UNION ALL SELECT 'Templates', COUNT(*) FROM message_templates;
+"
+# Esperado: Music 7, Voices 3, Categories 5, Templates 7
 ```
 
 ---
@@ -395,9 +413,9 @@ journalctl -u mediaflow -f
 
 ---
 
-## FASE 7: Instalar Azuracast (Opcional)
+## FASE 7: Instalar Azuracast (Requerido para Radio)
 
-Si el cliente necesita streaming de radio, instalar Azuracast.
+Si el cliente necesita streaming de radio con interrupcion TTS.
 
 ### 7.1 Instalar Docker
 
@@ -447,20 +465,85 @@ ufw allow 8443/tcp
 ufw allow 8000/tcp
 ```
 
-### 7.5 Verificar
+### 7.5 Configurar Estacion en Azuracast
+
+1. Acceder al panel: `http://IP_DEL_VPS:8080`
+2. Crear cuenta de administrador
+3. Crear nueva estacion con estos valores:
+   - **Name**: Nombre del cliente (ej: "Mall Barrio Independencia")
+   - **Short Name**: Identificador corto SIN espacios (ej: `mbi`) - **ANOTAR ESTE VALOR**
+4. En la estacion, ir a `Music Files` → crear carpeta `Grabaciones`
+
+### 7.6 Crear API Key para MediaFlow
+
+1. En Azuracast: `Administration` → `API Keys`
+2. Click `Add API Key`
+3. Nombre: `MediaFlow Integration`
+4. Permisos: **Station Administrator** (o minimo: Station Media, Station Broadcasting)
+5. **Copiar la API Key generada** - solo se muestra una vez
+
+### 7.7 Configurar MediaFlow para Azuracast
+
+Editar el `.env` de MediaFlow:
 
 ```bash
-docker ps
+nano /var/www/mediaflow/backend/.env
 ```
 
-Acceder al panel: `http://IP_DEL_VPS:8080`
+Actualizar estas variables con los valores reales:
+
+```env
+# AzuraCast Integration
+AZURACAST_URL=http://localhost:8080
+AZURACAST_API_KEY=TU_API_KEY_DE_AZURACAST
+AZURACAST_STATION_ID=1
+AZURACAST_STATION_NAME=mbi
+AZURACAST_MEDIA_FOLDER=Grabaciones
+```
+
+**IMPORTANTE**: `AZURACAST_STATION_NAME` debe ser el **Short Name** exacto de la estacion (sin espacios).
+
+Reiniciar MediaFlow:
+```bash
+systemctl restart mediaflow
+```
+
+### 7.8 Nginx Proxy para Panel Azuracast (Opcional)
+
+Si quieres acceder al panel via `radio.tudominio.cl`:
+
+```bash
+cat > /etc/nginx/sites-available/azuracast << 'EOF'
+server {
+    listen 80;
+    server_name radio.TU_DOMINIO;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+EOF
+
+ln -sf /etc/nginx/sites-available/azuracast /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+
+# SSL para el subdominio
+certbot --nginx -d radio.TU_DOMINIO --non-interactive --agree-tos --email TU_EMAIL --redirect
+```
 
 ### Puertos Azuracast
 
 | Puerto | Servicio |
 |--------|----------|
-| 8080 | Panel web Azuracast |
-| 8443 | Azuracast HTTPS |
+| 8080 | Panel web Azuracast (interno) |
+| 8443 | Azuracast HTTPS (interno) |
 | 8000 | Stream de radio principal |
 | 8005+ | Streams adicionales |
 
@@ -481,6 +564,96 @@ docker compose logs -f
 # Actualizar
 ./docker.sh update
 ```
+
+---
+
+## FASE 8: Verificar Sistema de Interrupcion TTS (CRITICO)
+
+Esta verificacion es **OBLIGATORIA** para que los anuncios interrumpan la radio.
+
+### 8.1 Verificar archivos de sonido
+
+```bash
+ls -la /var/www/mediaflow/storage/sounds/
+# DEBE mostrar:
+# - intro_announcement.mp3 (~110KB)
+# - outro_announcement.mp3 (~110KB)
+```
+
+**Si faltan**, copiar desde servidor origen:
+```bash
+# Desde el servidor ORIGEN ejecutar:
+scp /var/www/mediaflow-v2/backend/storage/sounds/*.mp3 \
+    root@IP_DESTINO:/var/www/mediaflow/storage/sounds/
+
+# En el servidor DESTINO:
+chown mediaflow:mediaflow /var/www/mediaflow/storage/sounds/*.mp3
+```
+
+### 8.2 Verificar conexion MediaFlow → Azuracast
+
+```bash
+curl http://localhost:3001/api/v1/radio/status
+# Esperado: {"success":true,"status":"online","message":"Radio backend is running"}
+```
+
+Si responde `"status":"offline"`, verificar:
+- API Key correcta en .env
+- Azuracast esta corriendo (`docker ps`)
+- AZURACAST_URL es correcto
+
+### 8.3 Verificar socket Liquidsoap
+
+El socket es CRITICO para la interrupcion. Verificar que existe:
+
+```bash
+# Reemplazar STATION_NAME con el short name de tu estacion
+docker exec azuracast ls -la /var/azuracast/stations/STATION_NAME/config/liquidsoap.sock
+```
+
+**Si no existe**, reiniciar Azuracast y esperar 30 segundos:
+```bash
+cd /var/azuracast && docker compose restart
+sleep 30
+# Verificar de nuevo
+docker exec azuracast ls -la /var/azuracast/stations/STATION_NAME/config/liquidsoap.sock
+```
+
+### 8.4 Probar interrupcion completa
+
+Generar un audio de prueba y enviarlo a la radio:
+
+```bash
+# Verificar que hay al menos un audio en la biblioteca
+curl http://localhost:3001/api/v1/library/messages | head -20
+
+# Enviar el audio ID 1 a la radio (cambiar ID si es necesario)
+curl -X POST "http://localhost:3001/api/v1/library/1/send-to-radio?interrupt=true"
+```
+
+Respuesta exitosa:
+```json
+{
+  "success": true,
+  "message": "Audio uploaded and playing on radio",
+  "data": {
+    "azuracast": {
+      "upload": {"success": true},
+      "interrupt": {"success": true, "request_id": "1"}
+    }
+  }
+}
+```
+
+### 8.5 Troubleshooting
+
+| Problema | Causa | Solucion |
+|----------|-------|----------|
+| `Socket not found` | Liquidsoap no inicio | `docker compose restart` y esperar 30s |
+| `API Key invalid` | Key incorrecta/expirada | Crear nueva API Key en Azuracast |
+| `Upload failed` | Carpeta no existe | Crear carpeta `Grabaciones` en Azuracast |
+| `Sounds not found` | Archivos faltantes | Copiar intro/outro_announcement.mp3 |
+| `status: offline` | Azuracast caido o URL mal | Verificar docker ps y AZURACAST_URL |
 
 ---
 
