@@ -206,6 +206,7 @@ class OperationsOptionsResponse(BaseModel):
     colors: List[VehicleColor]
     templates: List[TemplateInfo]
     default_template_id: Optional[str] = None
+    default_voice_id: Optional[str] = None
 
 
 # ============================================
@@ -300,6 +301,7 @@ class ScheduleOptionsResponse(BaseModel):
     types: List[dict]  # [{id, name}]
     variants: List[dict]  # [{id, name, description}]
     minutes_options: List[MinutesOption]
+    default_voice_id: Optional[str] = None
 
 
 # ============================================
@@ -394,3 +396,4 @@ class EmployeeCallOptionsResponse(BaseModel):
     locations: List[LocationOption]
     templates: List[TemplateInfo]
     default_template_id: Optional[str] = None
+    default_voice_id: Optional[str] = None

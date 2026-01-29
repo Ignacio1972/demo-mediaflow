@@ -164,12 +164,25 @@ async def get_announcement_text(
     summary="Get Form Options",
     description="Get options for the schedule announcement form",
 )
-async def get_options():
+async def get_options(db: AsyncSession = Depends(get_db)):
     """Get options for the schedule form: types, variants, and minutes."""
+    # Get default voice from the default template for schedules module
+    default_voice_id = None
+    result = await db.execute(
+        select(MessageTemplate)
+        .filter(MessageTemplate.module == "schedules")
+        .filter(MessageTemplate.is_default == True)
+        .filter(MessageTemplate.active == True)
+    )
+    default_template = result.scalar_one_or_none()
+    if default_template:
+        default_voice_id = default_template.default_voice_id
+
     return ScheduleOptionsResponse(
         types=SCHEDULE_TYPES,
         variants=SCHEDULE_VARIANTS,
-        minutes_options=[MinutesOption(**m) for m in MINUTES_OPTIONS]
+        minutes_options=[MinutesOption(**m) for m in MINUTES_OPTIONS],
+        default_voice_id=default_voice_id
     )
 
 

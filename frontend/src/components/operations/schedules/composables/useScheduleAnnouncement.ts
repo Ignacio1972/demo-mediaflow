@@ -29,6 +29,7 @@ export interface OptionsResponse {
   types: ScheduleTypeOption[]
   variants: ScheduleVariantOption[]
   minutes_options: MinutesOption[]
+  default_voice_id: string | null
 }
 
 export interface PreviewResponse {
@@ -112,6 +113,9 @@ export function useScheduleAnnouncement() {
     return variants.value
   })
 
+  // Default voice from template configuration
+  const configuredDefaultVoiceId = ref<string | null>(null)
+
   // Actions
 
   /**
@@ -128,6 +132,10 @@ export function useScheduleAnnouncement() {
       types.value = response.types
       variants.value = response.variants
       minutesOptions.value = response.minutes_options
+      // Store the configured default voice
+      if (response.default_voice_id) {
+        configuredDefaultVoiceId.value = response.default_voice_id
+      }
     } catch (e: any) {
       console.error('Error loading options:', e)
       error.value = 'Error cargando opciones'
@@ -146,11 +154,13 @@ export function useScheduleAnnouncement() {
       const response = await apiClient.get<Voice[]>('/api/v1/audio/voices')
       voices.value = response.filter(v => v.active)
 
-      // Set default voice
+      // Set default voice: prefer configured template default, then is_default, then first voice
       if (voices.value.length > 0 && !voiceId.value) {
-        const veronicaVoice = voices.value.find((v: any) => v.id === 'veronica')
+        const configuredVoice = configuredDefaultVoiceId.value
+          ? voices.value.find((v: any) => v.id === configuredDefaultVoiceId.value)
+          : null
         const defaultVoice = voices.value.find((v: any) => v.is_default)
-        voiceId.value = veronicaVoice?.id || defaultVoice?.id || voices.value[0].id
+        voiceId.value = configuredVoice?.id || defaultVoice?.id || voices.value[0].id
       }
     } catch (e: any) {
       console.error('Error loading voices:', e)
@@ -252,12 +262,11 @@ export function useScheduleAnnouncement() {
 
   /**
    * Initialize: load all required data
+   * loadOptions first to get default_voice_id, then loadVoices
    */
   async function initialize() {
-    await Promise.all([
-      loadOptions(),
-      loadVoices()
-    ])
+    await loadOptions()
+    await loadVoices()
     // Load initial preview
     await previewAnnouncementText()
   }

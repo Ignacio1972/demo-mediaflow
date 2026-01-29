@@ -17,6 +17,7 @@ export interface MessageTemplate {
   active: boolean
   is_default: boolean
   use_announcement_sound: boolean
+  default_voice_id: string | null
   created_at?: string
   updated_at?: string
 }
@@ -31,6 +32,7 @@ export interface TemplateCreate {
   active?: boolean
   is_default?: boolean
   use_announcement_sound?: boolean
+  default_voice_id?: string | null
 }
 
 export interface TemplateUpdate {
@@ -42,6 +44,7 @@ export interface TemplateUpdate {
   active?: boolean
   is_default?: boolean
   use_announcement_sound?: boolean
+  default_voice_id?: string | null
   order?: number
 }
 

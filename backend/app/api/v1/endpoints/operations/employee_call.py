@@ -105,6 +105,7 @@ async def get_options(db: AsyncSession = Depends(get_db)):
     # Convert to TemplateInfo format and find default
     templates = []
     default_template_id = None
+    default_voice_id = None
     for t in db_templates:
         templates.append({
             "id": t.id,
@@ -114,6 +115,7 @@ async def get_options(db: AsyncSession = Depends(get_db)):
         })
         if t.is_default:
             default_template_id = t.id
+            default_voice_id = t.default_voice_id
 
     # Fallback to hardcoded templates if no database templates exist
     if not templates:
@@ -133,7 +135,8 @@ async def get_options(db: AsyncSession = Depends(get_db)):
         call_types=CALL_TYPES,
         locations=[LocationOption(**loc) for loc in COMMON_LOCATIONS],
         templates=[TemplateInfo(**t) for t in templates],
-        default_template_id=default_template_id
+        default_template_id=default_template_id,
+        default_voice_id=default_voice_id
     )
 
 

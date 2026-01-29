@@ -38,6 +38,7 @@ def serialize_template(template: MessageTemplate) -> dict:
         "active": template.active,
         "is_default": template.is_default,
         "use_announcement_sound": template.use_announcement_sound,
+        "default_voice_id": template.default_voice_id,
         "created_at": template.created_at,
         "updated_at": template.updated_at,
     }
@@ -178,6 +179,7 @@ async def create_template(
             active=template_data.active,
             is_default=template_data.is_default,
             use_announcement_sound=template_data.use_announcement_sound,
+            default_voice_id=template_data.default_voice_id,
         )
 
         db.add(template)

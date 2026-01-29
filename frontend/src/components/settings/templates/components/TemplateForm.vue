@@ -165,6 +165,33 @@
               </div>
             </label>
           </div>
+
+          <!-- Default Voice Selector -->
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">Voz por defecto</span>
+              <span class="label-text-alt text-base-content/60">Opcional</span>
+            </label>
+            <select
+              v-model="localTemplate.default_voice_id"
+              class="select select-bordered w-full"
+              :disabled="loadingVoices"
+            >
+              <option :value="null">Sin voz predeterminada</option>
+              <option
+                v-for="voice in voices"
+                :key="voice.id"
+                :value="voice.id"
+              >
+                {{ voice.name }}
+              </option>
+            </select>
+            <label class="label">
+              <span class="label-text-alt text-base-content/60">
+                Esta voz se seleccionara automaticamente en Operations
+              </span>
+            </label>
+          </div>
         </div>
 
         <!-- Actions -->
@@ -200,8 +227,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { apiClient } from '@/api/client'
 import type { MessageTemplate, TemplateUpdate, ModuleInfo } from '../composables/useTemplateManager'
+
+interface Voice {
+  id: string
+  name: string
+  active: boolean
+}
 
 interface Props {
   template: MessageTemplate
@@ -210,6 +244,27 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+// Voices state
+const voices = ref<Voice[]>([])
+const loadingVoices = ref(false)
+
+// Load available voices
+const loadVoices = async () => {
+  loadingVoices.value = true
+  try {
+    const response = await apiClient.get<Voice[]>('/api/v1/audio/voices')
+    voices.value = response.filter(v => v.active)
+  } catch (e) {
+    console.error('Error loading voices:', e)
+  } finally {
+    loadingVoices.value = false
+  }
+}
+
+onMounted(() => {
+  loadVoices()
+})
 
 const emit = defineEmits<{
   (e: 'save', updates: TemplateUpdate): void
@@ -288,6 +343,7 @@ const handleSave = () => {
     active: localTemplate.value.active,
     is_default: localTemplate.value.is_default,
     use_announcement_sound: localTemplate.value.use_announcement_sound,
+    default_voice_id: localTemplate.value.default_voice_id,
   }
 
   emit('save', updates)

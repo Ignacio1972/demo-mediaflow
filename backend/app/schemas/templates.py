@@ -61,6 +61,13 @@ class TemplateBase(BaseModel):
         description="Whether to add intro/outro announcement sounds to this template",
     )
 
+    default_voice_id: Optional[str] = Field(
+        default=None,
+        max_length=50,
+        description="Default voice ID for this template",
+        examples=["veronica", "juan_carlos"],
+    )
+
     @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
@@ -148,6 +155,12 @@ class TemplateUpdate(BaseModel):
         description="Whether to add intro/outro announcement sounds",
     )
 
+    default_voice_id: Optional[str] = Field(
+        None,
+        max_length=50,
+        description="Default voice ID for this template",
+    )
+
     order: Optional[int] = Field(
         None,
         ge=0,
@@ -186,6 +199,7 @@ class TemplateResponse(BaseModel):
     active: bool = Field(..., description="Is active")
     is_default: bool = Field(..., description="Is default for module")
     use_announcement_sound: bool = Field(..., description="Uses intro/outro announcement sounds")
+    default_voice_id: Optional[str] = Field(None, description="Default voice ID for this template")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
@@ -203,6 +217,7 @@ class TemplateResponse(BaseModel):
                 "active": True,
                 "is_default": True,
                 "use_announcement_sound": True,
+                "default_voice_id": "veronica",
                 "created_at": "2024-12-12T10:00:00",
                 "updated_at": "2024-12-12T10:00:00",
             }

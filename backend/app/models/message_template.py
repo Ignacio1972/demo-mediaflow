@@ -25,6 +25,7 @@ class MessageTemplate(Base, TimestampMixin):
     active = Column(Boolean, default=True, nullable=False)
     is_default = Column(Boolean, default=False, nullable=False)  # Default for this module
     use_announcement_sound = Column(Boolean, default=False, nullable=False)  # Add intro/outro sounds
+    default_voice_id = Column(String(50), nullable=True)  # Default voice for this template
 
     def __repr__(self):
         return f"<MessageTemplate {self.name} ({self.id})>"
