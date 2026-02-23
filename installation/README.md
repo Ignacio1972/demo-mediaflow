@@ -97,6 +97,13 @@ Usar modelos actuales:
 
 ---
 
+### Current Clients
+Mall Barrio Independencia MBI
+VPS: 64.176.20.15
+User : root
+SSHpass Password: Raul Labbe 14050h
+
+
 ## Soporte
 
 - GitHub Issues: https://github.com/tu-org/mediaflow-v2/issues

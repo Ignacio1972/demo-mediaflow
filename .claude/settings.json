@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(rsync *)",
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(pip *)",
+      "Bash(python *)",
+      "Bash(uvicorn *)",
+      "Bash(alembic *)",
+      "Bash(systemctl status *)",
+      "Bash(docker ps *)",
+      "Bash(docker compose ps *)",
+      "Bash(docker compose logs *)"
+    ]
+  }
+}
