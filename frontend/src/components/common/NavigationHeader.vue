@@ -33,7 +33,7 @@
           <img
             :src="tenantLogo"
             :alt="tenantName"
-            class="h-12 w-auto object-contain"
+            class="h-16 w-auto object-contain"
           />
         </router-link>
 

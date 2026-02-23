@@ -3,8 +3,8 @@
     <!-- Logo Header -->
     <div class="py-6 flex flex-col items-center">
       <img
-        src="/tenants/mallbarrio/logo.png"
-        alt="Mall Barrio Independencia"
+        src="/tenants/demo/logo.png"
+        alt="Mall Plaza"
         class="h-16 w-auto object-contain"
       />
     </div>
@@ -64,7 +64,8 @@ import {
   BookOpenIcon,
   PhoneIcon,
   RocketLaunchIcon,
-  ChatBubbleLeftIcon
+  ChatBubbleLeftIcon,
+  StarIcon
 } from '@heroicons/vue/24/outline'
 
 interface MenuItem {
@@ -135,6 +136,13 @@ const defaultItems: MenuItem[] = [
     path: '/operations/employee-call',
     label: 'Llamado a Empleado',
     icon: PhoneIcon,
+    color: '#3B82F6'
+  },
+  {
+    id: 'favorites',
+    path: '/shortcuts',
+    label: 'Favoritos',
+    icon: StarIcon,
     color: '#3B82F6'
   },
 ]
