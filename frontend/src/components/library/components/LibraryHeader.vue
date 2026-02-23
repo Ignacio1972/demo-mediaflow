@@ -10,6 +10,14 @@
       <p class="hidden md:block text-base-content/50 ml-13">
         {{ total }} mensaje{{ total !== 1 ? 's' : '' }} guardado{{ total !== 1 ? 's' : '' }}
       </p>
+      <!-- Tab link to Recent Messages -->
+      <router-link
+        to="/recent"
+        class="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors mt-1 ml-13"
+      >
+        <ClockIcon class="h-4 w-4" />
+        Ver mensajes recientes
+      </router-link>
     </div>
 
     <div class="flex items-center gap-3">
@@ -46,7 +54,8 @@
 import {
   BookOpenIcon,
   CheckCircleIcon,
-  ArrowUpTrayIcon
+  ArrowUpTrayIcon,
+  ClockIcon
 } from '@heroicons/vue/24/outline'
 import ViewToggle from './ViewToggle.vue'
 import type { ViewMode } from '../types/library.types'

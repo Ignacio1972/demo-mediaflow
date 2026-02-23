@@ -68,6 +68,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/components/mobile/MobilePage.vue'),
   },
   {
+    path: '/recent',
+    name: 'recent',
+    component: () => import('@/components/library/RecentMessagesPage.vue'),
+  },
+  {
     path: '/shortcuts',
     name: 'shortcuts',
     component: () => import('@/components/shortcuts/ShortcutsPage.vue'),
