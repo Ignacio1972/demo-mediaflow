@@ -1,7 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.config import settings
+from app.services.scheduler import scheduler_worker
+from pathlib import Path
 import logging
 
 # Configure logging
@@ -20,6 +23,21 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
+# Auth version middleware - adds X-Auth-Version header to all responses
+VERSION_FILE = Path(__file__).parent.parent / "auth_version.txt"
+
+class AuthVersionMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        try:
+            version = VERSION_FILE.read_text().strip()
+        except FileNotFoundError:
+            version = "v1"
+        response.headers["X-Auth-Version"] = version
+        return response
+
+app.add_middleware(AuthVersionMiddleware)
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -27,6 +45,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Auth-Version"],
 )
 
 # Mount static files
@@ -59,10 +78,18 @@ async def startup_event():
     logger.info(f"📝 Environment: {settings.APP_ENV}")
     logger.info(f"🔗 API Docs: http://{settings.HOST}:{settings.PORT}/api/docs")
 
+    # Start the scheduler worker
+    await scheduler_worker.start()
+    logger.info("📅 Scheduler worker started")
+
 
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_event():
+    # Stop the scheduler worker
+    await scheduler_worker.stop()
+    logger.info("📅 Scheduler worker stopped")
+
     logger.info("👋 Shutting down MediaFlowDemo")
 
 

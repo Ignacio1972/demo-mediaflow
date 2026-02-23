@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
+    # Timezone
+    TIMEZONE: str = "America/Santiago"
+
     # Audio Processing
     DEFAULT_TARGET_LUFS: float = -16.0
     DEFAULT_SAMPLE_RATE: int = 44100
