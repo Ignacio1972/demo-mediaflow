@@ -51,19 +51,34 @@
         @generate="generateAnnouncement"
       />
 
-      <!-- Right column: Preview and Result -->
+      <!-- Right column: Result and Preview -->
       <div class="space-y-6">
+        <!-- Loading indicator while generating -->
+        <div
+          ref="audioResultRef"
+          v-if="loadingGenerate"
+          class="card bg-base-100 border-2 border-primary/30 rounded-2xl shadow-sm"
+        >
+          <div class="card-body p-6 flex flex-col items-center justify-center gap-4">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+            <p class="text-sm text-base-content/60">Generando audio...</p>
+          </div>
+        </div>
+
+        <!-- Audio Result (shown after generation) -->
+        <AudioResult
+          v-if="generatedAudio && !loadingGenerate"
+          :audio="generatedAudio"
+          @reset="resetForm"
+        />
+
         <!-- Text Preview -->
         <PreviewText
           :preview="previewText"
           :loading="loadingPreview"
-        />
-
-        <!-- Audio Result (shown after generation) -->
-        <AudioResult
-          v-if="generatedAudio"
-          :audio="generatedAudio"
-          @reset="resetForm"
+          :regenerating="loadingGenerate"
+          :has-audio="hasAudio"
+          @regenerate="handleRegenerate"
         />
       </div>
     </div>
@@ -71,12 +86,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref, watch, nextTick } from 'vue'
 import { ClockIcon, ExclamationCircleIcon, ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import ScheduleForm from './components/ScheduleForm.vue'
 import PreviewText from './components/PreviewText.vue'
 import AudioResult from './components/AudioResult.vue'
 import { useScheduleAnnouncement } from './composables/useScheduleAnnouncement'
+
+// Ref for auto-scroll
+const audioResultRef = ref<HTMLElement | null>(null)
 
 const {
   // Form state
@@ -93,6 +111,7 @@ const {
   // Computed
   showMinutes,
   isFormValid,
+  hasAudio,
 
   // Preview
   previewText,
@@ -117,6 +136,20 @@ const {
 // Initialize on mount
 onMounted(() => {
   initialize()
+})
+
+// Handle regenerate with custom text
+async function handleRegenerate(customText: string) {
+  await generateAnnouncement(customText)
+}
+
+// Auto-scroll when generation starts
+watch(loadingGenerate, (isLoading) => {
+  if (isLoading) {
+    nextTick(() => {
+      audioResultRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }
 })
 </script>
 

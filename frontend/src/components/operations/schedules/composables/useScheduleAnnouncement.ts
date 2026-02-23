@@ -205,8 +205,9 @@ export function useScheduleAnnouncement() {
 
   /**
    * Generate schedule announcement audio
+   * @param customText Optional custom text to use instead of template
    */
-  async function generateAnnouncement() {
+  async function generateAnnouncement(customText?: string) {
     if (!isFormValid.value) {
       error.value = 'Por favor complete todos los campos requeridos'
       return
@@ -223,6 +224,7 @@ export function useScheduleAnnouncement() {
         voice_id: voiceId.value,
         music_file: null,
         use_announcement_sound: useAnnouncementSound.value,
+        custom_text: customText || null,
       }
 
       if (showMinutes.value) {

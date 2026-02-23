@@ -265,13 +265,26 @@ async def generate_schedule_announcement(
                 detail=f"Voz '{request.voice_id}' está inactiva"
             )
 
-        # Get announcement text
-        text, template_id_used, use_announcement_sound = await get_announcement_text(
-            schedule_type=request.schedule_type,
-            variant=request.variant,
-            minutes=request.minutes,
-            db=db
-        )
+        # Get announcement text (use custom_text if provided for regeneration)
+        if request.custom_text:
+            text = request.custom_text
+            template_id_used = "custom"
+            # For custom text, we still need to check if announcement sound is enabled
+            # Get it from the default template for this type/variant
+            _, _, use_announcement_sound = await get_announcement_text(
+                schedule_type=request.schedule_type,
+                variant=request.variant,
+                minutes=request.minutes,
+                db=db
+            )
+            logger.info(f"Using custom text for regeneration: {text[:50]}...")
+        else:
+            text, template_id_used, use_announcement_sound = await get_announcement_text(
+                schedule_type=request.schedule_type,
+                variant=request.variant,
+                minutes=request.minutes,
+                db=db
+            )
 
         # Allow request to override template's announcement sound setting
         if request.use_announcement_sound is not None:
