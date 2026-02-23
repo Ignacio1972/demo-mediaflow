@@ -3,10 +3,12 @@ Audio API Endpoints
 Handles TTS generation with automatic voice settings - v2.1
 """
 import os
+import asyncio
 import logging
 from datetime import datetime
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from pydub import AudioSegment
@@ -594,3 +596,83 @@ async def delete_audio_message(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete audio: {str(e)}",
         )
+
+
+# --- Audio Stream with Format Conversion ---
+
+AUDIO_CACHE_DIR = os.path.join(settings.AUDIO_PATH, "cache")
+
+
+async def convert_mp3_to_ogg(source_path: str, output_path: str) -> bool:
+    """Convert MP3 to OGG/Opus using FFmpeg."""
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", source_path,
+        "-c:a", "libopus",
+        "-b:a", "128k",
+        "-ar", "48000",
+        "-ac", "1",
+        output_path,
+    ]
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    _, stderr = await proc.communicate()
+    if proc.returncode != 0:
+        logger.error(f"FFmpeg conversion failed: {stderr.decode()}")
+        return False
+    return True
+
+
+@router.get(
+    "/stream/{filename}",
+    summary="Stream Audio (with optional format conversion)",
+    description="Serve an audio file, optionally converting to OGG/Opus for WhatsApp compatibility",
+    responses={
+        200: {"description": "Audio file"},
+        404: {"description": "Audio file not found"},
+    },
+)
+async def stream_audio(
+    filename: str,
+    format: Optional[str] = Query(None, description="Output format: 'ogg' for OGG/Opus conversion"),
+):
+    """
+    Stream an audio file with optional format conversion.
+
+    - Without ?format: serves the original file as-is.
+    - With ?format=ogg: serves OGG/Opus version (converts and caches if needed).
+
+    Used by OpenClaw to send WhatsApp-compatible voice notes.
+    """
+    # Sanitize filename to prevent path traversal
+    safe_filename = os.path.basename(filename)
+    source_path = os.path.join(settings.AUDIO_PATH, safe_filename)
+
+    if not os.path.isfile(source_path):
+        raise HTTPException(status_code=404, detail="Audio file not found")
+
+    # No conversion requested — serve original
+    if format != "ogg":
+        return FileResponse(source_path, media_type="audio/mpeg", filename=safe_filename)
+
+    # Build cached OGG path
+    ogg_filename = os.path.splitext(safe_filename)[0] + ".ogg"
+    cached_path = os.path.join(AUDIO_CACHE_DIR, ogg_filename)
+
+    # Serve from cache if it exists and is newer than source
+    if os.path.isfile(cached_path):
+        source_mtime = os.path.getmtime(source_path)
+        cache_mtime = os.path.getmtime(cached_path)
+        if cache_mtime >= source_mtime:
+            return FileResponse(cached_path, media_type="audio/ogg", filename=ogg_filename)
+
+    # Convert and cache
+    success = await convert_mp3_to_ogg(source_path, cached_path)
+    if not success:
+        raise HTTPException(status_code=500, detail="Audio format conversion failed")
+
+    return FileResponse(cached_path, media_type="audio/ogg", filename=ogg_filename)
