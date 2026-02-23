@@ -6,7 +6,7 @@ import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.orm import selectinload
 
 from app.db.session import get_db
@@ -154,9 +154,30 @@ async def create_shortcut(
                 detail=f"Shortcut already exists for audio message {shortcut_data.audio_message_id}",
             )
 
+        # Check max 8 shortcuts limit
+        count_result = await db.execute(select(func.count(Shortcut.id)))
+        total_shortcuts = count_result.scalar()
+        if total_shortcuts >= 8:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Máximo 8 shortcuts. Elimina uno primero.",
+            )
+
+        # Auto-assign next available position if not provided
+        position = shortcut_data.position
+        if position is None:
+            used_result = await db.execute(
+                select(Shortcut.position).filter(Shortcut.position.isnot(None))
+            )
+            used_positions = {row[0] for row in used_result.all()}
+            for p in range(1, 9):
+                if p not in used_positions:
+                    position = p
+                    break
+
         # If position is specified, clear it from any existing shortcut
-        if shortcut_data.position:
-            await _clear_position(db, shortcut_data.position)
+        if position:
+            await _clear_position(db, position)
 
         # Create shortcut
         shortcut = Shortcut(
@@ -164,7 +185,7 @@ async def create_shortcut(
             custom_name=shortcut_data.custom_name,
             custom_icon=shortcut_data.custom_icon,
             custom_color=shortcut_data.custom_color,
-            position=shortcut_data.position,
+            position=position,
             active=True,
         )
 

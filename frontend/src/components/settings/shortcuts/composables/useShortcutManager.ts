@@ -36,7 +36,7 @@ export function useShortcutManager() {
     const usedPositions = shortcuts.value
       .filter(s => s.position !== null)
       .map(s => s.position)
-    return [1, 2, 3, 4, 5, 6].filter(p => !usedPositions.includes(p))
+    return [1, 2, 3, 4, 5, 6, 7, 8].filter(p => !usedPositions.includes(p))
   })
 
   // Clear messages after delay

@@ -52,6 +52,7 @@
           :selection-mode="selectionMode"
           :is-selected="isSelected"
           :is-message-playing="isMessagePlaying"
+          :shortcut-audio-ids="shortcutAudioIds"
           @play="playMessage"
           @toggle-favorite="handleToggleFavorite"
           @toggle-select="toggleSelect"
@@ -68,6 +69,7 @@
           :selected-ids="selectedIds"
           :is-selected="isSelected"
           :is-message-playing="isMessagePlaying"
+          :shortcut-audio-ids="shortcutAudioIds"
           @play="playMessage"
           @toggle-favorite="handleToggleFavorite"
           @toggle-select="toggleSelect"
@@ -134,6 +136,16 @@
         @sent="onBroadcastSent"
       />
 
+      <QuickShortcutModal
+        v-if="showShortcutModal && shortcutTargetMessage"
+        :audio-id="shortcutTargetMessage.id"
+        :audio-name="shortcutTargetMessage.display_name"
+        :shortcut-count="shortcutCount"
+        :already-has-shortcut="hasShortcut(shortcutTargetMessage.id)"
+        @close="showShortcutModal = false"
+        @created="onShortcutCreated"
+      />
+
       <!-- Success Toast - Centered -->
       <Transition name="toast-scale">
         <div v-if="successToast" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
@@ -163,6 +175,7 @@ import { useLibraryStore } from './stores/libraryStore'
 // Composables
 import { useAudioPlayer } from './composables/useAudioPlayer'
 import { useSelection } from './composables/useSelection'
+import { useShortcutStatus } from '@/components/shared/shortcuts/useShortcutStatus'
 
 // Components
 import LibraryHeader from './components/LibraryHeader.vue'
@@ -177,6 +190,7 @@ import UploadModal from './modals/UploadModal.vue'
 import ScheduleModal from './modals/ScheduleModal.vue'
 import DeleteConfirmModal from './modals/DeleteConfirmModal.vue'
 import BroadcastModal from './modals/BroadcastModal.vue'
+import QuickShortcutModal from '@/components/shared/shortcuts/QuickShortcutModal.vue'
 
 const router = useRouter()
 const store = useLibraryStore()
@@ -198,6 +212,11 @@ const {
   isSelected,
   getSelectedArray
 } = useSelection()
+
+// Shortcuts
+const { shortcutAudioIds, shortcutCount, hasShortcut, refresh: refreshShortcuts } = useShortcutStatus()
+const showShortcutModal = ref(false)
+const shortcutTargetMessage = ref<AudioMessage | null>(null)
 
 // Modal state
 const showUploadModal = ref(false)
@@ -237,10 +256,22 @@ function handleAction(action: MessageAction, message: AudioMessage) {
     case 'edit-in-dashboard':
       editInDashboard(message)
       break
+    case 'add-shortcut':
+      shortcutTargetMessage.value = message
+      showShortcutModal.value = true
+      break
     case 'delete':
       confirmDeleteSingle(message)
       break
   }
+}
+
+function onShortcutCreated() {
+  showShortcutModal.value = false
+  shortcutTargetMessage.value = null
+  refreshShortcuts()
+  successToast.value = 'Shortcut creado exitosamente'
+  setTimeout(() => { successToast.value = null }, 3000)
 }
 
 function onBroadcastSent(branchCount: number) {
@@ -308,7 +339,8 @@ function goToDashboard() {
 onMounted(async () => {
   await Promise.all([
     store.fetchMessages(),
-    store.fetchCategories()
+    store.fetchCategories(),
+    refreshShortcuts()
   ])
 })
 </script>

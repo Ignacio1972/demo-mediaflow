@@ -97,6 +97,27 @@
         >
           Cancelar
         </button>
+
+        <!-- Separator -->
+        <div class="divider my-1"></div>
+
+        <!-- Delete -->
+        <button
+          v-if="!confirmingDelete"
+          class="btn btn-ghost btn-block text-error gap-2"
+          @click="confirmingDelete = true"
+        >
+          <TrashIcon class="w-4 h-4" />
+          Eliminar Shortcut
+        </button>
+        <button
+          v-else
+          class="btn btn-error btn-block gap-2"
+          @click="emit('delete')"
+        >
+          <TrashIcon class="w-4 h-4" />
+          Confirmar Eliminación
+        </button>
       </div>
     </div>
 
@@ -113,6 +134,7 @@ import {
   PauseIcon,
   SpeakerWaveIcon,
   SignalIcon,
+  TrashIcon,
 } from '@heroicons/vue/24/solid'
 import type { ShortcutPublic } from '@/types/shortcut'
 
@@ -123,6 +145,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: []
   broadcast: []
+  delete: []
 }>()
 
 // Audio state
@@ -132,6 +155,7 @@ const currentTime = ref(0)
 const duration = ref(0)
 const volume = ref(80)
 const isBroadcasting = ref(false)
+const confirmingDelete = ref(false)
 
 // Computed
 const progress = computed(() => {

@@ -13,7 +13,7 @@
               <h1 class="text-3xl font-bold tracking-tight">Shortcuts</h1>
             </div>
             <p class="text-base-content/50 ml-13">
-              Configura hasta 6 accesos directos para la página mobile
+              Configura hasta 8 accesos directos para la página mobile
             </p>
           </div>
           <button
@@ -49,7 +49,7 @@
             </h2>
             <div class="grid grid-cols-2 gap-3 max-w-md mx-auto">
               <div
-                v-for="pos in 6"
+                v-for="pos in 8"
                 :key="pos"
                 class="aspect-square rounded-xl flex flex-col items-center justify-center text-center p-3 border-2 border-dashed transition-all"
                 :class="getSlotClass(pos)"

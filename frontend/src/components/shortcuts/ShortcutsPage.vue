@@ -54,9 +54,9 @@
       </div>
 
       <!-- Shortcuts Grid -->
-      <div v-else class="grid grid-cols-2 gap-4">
+      <div v-else class="grid grid-cols-2 gap-3">
         <ShortcutButton
-          v-for="pos in 6"
+          v-for="pos in 8"
           :key="pos"
           :shortcut="getShortcutByPosition(pos)"
           :position="pos"
@@ -82,6 +82,7 @@
       :shortcut="selectedShortcut"
       @close="selectedShortcut = null"
       @broadcast="handleBroadcast"
+      @delete="handleDelete"
     />
   </div>
 </template>
@@ -101,6 +102,7 @@ const {
   error,
   loadShortcuts,
   getShortcutByPosition,
+  deleteShortcut,
   sendToSpeakers,
 } = useShortcuts()
 
@@ -113,6 +115,21 @@ const handleShortcutClick = (position: number) => {
   const shortcut = getShortcutByPosition(position)
   if (shortcut) {
     selectedShortcut.value = shortcut
+  }
+}
+
+const handleDelete = async () => {
+  if (!selectedShortcut.value) return
+
+  try {
+    const name = selectedShortcut.value.custom_name
+    await deleteShortcut(selectedShortcut.value.id)
+    selectedShortcut.value = null
+    successMessage.value = `Shortcut "${name}" eliminado`
+    setTimeout(() => { successMessage.value = null }, 3000)
+  } catch (e: any) {
+    error.value = e.message || 'Error al eliminar shortcut'
+    setTimeout(() => { error.value = null }, 3000)
   }
 }
 

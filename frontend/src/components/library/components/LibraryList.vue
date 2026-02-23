@@ -110,6 +110,14 @@
                 <PencilSquareIcon class="h-4 w-4" />
               </button>
               <button
+                class="btn btn-ghost btn-xs btn-square"
+                :class="{ 'text-primary': props.shortcutAudioIds?.has(message.id) }"
+                @click="emit('action', 'add-shortcut', message)"
+                title="Shortcut"
+              >
+                <BoltIcon class="h-4 w-4" />
+              </button>
+              <button
                 class="btn btn-ghost btn-xs btn-square text-error"
                 @click="emit('action', 'delete', message)"
                 title="Eliminar"
@@ -133,6 +141,7 @@ import {
   CalendarIcon,
   SignalIcon,
   PencilSquareIcon,
+  BoltIcon,
   TrashIcon
 } from '@heroicons/vue/24/outline'
 import type { AudioMessage, Category } from '@/types/audio'
@@ -147,6 +156,7 @@ const props = defineProps<{
   selectedIds: Set<number>
   isSelected: (id: number) => boolean
   isMessagePlaying: (id: number) => boolean
+  shortcutAudioIds?: Set<number>
 }>()
 
 const emit = defineEmits<{

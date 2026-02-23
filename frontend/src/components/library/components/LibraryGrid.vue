@@ -8,6 +8,7 @@
       :selection-mode="selectionMode"
       :is-selected="isSelected(message.id)"
       :is-playing="isMessagePlaying(message.id)"
+      :has-shortcut="props.shortcutAudioIds?.has(message.id) ?? false"
       @play="emit('play', $event)"
       @toggle-favorite="emit('toggle-favorite', $event)"
       @toggle-select="emit('toggle-select', $event)"
@@ -22,12 +23,13 @@ import type { AudioMessage, Category } from '@/types/audio'
 import type { MessageAction } from '../types/library.types'
 import MessageCard from './MessageCard.vue'
 
-defineProps<{
+const props = defineProps<{
   messages: AudioMessage[]
   categories: Category[]
   selectionMode: boolean
   isSelected: (id: number) => boolean
   isMessagePlaying: (id: number) => boolean
+  shortcutAudioIds?: Set<number>
 }>()
 
 const emit = defineEmits<{

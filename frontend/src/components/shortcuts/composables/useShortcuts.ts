@@ -34,6 +34,18 @@ export function useShortcuts() {
     return shortcuts.value.find(s => s.position === position)
   }
 
+  // Delete a shortcut
+  const deleteShortcut = async (shortcutId: number): Promise<void> => {
+    try {
+      await apiClient.delete(`/api/v1/settings/shortcuts/${shortcutId}`)
+      shortcuts.value = shortcuts.value.filter(s => s.id !== shortcutId)
+      console.log(`✅ Shortcut ${shortcutId} deleted`)
+    } catch (e: any) {
+      console.error('❌ Failed to delete shortcut:', e)
+      throw e
+    }
+  }
+
   // Send shortcut audio to speakers
   const sendToSpeakers = async (audioId: number): Promise<boolean> => {
     try {
@@ -56,6 +68,7 @@ export function useShortcuts() {
     // Actions
     loadShortcuts,
     getShortcutByPosition,
+    deleteShortcut,
     sendToSpeakers,
   }
 }
