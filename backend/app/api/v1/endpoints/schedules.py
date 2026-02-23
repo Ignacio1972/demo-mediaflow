@@ -7,12 +7,14 @@ from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, delete
+from sqlalchemy.orm import selectinload
 from pydantic import BaseModel, Field
 
 from app.db.session import get_db
-from app.models.schedule import Schedule
+from app.models.schedule import Schedule, ScheduleLog
 from app.models.audio import AudioMessage
+from app.services.scheduler.calculator import calculate_next_execution
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +22,8 @@ router = APIRouter()
 
 
 # Pydantic schemas for request/response
+from pydantic import field_validator
+
 class ScheduleCreateRequest(BaseModel):
     """Request schema for creating a schedule"""
     audio_message_id: int = Field(..., description="ID of the audio message to schedule")
@@ -28,6 +32,13 @@ class ScheduleCreateRequest(BaseModel):
     # For interval type - accept both formats from frontend
     interval_minutes: Optional[int] = Field(None, ge=0, description="Interval in minutes")
     interval_hours: Optional[int] = Field(None, ge=0, description="Interval hours (converted to minutes)")
+
+    @field_validator('interval_minutes', 'interval_hours', mode='before')
+    @classmethod
+    def empty_string_to_none(cls, v):
+        if v == '' or v is None:
+            return None
+        return v
 
     # For specific times - accept both field names
     specific_times: Optional[List[str]] = Field(None, description="List of times like ['09:00', '12:00']")
@@ -103,12 +114,18 @@ def schedule_to_dict(schedule: Schedule) -> dict:
         "next_execution_at": schedule.next_execution_at.isoformat() if schedule.next_execution_at else None,
         "created_at": schedule.created_at.isoformat() if schedule.created_at else None,
         "updated_at": schedule.updated_at.isoformat() if schedule.updated_at else None,
+        "audio_message": {
+            "display_name": schedule.audio_message.display_name,
+            "filename": schedule.audio_message.filename,
+        } if schedule.audio_message else None,
     }
 
 
-def parse_date(date_str: str) -> datetime:
+def parse_date(date_str: str, required: bool = False) -> Optional[datetime]:
     """Parse date string to datetime, handling various formats"""
-    if not date_str:
+    if not date_str or not date_str.strip():
+        if required:
+            raise ValueError("Date is required and cannot be empty")
         return None
     # Try ISO format first
     try:
@@ -199,11 +216,11 @@ async def create_schedule(
 
         # Parse dates
         try:
-            start_dt = parse_date(data.start_date)
+            start_dt = parse_date(data.start_date, required=True)
         except ValueError as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=str(e),
+                detail=f"Invalid start_date: {str(e)}",
             )
 
         end_dt = None
@@ -227,6 +244,17 @@ async def create_schedule(
             end_date=end_dt,
             priority=data.priority,
             active=True,
+        )
+
+        # Calculate next_execution_at before saving
+        schedule.next_execution_at = calculate_next_execution(
+            schedule_type=schedule.schedule_type,
+            start_date=start_dt,
+            end_date=end_dt,
+            last_executed_at=None,
+            interval_minutes=total_interval_minutes if total_interval_minutes > 0 else None,
+            days_of_week=days,
+            specific_times=times,
         )
 
         db.add(schedule)
@@ -273,7 +301,7 @@ async def list_schedules(
         logger.info(f"📋 List schedules: audio_id={audio_message_id}, active={active}")
 
         # Build query
-        query = select(Schedule)
+        query = select(Schedule).options(selectinload(Schedule.audio_message))
 
         # Apply filters
         if audio_message_id is not None:
@@ -319,7 +347,7 @@ async def get_schedule(
     """Get a single schedule by ID"""
     try:
         result = await db.execute(
-            select(Schedule).filter(Schedule.id == schedule_id)
+            select(Schedule).options(selectinload(Schedule.audio_message)).filter(Schedule.id == schedule_id)
         )
         schedule = result.scalar_one_or_none()
 
@@ -359,7 +387,7 @@ async def update_schedule(
         logger.info(f"📝 Update schedule: ID={schedule_id}")
 
         result = await db.execute(
-            select(Schedule).filter(Schedule.id == schedule_id)
+            select(Schedule).options(selectinload(Schedule.audio_message)).filter(Schedule.id == schedule_id)
         )
         schedule = result.scalar_one_or_none()
 
@@ -419,6 +447,11 @@ async def delete_schedule(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Schedule {schedule_id} not found",
             )
+
+        # Delete associated logs first
+        await db.execute(
+            delete(ScheduleLog).where(ScheduleLog.schedule_id == schedule_id)
+        )
 
         await db.delete(schedule)
         await db.commit()

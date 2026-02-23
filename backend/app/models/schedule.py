@@ -52,8 +52,8 @@ class ScheduleLog(Base, TimestampMixin):
     __tablename__ = "schedule_logs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    schedule_id = Column(Integer, ForeignKey("schedules.id"), nullable=False)
-    schedule = relationship("Schedule", backref="logs")
+    schedule_id = Column(Integer, ForeignKey("schedules.id", ondelete="CASCADE"), nullable=False)
+    schedule = relationship("Schedule", backref="logs", passive_deletes=True)
 
     executed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     success = Column(Boolean, nullable=False)
