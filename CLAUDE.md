@@ -579,6 +579,103 @@ cd /var/azuracast && docker compose restart
 
 ---
 
+## OpenClaw - Agente IA via WhatsApp
+
+MediaFlow cuenta con un agente IA autónomo operado por **OpenClaw**, que permite controlar el sistema completo via WhatsApp.
+
+### Servidor OpenClaw
+
+| Dato | Valor |
+|------|-------|
+| **IP** | `51.38.227.237` |
+| **Hostname** | vps-6c8f2ce2 |
+| **Acceso SSH** | `ssh root@51.38.227.237` (SSH keys configuradas) |
+| **Workspace** | `/root/.openclaw/workspace-mediaflow/` |
+| **Config principal** | `/root/.openclaw/openclaw.json` |
+| **Docs** | `docs/openclaw-docs.md` (referencia local) |
+
+### Qué es OpenClaw
+
+Plataforma self-hosted de asistentes IA con agentes autónomos. Cada agente tiene su propio workspace, memoria, identidad y herramientas. Se conecta a canales de mensajería (WhatsApp, Telegram, Discord, etc.) y puede ejecutar acciones proactivas via heartbeats y cron jobs.
+
+### Agentes configurados
+
+| Agente | Workspace | Canal |
+|--------|-----------|-------|
+| **mediaflow** | `workspace-mediaflow/` | WhatsApp (grupo MediaFlow) |
+| **radio** | `workspace-radio/` | WhatsApp (grupo Radio) |
+| **hogar** | `workspace-hogar/` | WhatsApp (grupo Hogar) |
+
+### Agente MediaFlow - Capacidades
+
+El agente `mediaflow` consume la API REST de MediaFlow y puede:
+
+1. **Generar textos con IA** — `POST /api/v1/ai/generate`
+2. **Generar audio TTS** — `POST /api/v1/audio/generate` (con o sin música de fondo)
+3. **Enviar audio por WhatsApp** — usando `MEDIA:https://demo.mediaflow.cl/storage/audio/{filename}`
+4. **Guardar en biblioteca** — `PATCH /api/v1/audio/{id}/save-to-library`
+5. **Crear programaciones** — `POST /api/v1/schedules` (intervalo, horario específico, una vez)
+6. **Gestionar schedules** — listar, pausar, eliminar
+7. **Consultar biblioteca y categorías**
+
+### Archivos clave del workspace
+
+```
+/root/.openclaw/workspace-mediaflow/
+├── AGENTS.md        # Instrucciones generales del agente
+├── SOUL.md          # Personalidad y comportamiento
+├── USER.md          # Info del usuario (Hernan)
+├── IDENTITY.md      # Identidad del agente (sin configurar)
+├── TOOLS.md         # Endpoints API de MediaFlow documentados
+├── HEARTBEAT.md     # Tareas periódicas
+├── knowledge/
+│   └── mediaflow.md # Contexto del negocio
+└── memory/          # Memoria diaria del agente
+```
+
+### Config del agente
+
+- **Modelo**: `anthropic/claude-sonnet-4-6`
+- **Heartbeat**: cada 30 minutos
+- **TTS**: ElevenLabs (`eleven_multilingual_v2`, español, speed 1.15)
+- **Web search**: Perplexity (sonar-pro)
+- **Browser**: headless habilitado
+- **WhatsApp**: no requiere mención en grupo (`requireMention: false`)
+
+### Flujo típico via WhatsApp
+
+```
+Usuario escribe descripción en grupo WhatsApp
+  → Agente genera sugerencias de texto con IA
+  → Usuario elige texto(s)
+  → Agente pregunta si quiere música de fondo
+  → Genera audio TTS via API
+  → Envía audio al grupo WhatsApp
+  → Pregunta si guardar en biblioteca / programar / ambos
+  → Ejecuta acción correspondiente
+```
+
+### Comandos útiles OpenClaw
+
+```bash
+# Conectar al servidor
+ssh root@51.38.227.237
+
+# Ver config principal
+cat /root/.openclaw/openclaw.json
+
+# Ver workspace mediaflow
+ls -la /root/.openclaw/workspace-mediaflow/
+
+# Ver TOOLS.md (endpoints API)
+cat /root/.openclaw/workspace-mediaflow/TOOLS.md
+
+# Ver logs
+ls /root/.openclaw/logs/
+```
+
+---
+
 **Version**: 2.1
 **Architecture**: Modular with separated concerns
 **Status**: Production-ready core functionality
