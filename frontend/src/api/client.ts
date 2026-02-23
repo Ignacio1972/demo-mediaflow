@@ -34,10 +34,26 @@ axiosInstance.interceptors.request.use(
   }
 )
 
+// Auth version check - force reload if version changed
+const AUTH_VERSION_KEY = 'mediaflow_auth_version'
+const AUTH_STORAGE_KEY = 'mediaflow_demo_auth_v2'
+
+function checkAuthVersion(version: string | null) {
+  if (!version) return
+  const savedVersion = sessionStorage.getItem(AUTH_VERSION_KEY)
+  if (savedVersion && savedVersion !== version) {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY)
+    location.reload()
+  } else if (!savedVersion) {
+    sessionStorage.setItem(AUTH_VERSION_KEY, version)
+  }
+}
+
 // Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
     console.log(`✅ API Response: ${response.status} ${response.config.url}`)
+    checkAuthVersion(response.headers['x-auth-version'])
     return response
   },
   (error: AxiosError) => {
