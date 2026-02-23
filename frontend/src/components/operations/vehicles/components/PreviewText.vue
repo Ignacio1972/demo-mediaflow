@@ -43,7 +43,7 @@
           <!-- Regenerate button -->
           <button
             @click="handleRegenerate"
-            class="btn btn-outline btn-primary w-full h-12 rounded-xl font-semibold transition-all duration-200"
+            class="btn btn-primary w-full h-12 rounded-xl font-semibold transition-all duration-200"
             :disabled="regenerating || !canRegenerate"
           >
             <span v-if="regenerating" class="loading loading-spinner loading-sm"></span>

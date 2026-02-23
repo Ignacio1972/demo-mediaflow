@@ -14,7 +14,7 @@
         class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none pb-32"
       >
         <div class="bg-success/80 text-success-content px-10 py-3 rounded-xl shadow-lg">
-          <span class="font-semibold">Audio enviado exitosamente</span>
+          <span class="font-semibold">{{ successMessage }}</span>
         </div>
       </div>
     </Transition>
@@ -66,23 +66,46 @@
           </div>
         </div>
 
-        <!-- Action button -->
-        <button
-          @click="sendToSpeakers"
-          class="btn btn-primary w-full h-12 rounded-xl font-semibold
-                 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30
-                 transition-all duration-200"
-          :disabled="sendingToSpeakers"
-        >
-          <span
-            v-if="sendingToSpeakers"
-            class="loading loading-spinner loading-sm"
-          ></span>
-          <template v-else>
-            <SpeakerWaveIcon class="w-5 h-5" />
-            <span>Enviar a los Parlantes</span>
-          </template>
-        </button>
+        <!-- Action buttons -->
+        <div class="space-y-3">
+          <!-- Send to Speakers -->
+          <button
+            @click="sendToSpeakers"
+            class="btn btn-primary w-full h-12 rounded-xl font-semibold
+                   shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30
+                   transition-all duration-200"
+            :disabled="sendingToSpeakers"
+          >
+            <span
+              v-if="sendingToSpeakers"
+              class="loading loading-spinner loading-sm"
+            ></span>
+            <template v-else>
+              <SpeakerWaveIcon class="w-5 h-5" />
+              <span>Enviar a los Parlantes</span>
+            </template>
+          </button>
+
+          <!-- Save to Library -->
+          <button
+            @click="saveToLibrary"
+            class="btn btn-secondary w-full h-10 rounded-xl"
+            :disabled="savingToLibrary || savedToLibrary"
+          >
+            <span
+              v-if="savingToLibrary"
+              class="loading loading-spinner loading-sm"
+            ></span>
+            <template v-else-if="savedToLibrary">
+              <CheckCircleIcon class="w-4 h-4" />
+              <span>Guardado en Biblioteca</span>
+            </template>
+            <template v-else>
+              <BookmarkIcon class="w-4 h-4" />
+              <span>Guardar en Biblioteca</span>
+            </template>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -90,7 +113,7 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
-import { CheckCircleIcon, SpeakerWaveIcon } from '@heroicons/vue/24/outline'
+import { CheckCircleIcon, SpeakerWaveIcon, BookmarkIcon } from '@heroicons/vue/24/outline'
 import type { EmployeeCallResponse } from '../composables/useEmployeeCallAnnouncement'
 import { libraryApi } from '@/components/library/services/libraryApi'
 
@@ -102,14 +125,20 @@ const props = defineProps<{
 const audioPlayer = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const sendingToSpeakers = ref(false)
+const savingToLibrary = ref(false)
+const savedToLibrary = ref(false)
 const showSuccessToast = ref(false)
+const successMessage = ref('')
 const errorMessage = ref('')
 
-// Auto-play when audio changes
+// Auto-play when audio changes and reset saved state
 watch(
   () => props.audio,
   async (newAudio) => {
     if (newAudio) {
+      // Reset saved state for new audio
+      savedToLibrary.value = false
+
       await nextTick()
 
       if (audioPlayer.value) {
@@ -135,7 +164,7 @@ async function sendToSpeakers() {
     const result = await libraryApi.sendToRadio(props.audio.audio_id, true)
 
     if (result.success) {
-      // Show success toast
+      successMessage.value = 'Audio enviado exitosamente'
       showSuccessToast.value = true
       setTimeout(() => {
         showSuccessToast.value = false
@@ -151,6 +180,30 @@ async function sendToSpeakers() {
     }, 5000)
   } finally {
     sendingToSpeakers.value = false
+  }
+}
+
+// Save to Library
+async function saveToLibrary() {
+  savingToLibrary.value = true
+  errorMessage.value = ''
+
+  try {
+    await libraryApi.updateMessage(props.audio.audio_id, { is_favorite: true })
+    savedToLibrary.value = true
+    successMessage.value = 'Guardado en biblioteca'
+    showSuccessToast.value = true
+    setTimeout(() => {
+      showSuccessToast.value = false
+    }, 3000)
+  } catch (e: any) {
+    console.error('Error saving to library:', e)
+    errorMessage.value = e.response?.data?.detail || e.message || 'Error al guardar en biblioteca'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 5000)
+  } finally {
+    savingToLibrary.value = false
   }
 }
 </script>

@@ -30,7 +30,7 @@
 
         <!-- Success/Error Messages -->
         <div v-if="showSuccess" class="alert alert-success mb-4">
-          <span>Audio enviado a los parlantes</span>
+          <span>{{ successMessage }}</span>
         </div>
         <div v-if="errorMessage" class="alert alert-error mb-4">
           <span>{{ errorMessage }}</span>
@@ -56,6 +56,26 @@
             </template>
           </button>
 
+          <!-- Save to Library -->
+          <button
+            @click="saveToLibrary"
+            class="btn btn-secondary w-full h-10 rounded-xl"
+            :disabled="savingToLibrary || savedToLibrary"
+          >
+            <span
+              v-if="savingToLibrary"
+              class="loading loading-spinner loading-sm"
+            ></span>
+            <template v-else-if="savedToLibrary">
+              <CheckCircleIcon class="w-4 h-4" />
+              <span>Guardado en Biblioteca</span>
+            </template>
+            <template v-else>
+              <BookmarkIcon class="w-4 h-4" />
+              <span>Guardar en Biblioteca</span>
+            </template>
+          </button>
+
           <!-- Generate Another -->
           <button
             @click="$emit('reset')"
@@ -72,7 +92,7 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
-import { CheckCircleIcon, SpeakerWaveIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+import { CheckCircleIcon, SpeakerWaveIcon, ArrowPathIcon, BookmarkIcon } from '@heroicons/vue/24/outline'
 import type { GenerateResponse } from '../composables/useScheduleAnnouncement'
 import { libraryApi } from '@/components/library/services/libraryApi'
 
@@ -88,14 +108,20 @@ defineEmits<{
 const audioPlayer = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const sendingToSpeakers = ref(false)
+const savingToLibrary = ref(false)
+const savedToLibrary = ref(false)
 const showSuccess = ref(false)
+const successMessage = ref('')
 const errorMessage = ref('')
 
-// Auto-play when audio changes
+// Auto-play when audio changes and reset saved state
 watch(
   () => props.audio,
   async (newAudio) => {
     if (newAudio) {
+      // Reset saved state for new audio
+      savedToLibrary.value = false
+
       await nextTick()
 
       if (audioPlayer.value) {
@@ -121,6 +147,7 @@ async function sendToSpeakers() {
     const result = await libraryApi.sendToRadio(props.audio.audio_id, true)
 
     if (result.success) {
+      successMessage.value = 'Audio enviado a los parlantes'
       showSuccess.value = true
       setTimeout(() => {
         showSuccess.value = false
@@ -136,6 +163,30 @@ async function sendToSpeakers() {
     }, 5000)
   } finally {
     sendingToSpeakers.value = false
+  }
+}
+
+// Save to Library
+async function saveToLibrary() {
+  savingToLibrary.value = true
+  errorMessage.value = ''
+
+  try {
+    await libraryApi.updateMessage(props.audio.audio_id, { is_favorite: true })
+    savedToLibrary.value = true
+    successMessage.value = 'Guardado en biblioteca'
+    showSuccess.value = true
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 3000)
+  } catch (e: any) {
+    console.error('Error saving to library:', e)
+    errorMessage.value = e.response?.data?.detail || e.message || 'Error al guardar en biblioteca'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 5000)
+  } finally {
+    savingToLibrary.value = false
   }
 }
 </script>
