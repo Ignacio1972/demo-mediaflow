@@ -33,11 +33,21 @@
       </div>
 
       <!-- Audio Info -->
-      <div class="bg-base-200 rounded-lg p-3">
+      <div class="bg-base-200 rounded-lg p-3 space-y-2">
         <div class="text-sm text-base-content/60">Audio</div>
-        <div class="font-medium">
-          ID #{{ schedule.audio_message_id }}
+        <div class="font-medium truncate">
+          {{ schedule.audio_message?.display_name || `ID #${schedule.audio_message_id}` }}
         </div>
+        <button
+          v-if="schedule.audio_message?.filename"
+          class="btn btn-sm w-full gap-2"
+          :class="isPlaying ? 'btn-error' : 'btn-primary'"
+          @click="togglePlay"
+        >
+          <PauseIcon v-if="isPlaying" class="h-4 w-4" />
+          <PlayIcon v-else class="h-4 w-4" />
+          {{ isPlaying ? 'Pausar' : 'Escuchar' }}
+        </button>
       </div>
 
       <!-- Schedule Details -->
@@ -140,16 +150,50 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch, onUnmounted } from 'vue'
 import {
   XMarkIcon,
   InformationCircleIcon,
-  TrashIcon
+  TrashIcon,
+  PlayIcon,
+  PauseIcon
 } from '@heroicons/vue/24/outline'
-import type { Schedule } from '../types/calendar.types'
+import type { ScheduleWithAudio } from '../types/calendar.types'
 
-defineProps<{
-  schedule: Schedule | null
+const props = defineProps<{
+  schedule: ScheduleWithAudio | null
 }>()
+
+const isPlaying = ref(false)
+let audio: HTMLAudioElement | null = null
+
+function togglePlay() {
+  const filename = props.schedule?.audio_message?.filename
+  if (!filename) return
+
+  if (!audio) {
+    audio = new Audio(`/storage/audio/${filename}`)
+    audio.addEventListener('ended', () => { isPlaying.value = false })
+  }
+
+  if (isPlaying.value) {
+    audio.pause()
+    isPlaying.value = false
+  } else {
+    audio.src = `/storage/audio/${filename}`
+    audio.play()
+    isPlaying.value = true
+  }
+}
+
+watch(() => props.schedule?.id, () => {
+  if (audio) { audio.pause(); audio.src = '' }
+  isPlaying.value = false
+})
+
+onUnmounted(() => {
+  if (audio) { audio.pause(); audio.src = ''; audio = null }
+})
 
 defineEmits<{
   close: []
@@ -175,7 +219,7 @@ function getTypeName(type: string): string {
   }[type] || type
 }
 
-function getIntervalText(schedule: Schedule): string {
+function getIntervalText(schedule: ScheduleWithAudio): string {
   const mins = schedule.interval_minutes || 0
   const hours = Math.floor(mins / 60)
   const remainingMins = mins % 60
