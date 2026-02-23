@@ -51,7 +51,11 @@ async def get_library_messages(
         logger.info(f"📚 Library request: page={page}, per_page={per_page}, search={search}")
 
         # Build base query - ALWAYS filter by is_favorite=True (only show saved messages)
-        query = select(AudioMessage).filter(AudioMessage.is_favorite == True)
+        # and exclude deleted messages
+        query = select(AudioMessage).filter(
+            AudioMessage.is_favorite == True,
+            AudioMessage.status != "deleted"
+        )
 
         # Apply additional filters
         if search:
@@ -63,7 +67,9 @@ async def get_library_messages(
                 )
             )
 
-        if category_id:
+        if category_id == "__uncategorized__":
+            query = query.filter(AudioMessage.category_id.is_(None))
+        elif category_id:
             query = query.filter(AudioMessage.category_id == category_id)
 
         # Note: is_favorite parameter is kept for API compatibility but ignored

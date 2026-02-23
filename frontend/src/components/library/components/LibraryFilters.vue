@@ -52,6 +52,7 @@
       @change="onCategoryChange"
     >
       <option value="">Todas las categorias</option>
+      <option value="__uncategorized__">Sin categoría</option>
       <option
         v-for="cat in categories"
         :key="cat.id"
@@ -117,6 +118,16 @@
           >
             <span>Todas las categorías</span>
             <span v-if="!filters.category_id" class="text-primary">✓</span>
+          </button>
+        </li>
+        <li>
+          <button
+            class="flex justify-between"
+            :class="{ 'active': filters.category_id === '__uncategorized__' }"
+            @click="emit('update:filters', { category_id: '__uncategorized__' }); showFilterModal = false"
+          >
+            <span>Sin categoría</span>
+            <span v-if="filters.category_id === '__uncategorized__'" class="text-primary">✓</span>
           </button>
         </li>
         <li v-for="cat in categories" :key="cat.id">
