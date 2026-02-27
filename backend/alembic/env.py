@@ -16,6 +16,7 @@ from app.models.audio import AudioMessage
 from app.models.schedule import Schedule, ScheduleLog
 from app.models.player import PlayerStatus
 from app.models.client_config import ClientConfig
+from app.models.chat import ChatConversation, ChatMessage
 
 # this is the Alembic Config object
 config = context.config

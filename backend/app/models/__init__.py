@@ -13,6 +13,7 @@ from app.models.music_track import MusicTrack
 from app.models.ai_client import AIClient
 from app.models.message_template import MessageTemplate
 from app.models.shortcut import Shortcut
+from app.models.chat import ChatConversation, ChatMessage
 
 __all__ = [
     "Base",
@@ -27,4 +28,6 @@ __all__ = [
     "AIClient",
     "MessageTemplate",
     "Shortcut",
+    "ChatConversation",
+    "ChatMessage",
 ]

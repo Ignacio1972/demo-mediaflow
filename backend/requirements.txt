@@ -19,7 +19,7 @@ pydantic-settings==2.1.0
 httpx==0.25.1
 
 # AI & TTS
-anthropic==0.7.0
+anthropic==0.74.1
 
 # Audio Processing
 pydub==0.25.1
