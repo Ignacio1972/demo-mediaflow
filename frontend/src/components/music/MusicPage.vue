@@ -5,9 +5,13 @@
       ref="audioRef"
       :src="STREAM_URL"
       preload="none"
-      @play="isPlaying = true"
-      @pause="isPlaying = false"
+      @play="onPlay"
+      @pause="onPause"
+      @playing="onPlaying"
       @error="handleAudioError"
+      @stalled="handleStalled"
+      @waiting="handleWaiting"
+      @timeupdate="onTimeUpdate"
     />
 
     <!-- Header (hidden on mobile) -->
@@ -41,8 +45,16 @@
 
             <!-- Track Info -->
             <div class="flex-1 text-center sm:text-left">
-              <div class="badge badge-primary badge-sm mb-2">
-                {{ isPlaying ? 'EN VIVO' : 'PAUSADO' }}
+              <!-- Connection Status Badge -->
+              <div
+                class="badge badge-sm mb-2"
+                :class="statusBadgeClass"
+              >
+                <span
+                  v-if="connectionStatus === 'reconnecting'"
+                  class="loading loading-dots loading-xs mr-1"
+                ></span>
+                {{ statusLabel }}
               </div>
               <h2 class="text-xl md:text-2xl font-bold text-base-content">
                 {{ nowPlaying.title || 'Online' }}
@@ -202,6 +214,12 @@ import apiClient from '@/api/client'
 const STREAM_URL = 'https://radio.mediaflow.cl/listen/mediaflow/radio.mp3'
 const API_URL = 'https://radio.mediaflow.cl/api/nowplaying'
 
+// Reconnection config
+const RECONNECT_MAX_RETRIES = 10
+const RECONNECT_BASE_DELAY = 1500
+const RECONNECT_MAX_DELAY = 15000
+const STALLED_THRESHOLD = 5000
+
 // Audio element ref
 const audioRef = ref<HTMLAudioElement | null>(null)
 
@@ -212,6 +230,33 @@ const isSkipping = ref(false)
 const volume = ref(70)
 const isMuted = ref(false)
 const currentRating = ref<'up' | 'down' | null>(null)
+
+// Connection state
+type ConnectionStatus = 'idle' | 'live' | 'reconnecting' | 'disconnected'
+const connectionStatus = ref<ConnectionStatus>('idle')
+const reconnectAttempts = ref(0)
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let stalledTimer: ReturnType<typeof setTimeout> | null = null
+let wasPlayingBeforeError = false
+
+// Status badge
+const statusLabel = computed(() => {
+  switch (connectionStatus.value) {
+    case 'live': return 'EN VIVO'
+    case 'reconnecting': return `RECONECTANDO (${reconnectAttempts.value}/${RECONNECT_MAX_RETRIES})`
+    case 'disconnected': return 'DESCONECTADO'
+    default: return 'PAUSADO'
+  }
+})
+
+const statusBadgeClass = computed(() => {
+  switch (connectionStatus.value) {
+    case 'live': return 'badge-success'
+    case 'reconnecting': return 'badge-warning'
+    case 'disconnected': return 'badge-error'
+    default: return 'badge-ghost'
+  }
+})
 
 // Now Playing data
 const nowPlaying = ref({
@@ -238,30 +283,157 @@ const formatTime = (seconds: number): string => {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-// Toggle play/pause
+// --- Reconnection Logic ---
+
+const clearReconnectTimer = () => {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer)
+    reconnectTimer = null
+  }
+}
+
+const clearStalledTimer = () => {
+  if (stalledTimer) {
+    clearTimeout(stalledTimer)
+    stalledTimer = null
+  }
+}
+
+const resetStalledTimer = () => {
+  clearStalledTimer()
+  if (isPlaying.value) {
+    stalledTimer = setTimeout(() => {
+      console.warn('[MusicPlayer] Stream stalled (no timeupdate for 5s)')
+      triggerReconnect()
+    }, STALLED_THRESHOLD)
+  }
+}
+
+const triggerReconnect = () => {
+  if (connectionStatus.value === 'reconnecting') return
+  if (connectionStatus.value === 'disconnected') return
+
+  wasPlayingBeforeError = true
+  connectionStatus.value = 'reconnecting'
+  reconnect()
+}
+
+const reconnect = async () => {
+  if (reconnectAttempts.value >= RECONNECT_MAX_RETRIES) {
+    console.error('[MusicPlayer] Max reconnect attempts reached')
+    connectionStatus.value = 'disconnected'
+    isPlaying.value = false
+    isLoading.value = false
+    return
+  }
+
+  const audio = audioRef.value
+  if (!audio) return
+
+  reconnectAttempts.value++
+  console.log(`[MusicPlayer] Reconnect attempt ${reconnectAttempts.value}/${RECONNECT_MAX_RETRIES}`)
+
+  try {
+    audio.pause()
+    // Cache bust to force a new connection
+    audio.src = `${STREAM_URL}?t=${Date.now()}`
+    audio.load()
+    await audio.play()
+    // If play() resolves, the 'playing' event handler will reset state
+  } catch {
+    // Schedule next retry with exponential backoff
+    const delay = Math.min(
+      RECONNECT_BASE_DELAY * Math.pow(1.5, reconnectAttempts.value - 1),
+      RECONNECT_MAX_DELAY
+    )
+    console.log(`[MusicPlayer] Retry in ${Math.round(delay)}ms`)
+    clearReconnectTimer()
+    reconnectTimer = setTimeout(reconnect, delay)
+  }
+}
+
+// --- Audio Event Handlers ---
+
+const onPlay = () => {
+  isPlaying.value = true
+}
+
+const onPause = () => {
+  isPlaying.value = false
+  clearStalledTimer()
+  if (connectionStatus.value === 'live') {
+    connectionStatus.value = 'idle'
+  }
+}
+
+const onPlaying = () => {
+  // Stream is actively playing — connection is good
+  isPlaying.value = true
+  isLoading.value = false
+  connectionStatus.value = 'live'
+  reconnectAttempts.value = 0
+  wasPlayingBeforeError = false
+  clearReconnectTimer()
+  resetStalledTimer()
+}
+
+const onTimeUpdate = () => {
+  // Stream is receiving data — reset stalled timer
+  resetStalledTimer()
+}
+
+const handleAudioError = () => {
+  console.error('[MusicPlayer] Audio error')
+  isLoading.value = false
+
+  if (isPlaying.value || wasPlayingBeforeError) {
+    triggerReconnect()
+  }
+}
+
+const handleStalled = () => {
+  console.warn('[MusicPlayer] Stream stalled event')
+  if (isPlaying.value || wasPlayingBeforeError) {
+    triggerReconnect()
+  }
+}
+
+const handleWaiting = () => {
+  // Buffer empty — give it a few seconds before considering it a real problem
+  // The stalled timer will handle it if data doesn't resume
+  resetStalledTimer()
+}
+
+// --- Player Controls ---
+
 const togglePlay = async () => {
   if (!audioRef.value) return
 
   if (isPlaying.value) {
     audioRef.value.pause()
+    wasPlayingBeforeError = false
   } else {
+    // If disconnected, reset and try fresh
+    if (connectionStatus.value === 'disconnected') {
+      reconnectAttempts.value = 0
+      audioRef.value.src = `${STREAM_URL}?t=${Date.now()}`
+      audioRef.value.load()
+    }
+
     isLoading.value = true
     try {
       await audioRef.value.play()
     } catch (error) {
       console.error('Error playing audio:', error)
-    } finally {
       isLoading.value = false
     }
   }
 }
 
-// Skip song
 const skipSong = async () => {
   isSkipping.value = true
   try {
     await apiClient.post('/api/v1/radio/skip')
-    // Fetch new now playing info after skip
     setTimeout(fetchNowPlaying, 1000)
   } catch (error) {
     console.error('Error skipping song:', error)
@@ -290,16 +462,9 @@ const toggleMute = () => {
   }
 }
 
-// Handle audio errors
-const handleAudioError = (e: Event) => {
-  console.error('Audio error:', e)
-  isLoading.value = false
-}
-
 // Rating
 const rate = (rating: 'up' | 'down') => {
   currentRating.value = currentRating.value === rating ? null : rating
-  // TODO: Send rating to backend
 }
 
 // Fetch Now Playing info
@@ -308,12 +473,10 @@ const fetchNowPlaying = async () => {
     const response = await fetch(API_URL)
     const data = await response.json()
 
-    // API returns an array, get first station
     const station = Array.isArray(data) ? data[0] : data
 
     if (station?.now_playing?.song) {
       const song = station.now_playing.song
-      // Ensure art URL uses HTTPS
       const artUrl = song.art ? song.art.replace('http://', 'https://') : ''
       nowPlaying.value = {
         title: song.title || 'Sin título',
@@ -330,23 +493,17 @@ const fetchNowPlaying = async () => {
   }
 }
 
-// Polling interval
+// Polling intervals
 let pollInterval: ReturnType<typeof setInterval> | null = null
 let elapsedInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
-  // Set initial volume
   if (audioRef.value) {
     audioRef.value.volume = volume.value / 100
   }
 
-  // Fetch now playing immediately
   fetchNowPlaying()
-
-  // Poll every 10 seconds for new song info
   pollInterval = setInterval(fetchNowPlaying, 10000)
-
-  // Update elapsed time every second
   elapsedInterval = setInterval(() => {
     if (nowPlaying.value.elapsed < nowPlaying.value.duration) {
       nowPlaying.value.elapsed++
@@ -357,12 +514,14 @@ onMounted(() => {
 onUnmounted(() => {
   if (pollInterval) clearInterval(pollInterval)
   if (elapsedInterval) clearInterval(elapsedInterval)
+  clearReconnectTimer()
+  clearStalledTimer()
   if (audioRef.value) {
     audioRef.value.pause()
   }
 })
 
-// Playlists
+// Playlists (placeholder data)
 const playlists = [
   { id: 'a', name: 'Lunes a Viernes' },
   { id: 'b', name: 'Sábado' },
@@ -375,7 +534,7 @@ const selectPlaylist = (id: string) => {
   selectedPlaylist.value = id
 }
 
-// Icons for Playlist C (black & white outline icons)
+// Icons for Playlist C
 const trackIcons: Component[] = [
   markRaw(StarIcon),
   markRaw(HeartIcon),
@@ -383,7 +542,7 @@ const trackIcons: Component[] = [
   markRaw(FireIcon)
 ]
 
-// Different tracks per playlist
+// Mock track data per playlist
 const tracksA = [
   { title: 'Rock Clásico Mix', artist: 'Varios Artistas', duration: '3:24' },
   { title: 'Pop Hits 2024', artist: 'Top Charts', duration: '4:12' },
