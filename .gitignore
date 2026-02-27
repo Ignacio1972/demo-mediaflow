@@ -47,6 +47,7 @@ logs/
 
 # Storage (generated audio files)
 backend/storage/audio/*.mp3
+backend/storage/audio/cache/
 backend/storage/temp/*
 !backend/storage/audio/.gitkeep
 !backend/storage/temp/.gitkeep
