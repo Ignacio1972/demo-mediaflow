@@ -1,7 +1,6 @@
 <template>
-  <div class="min-h-screen bg-base-100 overflow-x-hidden">
-    <!-- Main Content -->
-    <main class="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-[1600px] overflow-x-hidden">
+  <div class="overflow-x-hidden">
+    <div class="max-w-7xl mx-auto overflow-x-hidden">
       <div class="grid lg:grid-cols-5 gap-6">
         <!-- Left Column: AI + Message Generator (3/5) -->
         <div class="lg:col-span-3 space-y-6 min-w-0">
@@ -23,7 +22,7 @@
           <RecentMessages />
         </div>
       </div>
-    </main>
+    </div>
   </div>
 </template>
 

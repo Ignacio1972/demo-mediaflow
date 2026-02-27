@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-base-100">
+  <div>
     <!-- Hidden Audio Element -->
     <audio
       ref="audioRef"
@@ -14,16 +14,8 @@
       @timeupdate="onTimeUpdate"
     />
 
-    <!-- Header (hidden on mobile) -->
-    <div class="hidden md:block bg-base-200 border-b border-base-300">
-      <div class="container mx-auto px-4 py-6 max-w-lg md:max-w-xl">
-        <h1 class="text-2xl font-bold text-base-content">Música</h1>
-        <p class="text-base-content/60 mt-1">Control de radio MediaFlow</p>
-      </div>
-    </div>
-
     <!-- Main Content -->
-    <div class="container mx-auto px-4 py-6 max-w-lg md:max-w-xl">
+    <div class="max-w-lg md:max-w-xl mx-auto">
       <!-- Now Playing Card -->
       <div class="card bg-base-200 shadow-xl">
         <div class="card-body p-4 md:p-6">

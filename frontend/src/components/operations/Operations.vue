@@ -1,9 +1,6 @@
 <template>
-  <div class="operations min-h-screen bg-base-100">
-    <!-- Content -->
-    <div class="container mx-auto p-6">
-      <router-view />
-    </div>
+  <div>
+    <router-view />
   </div>
 </template>
 

@@ -5,7 +5,16 @@ export default {
     "./src/**/*.{vue,js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Outfit', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        'theme-xs': '0px 1px 2px rgba(16, 24, 40, 0.05)',
+        'theme-sm': '0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 2px rgba(16, 24, 40, 0.06)',
+        'theme-md': '0px 4px 8px -2px rgba(16, 24, 40, 0.1), 0px 2px 4px -2px rgba(16, 24, 40, 0.06)',
+      },
+    },
   },
   plugins: [
     require('daisyui'),
@@ -84,7 +93,35 @@ export default {
           "--border-btn": "1px",
           "--tab-radius": "0.5rem",
         },
-        // OPCIÓN 5: HRM (basado en Caramellatte de DaisyUI 5)
+        // OPCIÓN 5: TailAdmin (light, clean, professional)
+        tailadmin: {
+          "primary": "#465FFF",
+          "primary-content": "#ffffff",
+          "secondary": "#8B5CF6",
+          "secondary-content": "#ffffff",
+          "accent": "#465FFF",
+          "accent-content": "#ffffff",
+          "neutral": "#344054",
+          "neutral-content": "#ffffff",
+          "base-100": "#FFFFFF",
+          "base-200": "#F9FAFB",
+          "base-300": "#E4E7EC",
+          "base-content": "#344054",
+          "info": "#0BA5EC",
+          "info-content": "#ffffff",
+          "success": "#12B76A",
+          "success-content": "#ffffff",
+          "warning": "#F79009",
+          "warning-content": "#ffffff",
+          "error": "#F04438",
+          "error-content": "#ffffff",
+          "--rounded-box": "0.75rem",
+          "--rounded-btn": "0.5rem",
+          "--rounded-badge": "0.5rem",
+          "--border-btn": "1px",
+          "--tab-radius": "0.5rem",
+        },
+        // OPCIÓN 6: HRM (basado en Caramellatte de DaisyUI 5)
         hrm: {
           "primary": "#000000",      // Negro puro
           "primary-content": "#ffffff",

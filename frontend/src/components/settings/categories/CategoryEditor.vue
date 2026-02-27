@@ -1,5 +1,5 @@
 <template>
-  <div class="category-editor min-h-screen bg-base-100">
+  <div class="category-editor bg-base-100">
     <SettingsNav />
     <div class="p-6">
       <div class="container mx-auto max-w-7xl">

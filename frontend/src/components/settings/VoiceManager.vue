@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-base-100 p-8">
+  <div class="bg-base-100 p-8">
     <div class="container mx-auto">
       <h1 class="text-3xl font-bold text-primary mb-6">
         🎤 Voice Manager - Configuración de Voces

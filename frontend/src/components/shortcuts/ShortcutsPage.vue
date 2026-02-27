@@ -1,22 +1,6 @@
 <template>
-  <div class="shortcuts-page min-h-screen bg-base-100">
-    <!-- Header -->
-    <div class="bg-base-200 border-b border-base-300 px-4 py-6">
-      <div class="container mx-auto max-w-lg">
-        <div class="flex items-center gap-3">
-          <div class="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-xl">
-            <BoltIcon class="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold">Shortcuts</h1>
-            <p class="text-sm text-base-content/50">Accesos directos</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="container mx-auto max-w-lg p-4">
+  <div>
+    <div class="max-w-lg mx-auto">
       <!-- Error Message -->
       <div v-if="error" class="alert alert-error mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -89,7 +73,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { BoltIcon, CogIcon } from '@heroicons/vue/24/outline'
+import { CogIcon } from '@heroicons/vue/24/outline'
 import { useShortcuts } from './composables/useShortcuts'
 import ShortcutButton from './components/ShortcutButton.vue'
 import ShortcutActionModal from './components/ShortcutActionModal.vue'

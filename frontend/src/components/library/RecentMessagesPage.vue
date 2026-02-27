@@ -1,19 +1,11 @@
 <template>
-  <div class="min-h-screen bg-base-100 p-4 sm:p-6">
-    <div class="container mx-auto max-w-5xl">
+  <div>
+    <div class="max-w-5xl mx-auto">
       <!-- Header -->
       <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div>
-          <div class="flex items-center gap-3 md:mb-2">
-            <div class="hidden md:flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
-              <ClockIcon class="w-5 h-5 text-primary" />
-            </div>
-            <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Mensajes Recientes</h1>
-          </div>
-          <p class="hidden md:block text-base-content/50 ml-13">
-            {{ messages.length }} mensaje{{ messages.length !== 1 ? 's' : '' }} generado{{ messages.length !== 1 ? 's' : '' }} recientemente
-          </p>
-        </div>
+        <span class="text-sm text-base-content/50">
+          {{ messages.length }} mensaje{{ messages.length !== 1 ? 's' : '' }} generado{{ messages.length !== 1 ? 's' : '' }} recientemente
+        </span>
         <router-link to="/library" class="btn btn-sm btn-ghost gap-2">
           <BookOpenIcon class="h-4 w-4" />
           Ir a Biblioteca
@@ -168,7 +160,7 @@
 import { ref, onMounted } from 'vue'
 import { useAudioStore } from '@/stores/audio'
 import { storeToRefs } from 'pinia'
-import { ClockIcon, BookOpenIcon, BoltIcon } from '@heroicons/vue/24/outline'
+import { BookOpenIcon } from '@heroicons/vue/24/outline'
 import { useShortcutStatus } from '@/components/shared/shortcuts/useShortcutStatus'
 import QuickShortcutModal from '@/components/shared/shortcuts/QuickShortcutModal.vue'
 import type { AudioMessage } from '@/types/audio'

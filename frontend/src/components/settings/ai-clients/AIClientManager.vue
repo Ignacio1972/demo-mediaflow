@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-client-manager min-h-screen bg-base-100">
+  <div class="ai-client-manager bg-base-100">
     <SettingsNav />
     <div class="p-6">
       <div class="container mx-auto max-w-7xl">

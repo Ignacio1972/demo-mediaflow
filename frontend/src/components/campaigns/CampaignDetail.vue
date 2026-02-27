@@ -133,9 +133,9 @@ const currentStepComponent = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen">
+  <div>
     <!-- Header -->
-    <header class="bg-base-200 border-b border-base-300 px-4 md:px-6 py-3 md:py-4">
+    <header class="py-2 md:py-3">
       <div class="flex items-center justify-between">
         <!-- Back + Title -->
         <div class="flex items-center gap-2 md:gap-4 min-w-0 flex-1">

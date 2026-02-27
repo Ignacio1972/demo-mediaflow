@@ -1,6 +1,5 @@
 <template>
-  <div class="mobile-page min-h-screen bg-base-100">
-    <!-- Mobile Playroom Interface -->
+  <div>
     <MobilePlayroom />
   </div>
 </template>

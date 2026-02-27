@@ -1,5 +1,5 @@
 <template>
-  <div class="operations-nav bg-base-200 border-b border-base-300">
+  <div class="operations-nav">
     <div class="container mx-auto px-4">
       <div class="tabs tabs-boxed bg-transparent py-2 gap-2">
         <router-link

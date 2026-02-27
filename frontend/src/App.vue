@@ -1,21 +1,29 @@
 <template>
   <PasswordGate />
-  <div class="min-h-screen bg-base-100 flex flex-col">
-    <NavigationHeader v-if="!isLandingPage" />
+  <div v-if="isLandingPage" class="min-h-screen bg-base-100 flex flex-col">
     <router-view class="flex-1" />
-    <!-- Global Footer -->
-    <footer class="mt-auto py-4 text-center">
-      <span class="text-xs text-base-content/50">
-        Powered by <a href="https://mediaflow.cl/" target="_blank" class="hover:underline"><span style="color: #00adef">Media</span><span class="text-base-content/70">Flow</span></a>. Copyright 2026.
-      </span>
-    </footer>
+  </div>
+  <div v-else class="min-h-screen bg-base-200">
+    <AppHeader />
+    <AppSidebar />
+    <div class="lg:ml-64 pt-24 flex flex-col min-h-screen">
+      <main class="flex-1 px-4 pb-4">
+        <router-view />
+      </main>
+      <footer class="py-4 text-center">
+        <span class="text-xs text-base-content/40">
+          Powered by <a href="https://mediaflow.cl/" target="_blank" class="hover:underline"><span style="color: #00adef">Media</span><span class="text-base-content/60">Flow</span></a>
+        </span>
+      </footer>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import NavigationHeader from '@/components/common/NavigationHeader.vue'
+import AppSidebar from '@/components/layout/AppSidebar.vue'
+import AppHeader from '@/components/layout/AppHeader.vue'
 import PasswordGate from '@/components/PasswordGate.vue'
 import { isMobileDevice } from '@/composables/useMobileDevice'
 import { useTenantStore } from '@/stores/tenant'
@@ -26,12 +34,9 @@ const tenantStore = useTenantStore()
 const isLandingPage = computed(() => route.path === '/landing')
 
 onMounted(async () => {
-  // Load tenant configuration first
   await tenantStore.loadConfig()
-
   console.log(`MediaFlow v${tenantStore.appVersion} - ${tenantStore.tenantName}`)
 
-  // Redirect mobile devices to landing page
   if (isMobileDevice() && route.path === '/') {
     router.replace('/landing')
   }

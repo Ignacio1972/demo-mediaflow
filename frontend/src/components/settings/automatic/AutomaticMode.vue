@@ -1,5 +1,5 @@
 <template>
-  <div class="automatic-mode min-h-screen bg-base-100">
+  <div class="automatic-mode bg-base-100">
     <SettingsNav />
     <div class="p-6">
       <div class="container mx-auto max-w-4xl">

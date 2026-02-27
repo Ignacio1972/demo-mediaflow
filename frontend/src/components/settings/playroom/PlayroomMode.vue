@@ -1,5 +1,5 @@
 <template>
-  <div class="playroom-container min-h-screen bg-base-100">
+  <div class="playroom-container bg-base-100">
     <!-- Navigation Bar -->
     <SettingsNav />
 

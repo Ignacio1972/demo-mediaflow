@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { BoltIcon } from '@heroicons/vue/24/outline'
 import OperationCard, { type Operation } from './components/OperationCard.vue'
 
 const router = useRouter()
@@ -39,21 +38,8 @@ function handleOperationClick(operation: Operation) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-base-100">
-    <div class="container mx-auto px-6 py-8 max-w-5xl">
-      <!-- Header Section -->
-      <div class="mb-10">
-        <div class="flex items-center gap-3 mb-2">
-          <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
-            <BoltIcon class="w-5 h-5 text-primary" />
-          </div>
-          <h1 class="text-3xl font-bold tracking-tight">Operaciones</h1>
-        </div>
-        <p class="text-base-content/50 ml-13">
-          Anuncios rápidos para situaciones del día a día
-        </p>
-      </div>
-
+  <div>
+    <div class="max-w-5xl mx-auto">
       <!-- Operations Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <OperationCard
@@ -70,10 +56,6 @@ function handleOperationClick(operation: Operation) {
 </template>
 
 <style scoped>
-.ml-13 {
-  margin-left: 3.25rem;
-}
-
 /* Staggered entrance animation */
 .operation-card-enter {
   animation: cardEnter 0.4s ease-out backwards;

@@ -5,7 +5,7 @@ import { useCampaignStore } from './stores/campaignStore'
 import CampaignCardV2 from './components/CampaignCardV2.vue'
 import CampaignListTable from './components/CampaignListTable.vue'
 import NewCampaignModal from './modals/NewCampaignModal.vue'
-import { PlusIcon, RocketLaunchIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon } from '@heroicons/vue/24/outline'
 import type { Campaign, CampaignCreate } from '@/types/campaign'
 
 const router = useRouter()
@@ -82,37 +82,20 @@ function handleDragEnd() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-base-100">
-    <div class="container mx-auto px-6 py-8">
+  <div>
+    <div class="max-w-7xl mx-auto">
       <!-- Header Section -->
-      <div class="mb-10">
-        <div class="flex items-start justify-between">
-          <!-- Title & Stats -->
-          <div>
-            <div class="flex items-center gap-3 mb-2">
-              <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
-                <RocketLaunchIcon class="w-5 h-5 text-primary" />
-              </div>
-              <h1 class="text-3xl font-bold tracking-tight">Campañas</h1>
-              <span class="text-3xl font-light text-base-content/30">{{ currentYear }}</span>
-            </div>
-            <p class="text-base-content/50 ml-13">
-              {{ store.campaigns.length }} campañas · {{ totalAudios }} audios generados
-            </p>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex items-center gap-3">
-            <!-- New Campaign Button (hidden on mobile) -->
-            <button
-              class="hidden md:flex btn btn-primary gap-2 rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-              @click="showNewModal = true"
-            >
-              <PlusIcon class="w-5 h-5" />
-              Nueva Campaña
-            </button>
-          </div>
-        </div>
+      <div class="flex items-center justify-between mb-6">
+        <span class="text-sm text-base-content/50">
+          {{ store.campaigns.length }} campañas · {{ totalAudios }} audios generados
+        </span>
+        <button
+          class="hidden md:flex btn btn-primary btn-sm gap-2"
+          @click="showNewModal = true"
+        >
+          <PlusIcon class="w-4 h-4" />
+          Nueva Campaña
+        </button>
       </div>
 
       <!-- Loading State -->

@@ -1,5 +1,5 @@
 <template>
-  <div class="shortcut-manager min-h-screen bg-base-100">
+  <div class="shortcut-manager bg-base-100">
     <SettingsNav />
     <div class="p-6">
       <div class="container mx-auto max-w-7xl">

@@ -1,17 +1,6 @@
 <template>
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
-    <!-- Title -->
-    <div>
-      <div class="flex items-center gap-3 mb-2">
-        <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl">
-          <CalendarDaysIcon class="w-5 h-5 text-primary" />
-        </div>
-        <h1 class="text-3xl font-bold tracking-tight">Calendario</h1>
-      </div>
-      <p class="text-base-content/50 ml-13">
-        {{ activeCount }} programaciones activas
-      </p>
-    </div>
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <span class="text-sm text-base-content/50">{{ activeCount }} programaciones activas</span>
 
     <!-- Controls -->
     <div class="flex flex-wrap items-center gap-2">
@@ -96,7 +85,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import {
-  CalendarDaysIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   FunnelIcon

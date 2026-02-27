@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-base-100 p-6">
-    <div class="container mx-auto max-w-7xl">
+  <div>
+    <div class="max-w-7xl mx-auto">
       <!-- Header -->
       <CalendarHeader
         :current-date="store.currentDate"

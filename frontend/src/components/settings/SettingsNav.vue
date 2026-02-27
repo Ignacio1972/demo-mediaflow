@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-base-200 border-b border-base-300 shadow-sm">
+  <nav>
     <div class="container mx-auto px-4">
       <div class="flex items-center gap-2 overflow-x-auto py-3">
         <!-- AI Settings -->
