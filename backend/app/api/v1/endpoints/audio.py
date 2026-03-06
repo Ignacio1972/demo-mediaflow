@@ -4,14 +4,13 @@ Handles TTS generation with automatic voice settings - v2.1
 """
 import os
 import asyncio
+import json
 import logging
-from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from pydub import AudioSegment
 
 from app.db.session import get_db
 from app.schemas.audio import (
@@ -23,8 +22,11 @@ from app.schemas.audio import (
 from app.models.audio import AudioMessage
 from app.models.voice_settings import VoiceSettings
 from app.models.shortcut import Shortcut
-from app.services.tts import voice_manager, elevenlabs_service
-from app.services.audio import jingle_service
+from app.services.audio.generator import (
+    generate_audio as generate_audio_core,
+    VoiceNotFoundError,
+    VoiceInactiveError,
+)
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -133,31 +135,6 @@ async def generate_audio(
     NO manual voice settings needed - everything is automatic!
     """
     try:
-        logger.info(
-            f"🎙️ Audio generation request: voice={request.voice_id}, "
-            f"text_length={len(request.text)}"
-        )
-
-        # Get voice configuration with settings
-        result = await db.execute(
-            select(VoiceSettings).filter(VoiceSettings.id == request.voice_id)
-        )
-        voice = result.scalar_one_or_none()
-
-        if not voice:
-            logger.warning(f"⚠️ Voice not found: {request.voice_id}")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Voice '{request.voice_id}' not found",
-            )
-
-        if not voice.active:
-            logger.warning(f"⚠️ Voice inactive: {request.voice_id}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Voice '{request.voice_id}' is inactive",
-            )
-
         # Prepare settings override if provided
         settings_override = None
         if request.voice_settings:
@@ -176,163 +153,68 @@ async def generate_audio(
             if settings_override:
                 logger.info(f"🎛️ Voice settings override provided: {settings_override}")
 
-        # Generate audio with automatic settings (and optional override)
-        logger.info(f"🎛️ Using voice settings: {voice.name}")
-        audio_bytes, voice_used, effective_settings = await voice_manager.generate_with_voice(
+        # Delegate to shared generator
+        audio_message = await generate_audio_core(
             text=request.text,
             voice_id=request.voice_id,
             db=db,
-            settings_override=settings_override,
-        )
-
-        # Generate filename
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"tts_{timestamp}_{voice.id}.mp3"
-        file_path = os.path.join(settings.AUDIO_PATH, filename)
-
-        # Ensure directory exists
-        os.makedirs(settings.AUDIO_PATH, exist_ok=True)
-
-        # Save audio file (TTS only first)
-        with open(file_path, "wb") as f:
-            f.write(audio_bytes)
-
-        logger.info(f"💾 TTS audio saved: {filename}")
-
-        # Get audio metadata
-        audio = AudioSegment.from_file(file_path)
-        duration = len(audio) / 1000.0  # milliseconds to seconds
-        file_size = os.path.getsize(file_path)
-
-        # Apply volume adjustment if configured (use override if provided)
-        volume_adj = effective_settings.get("volume_adjustment", voice.volume_adjustment)
-        if volume_adj != 0:
-            logger.info(
-                f"🔊 Applying volume adjustment: {volume_adj} dB"
-            )
-            adjusted_audio = audio + volume_adj
-            adjusted_audio.export(file_path, format="mp3", bitrate="192k")
-            file_size = os.path.getsize(file_path)
-
-        # Apply TTS silence padding if configured and NOT using jingle
-        if not (request.add_jingles and request.music_file):
-            tts_settings = voice.tts_settings or {}
-            intro_silence = tts_settings.get('intro_silence', 0)
-            outro_silence = tts_settings.get('outro_silence', 0)
-
-            if intro_silence > 0 or outro_silence > 0:
-                logger.info(
-                    f"🔇 Applying TTS padding: intro={intro_silence}s, outro={outro_silence}s"
-                )
-                audio = AudioSegment.from_file(file_path)
-                if intro_silence > 0:
-                    audio = AudioSegment.silent(duration=int(intro_silence * 1000)) + audio
-                if outro_silence > 0:
-                    audio = audio + AudioSegment.silent(duration=int(outro_silence * 1000))
-                audio.export(file_path, format="mp3", bitrate="192k")
-                duration = len(audio) / 1000.0
-                file_size = os.path.getsize(file_path)
-                logger.info(f"✅ TTS padding applied, new duration: {duration:.2f}s")
-
-        # If jingle is requested and music file is provided, mix with music
-        if request.add_jingles and request.music_file:
-            logger.info(f"🎵 Creating jingle with music: {request.music_file}")
-
-            # Generate jingle filename
-            jingle_filename = f"jingle_{timestamp}_{voice.id}.mp3"
-            jingle_path = os.path.join(settings.AUDIO_PATH, jingle_filename)
-
-            # Get voice-specific jingle settings if available
-            voice_jingle_settings = voice.jingle_settings if voice.jingle_settings else None
-
-            # Create jingle
-            jingle_result = await jingle_service.create_jingle(
-                voice_audio_path=file_path,
-                music_filename=request.music_file,
-                output_path=jingle_path,
-                voice_jingle_settings=voice_jingle_settings
-            )
-
-            if jingle_result['success']:
-                # Remove original TTS file, use jingle instead
-                os.remove(file_path)
-                filename = jingle_filename
-                file_path = jingle_path
-                duration = jingle_result['duration']
-                file_size = os.path.getsize(file_path)
-                logger.info(f"🎉 Jingle created successfully: {filename} ({duration:.2f}s)")
-            else:
-                # Jingle creation failed, keep original TTS
-                logger.warning(
-                    f"⚠️ Jingle creation failed: {jingle_result.get('error')}, "
-                    f"using TTS-only audio"
-                )
-
-        # Create display name from text (first 50 chars)
-        display_name = (
-            request.text[:50] + "..." if len(request.text) > 50 else request.text
-        )
-
-        # Get settings snapshot for storage
-        settings_snapshot = voice_manager.get_voice_settings_snapshot(voice)
-
-        # Save to database (use effective settings for volume_adjustment)
-        audio_message = AudioMessage(
-            filename=filename,
-            display_name=display_name,
-            file_path=file_path,
-            file_size=file_size,
-            duration=duration,
-            format="mp3",
-            original_text=request.text,
-            voice_id=voice.id,
-            voice_settings_snapshot=settings_snapshot,
-            volume_adjustment=effective_settings.get("volume_adjustment", voice.volume_adjustment),
-            has_jingle=request.add_jingles,
+            add_jingles=request.add_jingles,
             music_file=request.music_file,
-            status="ready",
             priority=request.priority,
             category_id=request.category_id,
+            settings_override=settings_override,
+            commit=True,
         )
-
-        db.add(audio_message)
-        await db.commit()
-        await db.refresh(audio_message)
-
-        logger.info(f"✅ Audio message created: ID={audio_message.id}")
 
         # Cleanup old temporary messages if limit exceeded
         deleted_count = await cleanup_old_temporary_messages(db)
         if deleted_count > 0:
             logger.info(f"🧹 Auto-cleanup: {deleted_count} old temporary messages deleted")
 
-        # Build audio URL (relative for frontend proxy)
-        audio_url = f"/storage/audio/{filename}"
+        # Build response from AudioMessage
+        audio_url = f"/storage/audio/{audio_message.filename}"
+        snapshot = json.loads(audio_message.voice_settings_snapshot)
 
-        # Build response (use effective_settings which includes any overrides)
+        # Reconstruct effective settings_applied
+        settings_applied = {
+            "style": snapshot["style"],
+            "stability": snapshot["stability"],
+            "similarity_boost": snapshot["similarity_boost"],
+            "speed": snapshot["speed"],
+            "volume_adjustment": audio_message.volume_adjustment,
+        }
+        if settings_override:
+            for key in settings_override:
+                if key in settings_applied:
+                    settings_applied[key] = settings_override[key]
+
         response = AudioGenerateResponse(
             audio_id=audio_message.id,
-            filename=filename,
-            display_name=display_name,
+            filename=audio_message.filename,
+            display_name=audio_message.display_name,
             audio_url=audio_url,
-            file_size=file_size,
-            duration=duration,
+            file_size=audio_message.file_size,
+            duration=audio_message.duration,
             status=audio_message.status,
-            voice_id=voice.id,
-            voice_name=voice.name,
-            settings_applied={
-                "style": effective_settings.get("style", voice.style),
-                "stability": effective_settings.get("stability", voice.stability),
-                "similarity_boost": effective_settings.get("similarity_boost", voice.similarity_boost),
-                "speed": effective_settings.get("speed", voice.speed),
-                "volume_adjustment": effective_settings.get("volume_adjustment", voice.volume_adjustment),
-            },
+            voice_id=audio_message.voice_id,
+            voice_name=snapshot["voice_name"],
+            settings_applied=settings_applied,
             created_at=audio_message.created_at,
         )
 
-        logger.info(f"🎉 Audio generation completed successfully: {filename}")
+        logger.info(f"🎉 Audio generation completed successfully: {audio_message.filename}")
         return response
 
+    except VoiceNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Voice '{request.voice_id}' not found",
+        )
+    except VoiceInactiveError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Voice '{request.voice_id}' is inactive",
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -609,6 +491,7 @@ async def convert_mp3_to_ogg(source_path: str, output_path: str) -> bool:
     cmd = [
         "ffmpeg", "-y",
         "-i", source_path,
+        "-map_metadata", "-1",
         "-c:a", "libopus",
         "-b:a", "128k",
         "-ar", "48000",

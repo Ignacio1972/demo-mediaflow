@@ -24,6 +24,8 @@ from tests.conftest import make_voice
 
 pytestmark = pytest.mark.asyncio
 
+# Both code paths now delegate to the shared generator module
+GEN = "app.services.audio.generator"
 
 # Shared fake data for both paths
 FAKE_AUDIO_BYTES = b"\xff\xfb\x90\x00" + b"\x00" * 500
@@ -83,21 +85,21 @@ async def _generate_via_tool(client) -> AudioMessage:
     factory = client._test_session_factory
     async with factory() as session:
         with patch(
-            "app.services.chat.tool_executor.voice_manager.generate_with_voice",
+            f"{GEN}.voice_manager.generate_with_voice",
             new_callable=AsyncMock,
             return_value=(FAKE_AUDIO_BYTES, voice_obj, fake_settings),
         ), patch(
-            "app.services.chat.tool_executor.voice_manager.get_voice_settings_snapshot",
+            f"{GEN}.voice_manager.get_voice_settings_snapshot",
             return_value=_fake_snapshot(),
         ), patch(
-            "app.services.chat.tool_executor.AudioSegment"
+            f"{GEN}.AudioSegment"
         ) as mock_pydub, patch(
-            "app.services.chat.tool_executor.os.makedirs",
+            f"{GEN}.os.makedirs",
         ), patch(
-            "app.services.chat.tool_executor.os.path.getsize",
+            f"{GEN}.os.path.getsize",
             return_value=FAKE_FILE_SIZE,
         ), patch(
-            "app.services.chat.tool_executor.datetime"
+            f"{GEN}.datetime"
         ) as mock_dt, patch("builtins.open", MagicMock()):
             mock_dt.now.return_value = tool_dt
             mock_dt.fromisoformat = datetime.fromisoformat
@@ -133,21 +135,21 @@ async def _generate_via_endpoint(client) -> AudioMessage:
     endpoint_dt = datetime(2026, 1, 1, 11, 0, 0)
 
     with patch(
-        "app.api.v1.endpoints.audio.voice_manager.generate_with_voice",
+        f"{GEN}.voice_manager.generate_with_voice",
         new_callable=AsyncMock,
         return_value=(FAKE_AUDIO_BYTES, voice_obj, fake_settings),
     ), patch(
-        "app.api.v1.endpoints.audio.voice_manager.get_voice_settings_snapshot",
+        f"{GEN}.voice_manager.get_voice_settings_snapshot",
         return_value=_fake_snapshot(),
     ), patch(
-        "app.api.v1.endpoints.audio.AudioSegment"
+        f"{GEN}.AudioSegment"
     ) as mock_pydub, patch(
-        "app.api.v1.endpoints.audio.os.makedirs",
+        f"{GEN}.os.makedirs",
     ), patch(
-        "app.api.v1.endpoints.audio.os.path.getsize",
+        f"{GEN}.os.path.getsize",
         return_value=FAKE_FILE_SIZE,
     ), patch(
-        "app.api.v1.endpoints.audio.datetime"
+        f"{GEN}.datetime"
     ) as mock_dt, patch("builtins.open", MagicMock()):
         mock_dt.now.return_value = endpoint_dt
         mock_pydub.from_file.return_value = mock_segment

@@ -13,6 +13,7 @@ const pageTitles: Record<string, string> = {
   '/settings': 'Configuración',
   '/recent': 'Recientes',
   '/landing': 'Inicio',
+  '/chat': 'Asistente',
 }
 
 // Shared sidebar state (module-level so it's shared across components)

@@ -78,6 +78,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/components/shortcuts/ShortcutsPage.vue'),
   },
   {
+    path: '/chat',
+    name: 'chat',
+    component: () => import('@/components/chat/ChatPage.vue'),
+  },
+  {
     path: '/settings',
     name: 'settings',
     redirect: '/settings/ai',

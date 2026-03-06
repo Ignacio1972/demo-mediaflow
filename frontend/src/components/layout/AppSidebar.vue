@@ -102,6 +102,7 @@ import {
   DevicePhoneMobileIcon,
   MusicalNoteIcon,
   BoltIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/vue/24/outline'
 
 interface MenuItem {
@@ -127,6 +128,7 @@ const mainItems: MenuItem[] = [
   { path: '/operations', label: 'Operaciones', icon: markRaw(RocketLaunchIcon) },
   { path: '/shortcuts', label: 'Shortcuts', icon: markRaw(BoltIcon) },
   { path: '/playroom', label: 'Playroom', icon: markRaw(DevicePhoneMobileIcon) },
+  { path: '/chat', label: 'Asistente', icon: markRaw(ChatBubbleLeftRightIcon) },
 ]
 
 // All items including settings (for mobile drawer)

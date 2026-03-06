@@ -23,6 +23,9 @@ from tests.conftest import (
 
 pytestmark = pytest.mark.asyncio
 
+# Shared generator module path for patches
+GEN = "app.services.audio.generator"
+
 
 @pytest_asyncio.fixture
 async def executor():
@@ -76,18 +79,18 @@ async def test_tool_generate_audio(db_session, executor):
     }
 
     with patch(
-        "app.services.chat.tool_executor.voice_manager.generate_with_voice",
+        f"{GEN}.voice_manager.generate_with_voice",
         new_callable=AsyncMock,
         return_value=(fake_audio_bytes, voice, fake_settings),
     ), patch(
-        "app.services.chat.tool_executor.voice_manager.get_voice_settings_snapshot",
-        return_value='{"voice_id": "juan"}',
+        f"{GEN}.voice_manager.get_voice_settings_snapshot",
+        return_value='{"voice_id": "juan", "voice_name": "Juan"}',
     ), patch(
-        "app.services.chat.tool_executor.AudioSegment"
+        f"{GEN}.AudioSegment"
     ) as mock_pydub, patch(
-        "app.services.chat.tool_executor.os.makedirs",
+        f"{GEN}.os.makedirs",
     ), patch(
-        "app.services.chat.tool_executor.os.path.getsize",
+        f"{GEN}.os.path.getsize",
         return_value=504,
     ), patch("builtins.open", MagicMock()):
         # Mock AudioSegment.from_file to return a mock with len=5000 (5 seconds)
@@ -129,18 +132,18 @@ async def test_tool_generate_audio_default_voice(db_session, executor):
     }
 
     with patch(
-        "app.services.chat.tool_executor.voice_manager.generate_with_voice",
+        f"{GEN}.voice_manager.generate_with_voice",
         new_callable=AsyncMock,
         return_value=(b"\x00" * 100, default_voice, fake_settings),
     ), patch(
-        "app.services.chat.tool_executor.voice_manager.get_voice_settings_snapshot",
-        return_value="{}",
+        f"{GEN}.voice_manager.get_voice_settings_snapshot",
+        return_value='{"voice_name": "Default"}',
     ), patch(
-        "app.services.chat.tool_executor.AudioSegment"
+        f"{GEN}.AudioSegment"
     ) as mock_pydub, patch(
-        "app.services.chat.tool_executor.os.makedirs",
+        f"{GEN}.os.makedirs",
     ), patch(
-        "app.services.chat.tool_executor.os.path.getsize",
+        f"{GEN}.os.path.getsize",
         return_value=100,
     ), patch("builtins.open", MagicMock()):
         mock_segment = MagicMock()

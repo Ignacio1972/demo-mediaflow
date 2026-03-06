@@ -1,25 +1,25 @@
 """
 Tool executor - executes tools invoked by Claude against MediaFlow services.
 
-Replicates audio generation logic from audio.py inline (no generator.py extraction)
-to avoid touching existing endpoints.
+Audio generation is delegated to the shared generator module.
 """
-import os
+import json
 import logging
 from datetime import datetime
 from typing import Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from pydub import AudioSegment
 
 from app.models.audio import AudioMessage
 from app.models.voice_settings import VoiceSettings
 from app.models.category import Category
 from app.services.ai.claude import claude_service
 from app.services.ai.client_manager import ai_client_manager
-from app.services.tts import voice_manager
-from app.services.audio import jingle_service
-from app.core.config import settings
+from app.services.audio.generator import (
+    generate_audio,
+    VoiceNotFoundError,
+    VoiceInactiveError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -55,14 +55,11 @@ class ToolExecutor:
         }
 
     async def _tool_generate_audio(self, params: Dict, db: AsyncSession) -> Dict:
-        """
-        Generate TTS audio - replicates logic from audio.py endpoint.
-        Uses db.flush() instead of commit (transaction managed by ChatService).
-        """
+        """Generate TTS audio via shared generator (commit=False for chat transactions)."""
         text = params["text"]
         voice_id = params.get("voice_id")
 
-        # Get default voice if not specified
+        # Default voice resolution (tool-only feature)
         if not voice_id:
             result = await db.execute(
                 select(VoiceSettings).filter(
@@ -79,118 +76,35 @@ class ToolExecutor:
                 return {"success": False, "message": "No hay voces configuradas"}
             voice_id = default_voice.id
 
-        # Look up voice settings
-        result = await db.execute(
-            select(VoiceSettings).filter(VoiceSettings.id == voice_id)
-        )
-        voice = result.scalar_one_or_none()
-        if not voice:
-            return {"success": False, "message": f"Voz '{voice_id}' no encontrada"}
-        if not voice.active:
-            return {"success": False, "message": f"Voz '{voice_id}' está inactiva"}
-
-        add_jingles = params.get("add_jingles", False)
-        music_file = params.get("music_file")
-
-        # Generate TTS with automatic voice settings
-        audio_bytes, voice_used, effective_settings = await voice_manager.generate_with_voice(
-            text=text, voice_id=voice_id, db=db,
-        )
-
-        # Generate filename and save
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"tts_{timestamp}_{voice.id}.mp3"
-        file_path = os.path.join(settings.AUDIO_PATH, filename)
-        os.makedirs(settings.AUDIO_PATH, exist_ok=True)
-
-        with open(file_path, "wb") as f:
-            f.write(audio_bytes)
-
-        # Get audio metadata
-        audio = AudioSegment.from_file(file_path)
-        duration = len(audio) / 1000.0
-        file_size = os.path.getsize(file_path)
-
-        # Apply volume adjustment if configured
-        volume_adj = effective_settings.get("volume_adjustment", voice.volume_adjustment)
-        if volume_adj != 0:
-            adjusted_audio = audio + volume_adj
-            adjusted_audio.export(file_path, format="mp3", bitrate="192k")
-            file_size = os.path.getsize(file_path)
-
-        # Apply TTS silence padding if NOT using jingle
-        if not (add_jingles and music_file):
-            tts_settings = voice.tts_settings or {}
-            intro_silence = tts_settings.get('intro_silence', 0)
-            outro_silence = tts_settings.get('outro_silence', 0)
-            if intro_silence > 0 or outro_silence > 0:
-                audio = AudioSegment.from_file(file_path)
-                if intro_silence > 0:
-                    audio = AudioSegment.silent(duration=int(intro_silence * 1000)) + audio
-                if outro_silence > 0:
-                    audio = audio + AudioSegment.silent(duration=int(outro_silence * 1000))
-                audio.export(file_path, format="mp3", bitrate="192k")
-                duration = len(audio) / 1000.0
-                file_size = os.path.getsize(file_path)
-
-        # Create jingle if requested
-        if add_jingles and music_file:
-            jingle_filename = f"jingle_{timestamp}_{voice.id}.mp3"
-            jingle_path = os.path.join(settings.AUDIO_PATH, jingle_filename)
-            voice_jingle_settings = voice.jingle_settings if voice.jingle_settings else None
-
-            jingle_result = await jingle_service.create_jingle(
-                voice_audio_path=file_path,
-                music_filename=music_file,
-                output_path=jingle_path,
-                voice_jingle_settings=voice_jingle_settings,
+        try:
+            audio_message = await generate_audio(
+                text=text,
+                voice_id=voice_id,
+                db=db,
+                add_jingles=params.get("add_jingles", False),
+                music_file=params.get("music_file"),
+                commit=False,
             )
+        except (VoiceNotFoundError, VoiceInactiveError) as e:
+            return {"success": False, "message": str(e)}
 
-            if jingle_result['success']:
-                os.remove(file_path)
-                filename = jingle_filename
-                file_path = jingle_path
-                duration = jingle_result['duration']
-                file_size = os.path.getsize(file_path)
+        audio_url = f"/storage/audio/{audio_message.filename}"
 
-        # Create display name
-        display_name = text[:50] + "..." if len(text) > 50 else text
-
-        # Get settings snapshot
-        settings_snapshot = voice_manager.get_voice_settings_snapshot(voice)
-
-        # Save to database (flush, not commit)
-        audio_message = AudioMessage(
-            filename=filename,
-            display_name=display_name,
-            file_path=file_path,
-            file_size=file_size,
-            duration=duration,
-            format="mp3",
-            original_text=text,
-            voice_id=voice.id,
-            voice_settings_snapshot=settings_snapshot,
-            volume_adjustment=effective_settings.get("volume_adjustment", voice.volume_adjustment),
-            has_jingle=add_jingles,
-            music_file=music_file,
-            status="ready",
-        )
-        db.add(audio_message)
-        await db.flush()
-
-        audio_url = f"/storage/audio/{filename}"
+        # Get voice name from snapshot for the response message
+        snapshot = json.loads(audio_message.voice_settings_snapshot)
+        voice_name = snapshot.get("voice_name", voice_id)
 
         return {
             "success": True,
             "data": {
                 "audio_id": audio_message.id,
-                "filename": filename,
+                "filename": audio_message.filename,
                 "audio_url": audio_url,
-                "duration": duration,
-                "voice_id": voice.id,
-                "display_name": display_name,
+                "duration": audio_message.duration,
+                "voice_id": audio_message.voice_id,
+                "display_name": audio_message.display_name,
             },
-            "message": f"Audio generado: {duration:.1f}s con voz {voice.name}"
+            "message": f"Audio generado: {audio_message.duration:.1f}s con voz {voice_name}"
         }
 
     async def _tool_list_voices(self, params: Dict, db: AsyncSession) -> Dict:
