@@ -1,12 +1,14 @@
 <template>
-  <div v-if="!authenticated" class="fixed inset-0 z-[9999] bg-base-300 flex items-center justify-center">
+  <div v-if="!authenticated" class="fixed inset-0 z-[9999] bg-base-300 flex items-center justify-center overflow-hidden">
     <div class="card bg-base-100 shadow-xl w-80">
       <div class="card-body items-center text-center">
-        <img
-          src="/tenants/demo/logo.png"
-          alt="Mallplaza"
-          class="h-24 w-auto object-contain mb-4"
-        />
+        <div class="rounded-xl px-6 py-4 mb-4" style="background-color: #0171dc;">
+          <img
+            :src="tenantLogo"
+            :alt="tenantName"
+            class="h-16 w-auto object-contain"
+          />
+        </div>
         <p class="text-sm text-base-content/70 mb-4">Ingresa la contraseña para continuar</p>
 
         <input
@@ -30,12 +32,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useTenantStore } from '@/stores/tenant'
 
-const CORRECT_PASSWORD = '39933993'
+const CORRECT_PASSWORD = '4321'
 const STORAGE_KEY = 'mediaflow_demo_auth_v2'
 const VERSION_KEY = 'mediaflow_auth_version'
 const POLL_INTERVAL = 30000 // 30 seconds
+
+const tenantStore = useTenantStore()
+const tenantLogo = computed(() => tenantStore.tenantLogo)
+const tenantName = computed(() => tenantStore.tenantName)
 
 const authenticated = ref(false)
 const password = ref('')

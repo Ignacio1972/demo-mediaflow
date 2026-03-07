@@ -17,7 +17,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-[calc(100vh-7rem)] max-w-4xl mx-auto">
+  <div class="flex flex-col h-[calc(100vh-7rem)] max-w-4xl mx-auto overflow-x-hidden">
     <ChatHeader />
 
     <div v-if="error" class="px-4 py-2 bg-error/10 text-error text-sm flex items-center gap-2 rounded-lg mx-4 mt-2">

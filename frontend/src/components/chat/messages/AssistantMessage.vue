@@ -19,7 +19,7 @@ const renderedContent = computed(() => {
 
 <template>
   <div class="flex justify-start">
-    <div class="bg-base-200 rounded-2xl rounded-bl-md px-4 py-2 max-w-[85%] text-sm">
+    <div class="bg-base-200 rounded-2xl rounded-bl-md px-4 py-2 max-w-[85%]">
       <div v-if="message.content" class="chat-markdown" v-html="renderedContent" />
       <span v-if="message.isStreaming && !message.content"
             class="loading loading-dots loading-xs"></span>

@@ -41,7 +41,7 @@ function autoResize(e: Event) {
         :disabled="disabled"
         placeholder="Escribe un mensaje..."
         rows="1"
-        class="textarea textarea-bordered flex-1 resize-none text-sm leading-5
+        class="textarea textarea-bordered flex-1 resize-none leading-5
                min-h-[40px] max-h-[120px] focus:outline-none focus:border-primary"
       />
       <button

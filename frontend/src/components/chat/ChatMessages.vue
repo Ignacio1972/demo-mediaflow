@@ -31,7 +31,7 @@ watch(
 </script>
 
 <template>
-  <div ref="scrollContainer" class="px-4 py-3 space-y-3">
+  <div ref="scrollContainer" class="px-2 sm:px-4 py-3 space-y-3">
     <!-- Welcome screen -->
     <div v-if="!messages.length" class="flex flex-col items-center justify-center h-full text-center py-12">
       <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
