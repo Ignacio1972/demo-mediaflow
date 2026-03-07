@@ -109,7 +109,10 @@ class ToolExecutor:
 
     async def _tool_list_voices(self, params: Dict, db: AsyncSession) -> Dict:
         result = await db.execute(
-            select(VoiceSettings).filter(VoiceSettings.active == True).order_by(VoiceSettings.name)
+            select(VoiceSettings).filter(
+                VoiceSettings.active == True,
+                VoiceSettings.id != 'veronica'
+            ).order_by(VoiceSettings.name)
         )
         voices = result.scalars().all()
         voice_list = [

@@ -11,7 +11,7 @@
 
     <!-- Logo area (matches sidebar width on desktop) -->
     <div class="lg:w-60 flex items-center px-3 lg:px-5 shrink-0">
-      <router-link to="/shortcuts" class="hover:opacity-80 transition-opacity">
+      <router-link to="/campaigns" class="hover:opacity-80 transition-opacity">
         <img
           :src="tenantLogo"
           :alt="tenantName"

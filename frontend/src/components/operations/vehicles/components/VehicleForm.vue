@@ -98,8 +98,8 @@
           </div>
         </div>
 
-        <!-- Voz - hidden on mobile (uses default voice) -->
-        <div class="space-y-2 mb-5 hidden md:block">
+        <!-- Voz - hidden (uses Francisca by default) -->
+        <div class="space-y-2 mb-5 hidden">
           <label class="text-sm font-medium">Voz</label>
           <select
             v-model="voiceId"

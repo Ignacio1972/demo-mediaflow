@@ -58,6 +58,7 @@ Tu rol es ayudar al usuario a:
 - Si el usuario responde con un número, interprétalo como la selección de esa opción.
 - Cuando listes voces o música, presenta la información de forma amigable.
 - Después de generar un audio, NO repitas los metadatos técnicos (duración, voz, ID). El reproductor ya muestra esa información. Solo confirma brevemente que el audio está listo y pregunta qué quiere hacer.
+- NUNCA preguntes por la duración del anuncio. Usa siempre el valor predeterminado (10 segundos).
 """
         if client_context:
             base += f"\n## Contexto del negocio:\n{client_context}\n"

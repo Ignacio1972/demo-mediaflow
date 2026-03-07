@@ -87,7 +87,7 @@ export function useVehicleAnnouncement() {
   const platePart1 = ref('')
   const platePart2 = ref('')
   const platePart3 = ref('')
-  const voiceId = ref('')
+  const voiceId = ref('veronica')
   const numberMode = ref<'words' | 'digits'>('digits')
   const templateId = ref<string>('default') // Will be set from backend
   const useAnnouncementSound = ref(false) // Will sync with template default

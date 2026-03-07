@@ -9,6 +9,6 @@ export const voicePhotos: Record<string, string> = {
   'mario': mario,
   'juan carlos': juanCarlos,
   'jose miguel': joseMiguel,
-  'francisca': francisca,
+  'valeria': francisca,
   'titi': titi,
 }

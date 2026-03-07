@@ -66,7 +66,7 @@ export function useScheduleAnnouncement() {
   const scheduleType = ref<ScheduleType>('closing')
   const variant = ref<ScheduleVariant>('in_minutes')
   const minutes = ref<number>(15)
-  const voiceId = ref('')
+  const voiceId = ref('veronica')
   const useAnnouncementSound = ref(false) // Will sync with template default
 
   // Options data

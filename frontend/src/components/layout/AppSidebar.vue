@@ -122,7 +122,7 @@ const mainItems: MenuItem[] = [
   { path: '/operations', label: 'Operaciones', icon: markRaw(RocketLaunchIcon) },
   { path: '/music', label: 'Música', icon: markRaw(MusicalNoteIcon) },
   { path: '/calendar', label: 'Calendario', icon: markRaw(CalendarIcon) },
-  { path: '/library', label: 'Biblioteca', icon: markRaw(BookOpenIcon) },
+  { path: '/library', label: 'Librería', icon: markRaw(BookOpenIcon) },
   { path: '/chat', label: 'Asistente', icon: markRaw(ChatBubbleLeftRightIcon) },
 ]
 

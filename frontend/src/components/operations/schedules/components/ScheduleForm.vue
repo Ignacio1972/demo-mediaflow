@@ -110,8 +110,8 @@ function handleGenerate() {
         </select>
       </div>
 
-      <!-- Voice Selector (hidden on mobile) -->
-      <div class="form-control hidden md:block">
+      <!-- Voice Selector - hidden (uses Francisca by default) -->
+      <div class="form-control hidden">
         <label class="label">
           <span class="label-text font-medium">Voz</span>
         </label>

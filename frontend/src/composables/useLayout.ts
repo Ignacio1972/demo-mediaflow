@@ -3,7 +3,7 @@ import { useRoute } from 'vue-router'
 
 const pageTitles: Record<string, string> = {
   '/campaigns': 'Campañas',
-  '/library': 'Biblioteca',
+  '/library': 'Librería',
   '/dashboard': 'Crear',
   '/calendar': 'Calendario',
   '/music': 'Música',

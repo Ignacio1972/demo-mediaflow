@@ -124,7 +124,7 @@ const defaultItems: MenuItem[] = [
   {
     id: 'library',
     path: '/library',
-    label: 'Biblioteca',
+    label: 'Librería',
     icon: BookOpenIcon,
     color: '#3B82F6'
   },
