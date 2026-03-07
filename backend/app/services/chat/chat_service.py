@@ -31,7 +31,7 @@ class ChatService:
 
     def __init__(self):
         self.client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
-        self.model = settings.CLAUDE_MODEL
+        self.model = settings.CLAUDE_CHAT_MODEL
 
     def _build_system_prompt(self, client_context: Optional[str] = None) -> str:
         base = """Eres el asistente de MediaFlow, un sistema profesional de audio y radio automatizada.
@@ -54,7 +54,8 @@ Tu rol es ayudar al usuario a:
 
 ## Reglas:
 - SIEMPRE usa las herramientas disponibles para ejecutar acciones. NO inventes datos.
-- Presenta las sugerencias numeradas para que el usuario elija.
+- Siempre que presentes opciones (sugerencias, voces, música, tonos, etc.), numéralas claramente (1, 2, 3...) para que el usuario pueda responder solo con el número.
+- Si el usuario responde con un número, interprétalo como la selección de esa opción.
 - Cuando listes voces o música, presenta la información de forma amigable.
 """
         if client_context:
@@ -112,6 +113,7 @@ Tu rol es ayudar al usuario a:
                 current_tool_name = ""
                 current_tool_id = ""
 
+                logger.info(f"Chat stream iteration {iteration} using model: {self.model}")
                 async with self.client.messages.stream(
                     model=self.model,
                     max_tokens=2048,
@@ -168,6 +170,7 @@ Tu rol es ayudar al usuario a:
 
                 # Collect full text from this iteration
                 iteration_text = "".join(assistant_text_parts)
+                logger.info(f"Iteration {iteration} done. Text length: {len(iteration_text)}, tools: {len(tool_use_blocks)}")
 
                 # --- If no tool_use, conversation turn is done ---
                 if not tool_use_blocks:
@@ -183,6 +186,7 @@ Tu rol es ayudar al usuario a:
                             assistant_msg.audio_id = tc["result"]["data"]["audio_id"]
                             break
                     db.add(assistant_msg)
+                    logger.info("No tools, breaking loop")
                     break
 
                 # --- Tools were used: persist this intermediate turn ---
@@ -235,7 +239,9 @@ Tu rol es ayudar al usuario a:
                 # Add to Claude history for next iteration
                 messages.append({"role": "user", "content": tool_results_for_claude})
 
+            logger.info("Committing to DB...")
             await db.commit()
+            logger.info("Committed. Sending message_end.")
             yield self._sse_event("message_end", {"conversation_id": conversation.id})
 
         except Exception as e:

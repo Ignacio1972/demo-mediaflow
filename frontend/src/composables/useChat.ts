@@ -41,16 +41,16 @@ export function useChat() {
     }
     messages.value.push(userMsg)
 
-    // Placeholder for assistant
-    const assistantMsg: ChatMessage = {
+    // Placeholder for assistant (use reactive reference from array)
+    messages.value.push({
       id: `assistant_${Date.now()}`,
       role: 'assistant',
       content: '',
       created_at: new Date().toISOString(),
       isStreaming: true,
       tool_calls: [],
-    }
-    messages.value.push(assistantMsg)
+    })
+    const assistantMsg = messages.value[messages.value.length - 1]
 
     try {
       const response = await fetch('/api/v1/chat/send', {
@@ -70,18 +70,10 @@ export function useChat() {
 
       const decoder = new TextDecoder()
       let buffer = ''
+      let eventCount = 0
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-
-        // Parse SSE: split on double newline
-        const events = buffer.split('\n\n')
-        buffer = events.pop() || ''
-
-        for (const eventBlock of events) {
+      const parseAndHandle = (buf: string) => {
+        for (const eventBlock of buf.split('\n\n')) {
           if (!eventBlock.trim()) continue
           let eventData = ''
           for (const line of eventBlock.split('\n')) {
@@ -89,7 +81,10 @@ export function useChat() {
           }
           if (eventData) {
             try {
-              handleSSEEvent(JSON.parse(eventData) as SSEEvent, assistantMsg)
+              const parsed = JSON.parse(eventData) as SSEEvent
+              eventCount++
+              console.log(`[SSE #${eventCount}] ${parsed.type}`, parsed.type === 'text_delta' ? `"${(parsed as any).text?.slice(0, 30)}"` : '')
+              handleSSEEvent(parsed, assistantMsg)
             } catch (e) {
               console.warn('Failed to parse SSE:', eventData)
             }
@@ -97,8 +92,31 @@ export function useChat() {
         }
       }
 
+      console.log('[Chat] Starting stream read...')
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) {
+          console.log(`[Chat] Stream done. Buffer remaining: ${buffer.length} chars, content length: ${assistantMsg.content.length}`)
+          if (buffer.trim()) parseAndHandle(buffer)
+          break
+        }
+
+        const chunk = decoder.decode(value, { stream: true })
+        buffer += chunk
+
+        // Parse SSE: split on double newline
+        const events = buffer.split('\n\n')
+        buffer = events.pop() || ''
+        for (const eventBlock of events) {
+          if (!eventBlock.trim()) continue
+          parseAndHandle(eventBlock)
+        }
+      }
+
+      console.log(`[Chat] Final content length: ${assistantMsg.content.length}, events: ${eventCount}`)
       assistantMsg.isStreaming = false
     } catch (e: any) {
+      console.error('[Chat] Error:', e)
       if (e.name === 'AbortError') return
       error.value = e.message || 'Error de conexion'
       if (!assistantMsg.content) messages.value.pop()

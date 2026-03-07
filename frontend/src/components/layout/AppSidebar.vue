@@ -51,7 +51,7 @@
       :class="isSidebarVisible ? 'translate-x-0' : '-translate-x-full'"
     >
       <!-- Drawer Header -->
-      <div class="h-14 flex items-center justify-between px-5 border-b border-base-content/10 shrink-0">
+      <div class="h-14 flex items-center justify-between px-5 shrink-0" style="background-color: #0171dc;">
         <img
           :src="tenantLogo"
           :alt="tenantName"
@@ -59,7 +59,7 @@
         />
         <button
           @click="closeSidebar"
-          class="btn btn-ghost btn-sm btn-square"
+          class="btn btn-ghost btn-sm btn-square text-white"
           aria-label="Cerrar menú"
         >
           <XMarkIcon class="h-5 w-5" />
@@ -99,9 +99,7 @@ import {
   CogIcon,
   MegaphoneIcon,
   RocketLaunchIcon,
-  DevicePhoneMobileIcon,
   MusicalNoteIcon,
-  BoltIcon,
   ChatBubbleLeftRightIcon,
 } from '@heroicons/vue/24/outline'
 
@@ -120,20 +118,16 @@ const tenantName = computed(() => tenantStore.tenantName)
 
 // Main nav items (shown in desktop sidebar)
 const mainItems: MenuItem[] = [
-  { path: '/campaigns', label: 'Campañas', icon: markRaw(HomeIcon) },
-  { path: '/library', label: 'Biblioteca', icon: markRaw(BookOpenIcon) },
-  { path: '/dashboard', label: 'Crear', icon: markRaw(MegaphoneIcon) },
-  { path: '/calendar', label: 'Calendario', icon: markRaw(CalendarIcon) },
-  { path: '/music', label: 'Música', icon: markRaw(MusicalNoteIcon) },
+  { path: '/campaigns', label: 'Marketing', icon: markRaw(HomeIcon) },
   { path: '/operations', label: 'Operaciones', icon: markRaw(RocketLaunchIcon) },
-  { path: '/shortcuts', label: 'Shortcuts', icon: markRaw(BoltIcon) },
-  { path: '/playroom', label: 'Playroom', icon: markRaw(DevicePhoneMobileIcon) },
+  { path: '/music', label: 'Música', icon: markRaw(MusicalNoteIcon) },
+  { path: '/calendar', label: 'Calendario', icon: markRaw(CalendarIcon) },
+  { path: '/library', label: 'Biblioteca', icon: markRaw(BookOpenIcon) },
   { path: '/chat', label: 'Asistente', icon: markRaw(ChatBubbleLeftRightIcon) },
 ]
 
 // All items including settings (for mobile drawer)
 const allItems: MenuItem[] = [
-  { path: '/landing', label: 'Landing', icon: markRaw(DevicePhoneMobileIcon) },
   ...mainItems,
   { path: '/settings', label: 'Configuración', icon: markRaw(CogIcon) },
 ]

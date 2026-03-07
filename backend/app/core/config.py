@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     # Anthropic Claude
     ANTHROPIC_API_KEY: str
     CLAUDE_MODEL: str = "claude-3-5-sonnet-20241022"
+    CLAUDE_CHAT_MODEL: str = "claude-haiku-4-5-20251001"
     CLAUDE_MAX_TOKENS: int = 500
 
     # WebSocket
