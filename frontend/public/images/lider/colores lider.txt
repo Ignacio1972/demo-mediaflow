@@ -1,0 +1,6 @@
+Los colores son azul, blanco y muy poco amarillo. 
+Aquí están los códigos. 
+azul #0171dc
+amarillo #ffc221
+El logo siempre aparece con letras blancas y atrás está el color azul. 
+

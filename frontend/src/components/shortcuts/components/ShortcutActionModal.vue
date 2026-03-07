@@ -82,11 +82,9 @@
         <!-- Broadcast Button -->
         <button
           class="btn btn-primary btn-block gap-2"
-          :disabled="isBroadcasting"
           @click="handleBroadcast"
         >
-          <span v-if="isBroadcasting" class="loading loading-spinner loading-sm"></span>
-          <SignalIcon v-else class="w-5 h-5" />
+          <SignalIcon class="w-5 h-5" />
           Enviar a Parlantes
         </button>
 
@@ -154,7 +152,6 @@ const isPlaying = ref(false)
 const currentTime = ref(0)
 const duration = ref(0)
 const volume = ref(80)
-const isBroadcasting = ref(false)
 const confirmingDelete = ref(false)
 
 // Computed
@@ -229,14 +226,12 @@ const updateVolume = () => {
   }
 }
 
-// Broadcast handler
-const handleBroadcast = async () => {
-  isBroadcasting.value = true
-  try {
-    emit('broadcast')
-  } finally {
-    isBroadcasting.value = false
+// Broadcast handler - close this modal and open the broadcast modal
+const handleBroadcast = () => {
+  if (audioRef.value) {
+    audioRef.value.pause()
   }
+  emit('broadcast')
 }
 
 // Close handler

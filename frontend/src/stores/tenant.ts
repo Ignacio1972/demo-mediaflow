@@ -18,11 +18,11 @@ export interface TenantConfig {
 }
 
 const DEFAULT_CONFIG: TenantConfig = {
-  tenant_id: 'demo',
-  tenant_name: 'MediaFlow Demo',
-  tenant_logo: '/images/mediaflow-logo.png',
-  tenant_primary_color: '#4F46E5',
-  tenant_secondary_color: '#7C3AED',
+  tenant_id: 'lider',
+  tenant_name: 'Líder',
+  tenant_logo: '/images/lider/logo lider.svg',
+  tenant_primary_color: '#0171dc',
+  tenant_secondary_color: '#ffc221',
   tenant_domain: 'localhost',
   tenant_favicon: '/favicon.ico',
   app_version: '2.1.0'

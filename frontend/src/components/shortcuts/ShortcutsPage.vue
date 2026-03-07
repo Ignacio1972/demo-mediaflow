@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="max-w-lg mx-auto">
+    <div class="max-w-7xl mx-auto">
       <!-- Error Message -->
       <div v-if="error" class="alert alert-error mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -38,12 +38,14 @@
       </div>
 
       <!-- Shortcuts Grid -->
-      <div v-else class="grid grid-cols-2 gap-3">
+      <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
         <ShortcutButton
-          v-for="pos in 8"
+          v-for="(pos, index) in 8"
           :key="pos"
           :shortcut="getShortcutByPosition(pos)"
           :position="pos"
+          :style="{ animationDelay: `${index * 50}ms` }"
+          class="shortcut-card-enter"
           @click="handleShortcutClick(pos)"
         />
       </div>
@@ -65,19 +67,28 @@
       v-if="selectedShortcut"
       :shortcut="selectedShortcut"
       @close="selectedShortcut = null"
-      @broadcast="handleBroadcast"
+      @broadcast="openBroadcastModal"
       @delete="handleDelete"
+    />
+
+    <!-- Broadcast Modal (reused from library) -->
+    <BroadcastModal
+      v-model:open="showBroadcastModal"
+      :message="broadcastMessage"
+      @sent="onBroadcastSent"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { CogIcon } from '@heroicons/vue/24/outline'
 import { useShortcuts } from './composables/useShortcuts'
 import ShortcutButton from './components/ShortcutButton.vue'
 import ShortcutActionModal from './components/ShortcutActionModal.vue'
+import BroadcastModal from '@/components/library/modals/BroadcastModal.vue'
 import type { ShortcutPublic } from '@/types/shortcut'
+import type { AudioMessage } from '@/types/audio'
 
 // Composable
 const {
@@ -87,12 +98,13 @@ const {
   loadShortcuts,
   getShortcutByPosition,
   deleteShortcut,
-  sendToSpeakers,
 } = useShortcuts()
 
 // Local state
 const selectedShortcut = ref<ShortcutPublic | null>(null)
 const successMessage = ref<string | null>(null)
+const showBroadcastModal = ref(false)
+const broadcastMessage = ref<AudioMessage | null>(null)
 
 // Handlers
 const handleShortcutClick = (position: number) => {
@@ -100,6 +112,38 @@ const handleShortcutClick = (position: number) => {
   if (shortcut) {
     selectedShortcut.value = shortcut
   }
+}
+
+const openBroadcastModal = () => {
+  if (!selectedShortcut.value) return
+
+  const s = selectedShortcut.value
+  broadcastMessage.value = {
+    id: s.audio_message_id,
+    filename: '',
+    display_name: s.custom_name,
+    file_path: '',
+    format: 'mp3',
+    original_text: '',
+    voice_id: '',
+    is_favorite: false,
+    volume_adjustment: 0,
+    has_jingle: false,
+    status: 'ready',
+    sent_to_player: false,
+    priority: 0,
+    created_at: '',
+    updated_at: '',
+    audio_url: s.audio_url,
+  } as AudioMessage
+
+  selectedShortcut.value = null
+  showBroadcastModal.value = true
+}
+
+function onBroadcastSent(branchCount: number) {
+  successMessage.value = `Audio enviado a ${branchCount} sucursal${branchCount > 1 ? 'es' : ''}`
+  setTimeout(() => { successMessage.value = null }, 3000)
 }
 
 const handleDelete = async () => {
@@ -117,28 +161,25 @@ const handleDelete = async () => {
   }
 }
 
-const handleBroadcast = async () => {
-  if (!selectedShortcut.value) return
-
-  try {
-    await sendToSpeakers(selectedShortcut.value.audio_message_id)
-    successMessage.value = `"${selectedShortcut.value.custom_name}" enviado a parlantes`
-    selectedShortcut.value = null
-
-    // Clear success message after 3s
-    setTimeout(() => {
-      successMessage.value = null
-    }, 3000)
-  } catch (e: any) {
-    error.value = e.message || 'Error al enviar a parlantes'
-    setTimeout(() => {
-      error.value = null
-    }, 3000)
-  }
-}
-
 // Load shortcuts on mount
 onMounted(() => {
   loadShortcuts()
 })
 </script>
+
+<style scoped>
+.shortcut-card-enter {
+  animation: cardEnter 0.4s ease-out backwards;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+</style>

@@ -3,8 +3,8 @@
     <!-- Logo Header -->
     <div class="py-6 flex flex-col items-center">
       <img
-        src="/tenants/demo/logo.png"
-        alt="Mall Plaza"
+        :src="tenantLogo"
+        :alt="tenantName"
         class="h-16 w-auto object-contain"
       />
     </div>
@@ -53,8 +53,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, type Component } from 'vue'
+import { ref, computed, onMounted, type Component } from 'vue'
 import { useRouter } from 'vue-router'
+import { useTenantStore } from '@/stores/tenant'
 import draggable from 'vuedraggable'
 import {
   MusicalNoteIcon,
@@ -78,6 +79,9 @@ interface MenuItem {
 }
 
 const router = useRouter()
+const tenantStore = useTenantStore()
+const tenantLogo = computed(() => tenantStore.tenantLogo)
+const tenantName = computed(() => tenantStore.tenantName)
 
 const STORAGE_KEY = 'landing-menu-order'
 
