@@ -38,7 +38,7 @@ onMounted(async () => {
   console.log(`MediaFlow v${tenantStore.appVersion} - ${tenantStore.tenantName}`)
 
   if (isMobileDevice() && route.path === '/') {
-    router.replace('/shortcuts')
+    router.replace('/campaigns')
   }
 })
 </script>

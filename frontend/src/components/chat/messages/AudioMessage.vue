@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Play, Pause } from 'lucide-vue-next'
 
 defineProps<{
@@ -11,6 +11,12 @@ defineProps<{
 const audioRef = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const progress = ref(0)
+
+onMounted(() => {
+  if (audioRef.value) {
+    audioRef.value.play().then(() => { isPlaying.value = true }).catch(() => {})
+  }
+})
 
 function togglePlay() {
   if (!audioRef.value) return

@@ -60,8 +60,8 @@ export function useEmployeeCallAnnouncement() {
   // Form state
   const callType = ref<CallType>('empleado')
   const nombre = ref('')
-  const ubicacion = ref('')
-  const voiceId = ref('')
+  const ubicacion = ref('Servicio al Cliente')
+  const voiceId = ref('veronica')
   const templateId = ref<string>('employee_call_default')
   const useAnnouncementSound = ref(false)
 

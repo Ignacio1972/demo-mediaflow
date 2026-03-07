@@ -38,7 +38,6 @@
         :key="theme.id"
         @click="changeTheme(theme.id)"
         class="btn btn-ghost btn-sm btn-square text-white/80 hover:text-white"
-        :class="{ 'btn-active bg-white/20': currentTheme === theme.id }"
         :title="theme.name"
       >
         <component :is="theme.icon" class="w-4 h-4" />
@@ -65,12 +64,11 @@ const tenantLogo = computed(() => tenantStore.tenantLogo)
 const tenantName = computed(() => tenantStore.tenantName)
 
 const themes: ThemeOption[] = [
-  { id: 'tailadmin', name: 'TailAdmin', icon: markRaw(SparklesIcon) },
   { id: 'nexus', name: 'Nexus', icon: markRaw(SunIcon) },
   { id: 'mediaflow', name: 'Dark', icon: markRaw(MoonIcon) },
 ]
 
-const currentTheme = ref('tailadmin')
+const currentTheme = ref('nexus')
 
 const changeTheme = (theme: string) => {
   currentTheme.value = theme

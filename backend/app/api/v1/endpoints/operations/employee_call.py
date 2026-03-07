@@ -37,14 +37,10 @@ router = APIRouter(prefix="/employee-call", tags=["operations-employee-call"])
 # ============================================
 
 COMMON_LOCATIONS = [
-    {"id": "informaciones", "name": "Módulo de Informaciones"},
+    {"id": "informaciones", "name": "Servicio al Cliente"},
     {"id": "cajas", "name": "Área de Cajas"},
     {"id": "atencion_cliente", "name": "Atención al Cliente"},
     {"id": "bodega", "name": "Bodega"},
-    {"id": "oficina", "name": "Oficina"},
-    {"id": "entrada", "name": "Entrada Principal"},
-    {"id": "gerencia", "name": "Gerencia"},
-    {"id": "rrhh", "name": "Recursos Humanos"},
     {"id": "seguridad", "name": "Seguridad"},
 ]
 

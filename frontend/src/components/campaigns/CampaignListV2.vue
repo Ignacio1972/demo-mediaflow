@@ -5,7 +5,8 @@ import { useCampaignStore } from './stores/campaignStore'
 import CampaignCardV2 from './components/CampaignCardV2.vue'
 import CampaignListTable from './components/CampaignListTable.vue'
 import NewCampaignModal from './modals/NewCampaignModal.vue'
-import { PlusIcon } from '@heroicons/vue/24/outline'
+import RecentMessagesPage from '@/components/library/RecentMessagesPage.vue'
+import { PlusIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
 import type { Campaign, CampaignCreate } from '@/types/campaign'
 
 const router = useRouter()
@@ -13,6 +14,7 @@ const store = useCampaignStore()
 
 // Modal state
 const showNewModal = ref(false)
+const showRecent = ref(false)
 
 // Drag and drop state
 const draggedCampaign = ref<Campaign | null>(null)
@@ -181,6 +183,15 @@ function handleDragEnd() {
           />
         </div>
       </template>
+
+      <!-- Recent Messages -->
+      <div class="mt-10">
+        <button class="flex items-center gap-2 mb-4" @click="showRecent = !showRecent">
+          <ChevronDownIcon class="w-4 h-4 transition-transform duration-200" :class="{ '-rotate-90': !showRecent }" />
+          <h3 class="text-3xl font-thin">Mensajes Recientes</h3>
+        </button>
+        <RecentMessagesPage v-show="showRecent" embedded />
+      </div>
 
       <!-- Modal -->
       <NewCampaignModal

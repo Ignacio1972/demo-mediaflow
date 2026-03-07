@@ -47,8 +47,8 @@
       </div>
 
       <!-- Content Preview -->
-      <p class="text-sm text-base-content/70 line-clamp-2 mt-2">
-        {{ truncate(message.original_text, 100) }}
+      <p class="text-sm text-base-content/70 line-clamp-4 mt-2">
+        {{ truncate(message.original_text, 200) }}
       </p>
 
       <!-- Audio Player Row -->

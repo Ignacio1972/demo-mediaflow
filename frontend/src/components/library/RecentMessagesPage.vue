@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="max-w-5xl mx-auto">
+    <div :class="embedded ? '' : 'max-w-5xl mx-auto'">
       <!-- Header -->
-      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div v-if="!embedded" class="flex flex-wrap items-center justify-between gap-4 mb-6">
         <span class="text-sm text-base-content/50">
           {{ messages.length }} mensaje{{ messages.length !== 1 ? 's' : '' }} generado{{ messages.length !== 1 ? 's' : '' }} recientemente
         </span>
@@ -69,6 +69,16 @@
 
             <!-- Action Buttons -->
             <div class="flex items-center justify-end gap-3 mt-3 pt-3 border-t border-base-content/10">
+              <!-- Shortcut Button -->
+              <button
+                @click="openShortcutModal(message)"
+                class="btn btn-sm btn-ghost"
+                :class="{ 'text-primary': shortcutAudioIds.has(message.id) }"
+                title="Shortcut"
+              >
+                <BoltIcon class="h-5 w-5" />
+              </button>
+
               <!-- Play Button -->
               <button
                 @click="playAudio(message)"
@@ -96,16 +106,6 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
-              </button>
-
-              <!-- Shortcut Button -->
-              <button
-                @click="openShortcutModal(message)"
-                class="btn btn-sm btn-ghost"
-                :class="{ 'text-primary': shortcutAudioIds.has(message.id) }"
-                title="Shortcut"
-              >
-                <BoltIcon class="h-5 w-5" />
               </button>
 
               <!-- Delete Button -->
@@ -164,6 +164,12 @@ import { BookOpenIcon } from '@heroicons/vue/24/outline'
 import { useShortcutStatus } from '@/components/shared/shortcuts/useShortcutStatus'
 import QuickShortcutModal from '@/components/shared/shortcuts/QuickShortcutModal.vue'
 import type { AudioMessage } from '@/types/audio'
+
+const props = withDefaults(defineProps<{
+  embedded?: boolean
+}>(), {
+  embedded: false
+})
 
 const audioStore = useAudioStore()
 const { recentMessages: messages, isLoading } = storeToRefs(audioStore)

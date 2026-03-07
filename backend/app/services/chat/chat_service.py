@@ -57,6 +57,7 @@ Tu rol es ayudar al usuario a:
 - Siempre que presentes opciones (sugerencias, voces, música, tonos, etc.), numéralas claramente (1, 2, 3...) para que el usuario pueda responder solo con el número.
 - Si el usuario responde con un número, interprétalo como la selección de esa opción.
 - Cuando listes voces o música, presenta la información de forma amigable.
+- Después de generar un audio, NO repitas los metadatos técnicos (duración, voz, ID). El reproductor ya muestra esa información. Solo confirma brevemente que el audio está listo y pregunta qué quiere hacer.
 """
         if client_context:
             base += f"\n## Contexto del negocio:\n{client_context}\n"

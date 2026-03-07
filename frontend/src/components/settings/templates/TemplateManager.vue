@@ -41,9 +41,9 @@
         </div>
 
         <!-- Main Content -->
-        <div class="grid lg:grid-cols-3 gap-6">
-          <!-- Left: Template List (1 column) -->
-          <div class="lg:col-span-1">
+        <div class="grid lg:grid-cols-5 gap-6">
+          <!-- Left: Template List (2 columns) -->
+          <div class="lg:col-span-2">
             <TemplateList
               :templates="filteredTemplates"
               :selected-template="selectedTemplate"
@@ -55,8 +55,8 @@
             />
           </div>
 
-          <!-- Right: Template Form (2 columns) -->
-          <div class="lg:col-span-2">
+          <!-- Right: Template Form (3 columns) -->
+          <div class="lg:col-span-3">
             <TemplateForm
               v-if="selectedTemplate"
               :template="selectedTemplate"
